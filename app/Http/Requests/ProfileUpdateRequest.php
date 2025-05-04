@@ -25,6 +25,17 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'phone_number' => [
+                'nullable',
+                'string',
+                'max:15',           // Max 15 digits for phone numbers (international standard)
+                'regex:/^\d+$/',    // Only digits
+                function ($attribute, $value, $fail) {
+                    if (!empty($value) && empty($this->phone_country_code)) {
+                        $fail('Phone number requires a country code.');
+                    }
+                }
+            ],
             'industry' => ['nullable', Rule::in([
                 'Beauty',
                 'Consumer',
