@@ -53,36 +53,8 @@
 
         {{-- Phone --}}
 
-        <div class="mt-6 flex space-x-2">
-            <div class="w-1/4">
-                <x-input-label for="phone_country_code" :value="__('Country Code')" />
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">+</span>
-                    <x-text-input id="phone_country_code" name="phone_country_code" type="text"
-                        class="mt-1 block w-full pl-8" placeholder="62" :value="old(
-                            'phone_country_code',
-                            isset($user->phone) && !empty($user->phone)
-                                ? ltrim(explode(' ', $user->phone)[0], '+')
-                                : '',
-                        )" maxlength="3"
-                        oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
-                </div>
-                <x-input-error class="mt-2" :messages="$errors->get('phone_country_code')" />
-            </div>
+        <x-phone-input :countryValue="isset($user->phone) && !empty($user->phone) ? ltrim(explode(' ', $user->phone)[0], '+') : ''" :numberValue="isset($user->phone) && strpos($user->phone, ' ') !== false ? explode(' ', $user->phone)[1] : ''" />
 
-            <div class="w-3/4">
-                <x-input-label for="phone_number" :value="__('Phone Number')" />
-                <x-text-input id="phone_number" name="phone_number" type="text" class="mt-1 block w-full"
-                    placeholder="8123456789" :value="old(
-                        'phone_number',
-                        isset($user->phone) && !empty($user->phone) && strpos($user->phone, ' ') !== false
-                            ? explode(' ', $user->phone)[1]
-                            : '',
-                    )"
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
-                <x-input-error class="mt-2" :messages="$errors->get('phone_number')" />
-            </div>
-        </div>
 
         {{-- Professional Info --}}
         <header>
@@ -160,34 +132,3 @@
     </form>
 </section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get references to the phone input fields
-        const countryCodeInput = document.getElementById('phone_country_code');
-        const phoneNumberInput = document.getElementById('phone_number');
-
-        // Auto-focus to phone number field when country code reaches max length
-        countryCodeInput.addEventListener('input', function() {
-            if (this.value.length >= 4) {
-                phoneNumberInput.focus();
-            }
-        });
-
-        // Prevent non-numeric input
-        [countryCodeInput, phoneNumberInput].forEach(input => {
-            input.addEventListener('keypress', function(e) {
-                if (!/^\d$/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e
-                    .key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
-                    e.preventDefault();
-                }
-            });
-
-            // Clean up on paste
-            input.addEventListener('paste', function(e) {
-                setTimeout(() => {
-                    this.value = this.value.replace(/[^0-9]/g, '');
-                }, 0);
-            });
-        });
-    });
-</script>
