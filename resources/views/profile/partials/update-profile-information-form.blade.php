@@ -52,8 +52,9 @@
         </div>
 
         {{-- Phone --}}
-
-        <x-phone-input :countryValue="isset($user->phone) && !empty($user->phone) ? ltrim(explode(' ', $user->phone)[0], '+') : ''" :numberValue="isset($user->phone) && strpos($user->phone, ' ') !== false ? explode(' ', $user->phone)[1] : ''" />
+        <div><x-input-label for="phone" :value="__('Phone Number')" />
+            <x-phone-input id="phone" name="phone" :countryValue="isset($user->phone) && !empty($user->phone) ? ltrim(explode(' ', $user->phone)[0], '+') : ''" :numberValue="isset($user->phone) && strpos($user->phone, ' ') !== false ? explode(' ', $user->phone)[1] : ''" />
+        </div>
 
 
         {{-- Professional Info --}}
@@ -131,4 +132,3 @@
         </div>
     </form>
 </section>
-

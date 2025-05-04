@@ -8,7 +8,7 @@
     'disabled' => false,
 ])
 
-<div class="flex items-center">
+<div class="flex items-center mt-1">
     <div class="flex mr-1">
         <!-- + symbol -->
         <div class="flex items-center justify-center w-7 h-10 border dark:bg-gray-900 dark:border-gray-700 rounded-l-md">
