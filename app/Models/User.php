@@ -21,7 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
-        'password', // ✅ Add this
+        'password',
         'industry',
         'seniority',
         'company_size',

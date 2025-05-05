@@ -28,7 +28,7 @@ class ProfileUpdateRequest extends FormRequest
             'phone_number' => [
                 'nullable',
                 'string',
-                'max:15',           // Max 15 digits for phone numbers (international standard)
+                'max:12',           // Max 12 digits for phone numbers (3 for country codes, 15 total in international standard)
                 'regex:/^\d+$/',    // Only digits
                 function ($attribute, $value, $fail) {
                     if (!empty($value) && empty($this->phone_country_code)) {
