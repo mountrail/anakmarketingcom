@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
 
 class GoogleController extends Controller
 {
@@ -31,35 +32,42 @@ class GoogleController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->user();
-
-            \Log::info('Google auth successful. User email: ' . $googleUser->email);
+            \Log::info('Google auth successful for: ' . $googleUser->email);
 
             // Check if user exists
             $user = User::where('email', $googleUser->email)->first();
 
             // If user doesn't exist, create a new one
             if (!$user) {
-                \Log::info('Creating new user for Google auth');
+                \Log::info('Creating new user from Google auth: ' . $googleUser->email);
 
                 try {
-                    $user = User::create([
+                    $userData = [
                         'name' => $googleUser->name,
                         'email' => $googleUser->email,
                         'google_id' => $googleUser->id,
                         'avatar' => $googleUser->avatar,
                         'provider' => 'google',
                         'provider_id' => $googleUser->id,
+                        'password' => bcrypt(Str::random(24)), // Random password
                         'email_verified_at' => now(),
-                    ]);
-                    \Log::info('New user created successfully: ' . $user->id);
+                    ];
+
+                    \Log::info('User data for creation:', ['data' => array_keys($userData)]);
+
+                    $user = User::create($userData);
+
+                    \Log::info('New user created successfully with ID: ' . $user->id);
                 } catch (\Exception $createEx) {
                     \Log::error('Failed to create user: ' . $createEx->getMessage());
+                    \Log::error($createEx->getTraceAsString());
+
+                    // Rethrow to be caught by outer catch block
                     throw $createEx;
                 }
             } else {
-                \Log::info('Updating existing user for Google auth: ' . $user->id);
-
-                // Update existing user logic...
+                \Log::info('Existing user found: ' . $user->id);
+                // Your existing update logic...
             }
 
             // Log the user in
@@ -68,11 +76,12 @@ class GoogleController extends Controller
 
             return redirect()->intended(route('dashboard'));
 
-        } catch (Exception $e) {
-            \Log::error('Google sign in failed: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            \Log::error('Google sign in exception: ' . $e->getMessage());
             \Log::error($e->getTraceAsString());
+
             return redirect()->route('login')
-                ->with('error', 'Google sign in failed: ' . $e->getMessage());
+                ->withErrors(['email' => 'Google sign in failed: ' . $e->getMessage()]);
         }
     }
 }
