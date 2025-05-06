@@ -32,42 +32,47 @@ class GoogleController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
 
+            \Log::info('Google auth successful. User email: ' . $googleUser->email);
+
             // Check if user exists
             $user = User::where('email', $googleUser->email)->first();
 
             // If user doesn't exist, create a new one
             if (!$user) {
-                $user = User::create([
-                    'name' => $googleUser->name,
-                    'email' => $googleUser->email,
-                    'google_id' => $googleUser->id,
-                    'avatar' => $googleUser->avatar,
-                    'provider' => 'google',
-                    'provider_id' => $googleUser->id,
-                    'email_verified_at' => now(), // Auto verify email for Google users
-                ]);
-            } else {
-                // Update existing user with Google info if they're signing in with Google for the first time
-                if (empty($user->google_id)) {
-                    $user->update([
+                \Log::info('Creating new user for Google auth');
+
+                try {
+                    $user = User::create([
+                        'name' => $googleUser->name,
+                        'email' => $googleUser->email,
                         'google_id' => $googleUser->id,
                         'avatar' => $googleUser->avatar,
                         'provider' => 'google',
                         'provider_id' => $googleUser->id,
-                        'email_verified_at' => $user->email_verified_at ?? now(),
+                        'email_verified_at' => now(),
                     ]);
+                    \Log::info('New user created successfully: ' . $user->id);
+                } catch (\Exception $createEx) {
+                    \Log::error('Failed to create user: ' . $createEx->getMessage());
+                    throw $createEx;
                 }
+            } else {
+                \Log::info('Updating existing user for Google auth: ' . $user->id);
+
+                // Update existing user logic...
             }
 
             // Log the user in
             Auth::login($user);
+            \Log::info('User logged in successfully: ' . $user->id);
 
-            // Redirect to dashboard or intended URL
             return redirect()->intended(route('dashboard'));
 
         } catch (Exception $e) {
-            // Handle exception
-            return redirect()->route('login')->with('error', 'Google sign in failed. Please try again.');
+            \Log::error('Google sign in failed: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return redirect()->route('login')
+                ->with('error', 'Google sign in failed: ' . $e->getMessage());
         }
     }
 }
