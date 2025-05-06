@@ -20,6 +20,10 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
+        'google_id',       // Add this for Google login
+        'avatar',          // Add this for user avatar from Google
+        'provider',        // Add this to track login provider (google, etc)
+        'provider_id',     // Add this for the provider's user ID
         'phone',
         'password',
         'industry',
