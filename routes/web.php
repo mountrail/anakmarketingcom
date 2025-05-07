@@ -8,6 +8,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Google login routes
+Route::controller(GoogleController::class)->group(function () {
+    Route::get('auth/google', 'redirectToGoogle')->name('auth.google');
+    Route::get('auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard', function () {
@@ -23,8 +29,5 @@ Route::middleware('auth')->group(function () {
 });
 
 
-// Google login routes
-Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
-Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 require __DIR__ . '/auth.php';

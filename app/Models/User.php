@@ -20,10 +20,10 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
-        'google_id',       // Add this for Google login
-        'avatar',          // Add this for user avatar from Google
-        'provider',        // Add this to track login provider (google, etc)
-        'provider_id',     // Add this for the provider's user ID
+        'google_id',
+        'avatar',
+        'provider',
+        'provider_id',
         'phone',
         'password',
         'industry',
@@ -31,7 +31,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'company_size',
         'city',
     ];
-
 
     /**
      * The attributes that should be hidden for serialization.
@@ -54,5 +53,15 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Override the hasVerifiedEmail method to always return true for Google users
+     *
+     * @return bool
+     */
+    public function hasVerifiedEmail()
+    {
+        return $this->provider === 'google' || $this->email_verified_at !== null;
     }
 }
