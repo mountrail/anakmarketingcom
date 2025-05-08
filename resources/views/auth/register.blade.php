@@ -1,4 +1,9 @@
 <x-guest-layout>
+    <div class="flex items-center justify-center mb-6">
+        <x-google-button href="{{ route('auth.google') }}">
+            Continue with Google
+        </x-google-button>
+    </div>
     <form method="POST" action="{{ route('register') }}">
         @csrf
         <!-- Name -->
