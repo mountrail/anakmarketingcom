@@ -74,7 +74,7 @@ class GoogleController extends Controller
             Auth::login($user);
             \Log::info('User logged in successfully: ' . $user->id);
 
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route('home'));
 
         } catch (\Exception $e) {
             \Log::error('Google sign in exception: ' . $e->getMessage());

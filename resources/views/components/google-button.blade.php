@@ -1,11 +1,11 @@
-{{-- resources/views/components/google-button.blade.php --}}
-
-<a {{ $attributes->merge(['class' => 'flex items-center px-6 py-3 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full justify-center']) }}>
-    <svg class="mr-2" width="25px" viewBox="0 0 32 32" data-name="Layer 1" id="Layer_1" xmlns="http://www.w3.org/2000/svg">
+<a
+    {{ $attributes->merge(['class' => 'flex items-center px-6 py-3 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full justify-center']) }}>
+    <svg class="mr-2" width="25px" viewBox="0 0 32 32" data-name="Layer 1" id="Layer_1"
+        xmlns="http://www.w3.org/2000/svg">
         <path d="M23.75,16A7.7446,7.7446,0,0,1,8.7177,18.6259L4.2849,22.1721A13.244,13.244,0,0,0,29.25,16"
-              fill="#00ac47" />
+            fill="#00ac47" />
         <path d="M23.75,16a7.7387,7.7387,0,0,1-3.2516,6.2987l4.3824,3.5059A13.2042,13.2042,0,0,0,29.25,16"
-              fill="#4285f4" />
+            fill="#4285f4" />
         <path
             d="M8.25,16a7.698,7.698,0,0,1,.4677-2.6259L4.2849,9.8279a13.177,13.177,0,0,0,0,12.3442l4.4328-3.5462A7.698,7.698,0,0,1,8.25,16Z"
             fill="#ffba00" />

@@ -74,7 +74,7 @@ class RegisteredUserController extends Controller
             event(new Registered($user));
             Auth::login($user);
 
-            return redirect(route('dashboard', absolute: false));
+            return redirect(route('home', absolute: false));
         } catch (\Exception $e) {
             // Log any exceptions that occur
             Log::error('Error creating user: ' . $e->getMessage());
