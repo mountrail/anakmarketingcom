@@ -2,9 +2,10 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
-
+use App\Http\Controllers\TinyMCEUploadController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,7 +18,13 @@ use App\Http\Controllers\Auth\GoogleController;
 */
 
 // Home route - accessible to all users (no middleware)
-Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// tinymce
+Route::middleware(['auth'])->group(function () {
+    Route::post('/admin/upload-tinymce-image', [TinyMCEUploadController::class, 'store'])->name('tinymce.upload');
+});
+
 
 // Google login routes
 Route::controller(GoogleController::class)->group(function () {
@@ -25,12 +32,23 @@ Route::controller(GoogleController::class)->group(function () {
     Route::get('auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
 
-// Protected routes (require authentication)
+// Post routes - Some accessible to all users
+// Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+
+// Protected post routes (require authentication)
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    // Add other authenticated routes here
+
+    // Protected post routes
+    Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::patch('/posts/{post}', [PostController::class, 'update']);
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 });
 
 // User profile routes

@@ -62,7 +62,8 @@
                 <!-- Login/Register Links (For Guests) -->
                 <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-4">
                     <a href="{{ route('login') }}" class="text-sm text-gray-700 dark:text-gray-300 underline">Log in</a>
-                    <a href="{{ route('register') }}" class="ml-4 text-sm text-gray-700 dark:text-gray-300 underline">Register</a>
+                    <a href="{{ route('register') }}"
+                        class="ml-4 text-sm text-gray-700 dark:text-gray-300 underline">Register</a>
                 </div>
             @endauth
 

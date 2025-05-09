@@ -2,27 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
     /**
-     * Create a new controller instance.
-     *
-     * @return void
+     * Display the homepage with filtered posts.
      */
-    public function __construct()
+    public function index(Request $request)
     {
-        // No auth middleware here as homepage should be public
-    }
+        $type = $request->get('type', 'question'); // Default to questions
 
-    /**
-     * Show the application homepage.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function index()
-    {
-        return view('home.index');
+        $posts = Post::where('type', $type)
+                    ->latest()
+                    ->paginate(10);
+
+        // Get featured posts for the editor's picks section
+        $editorPicks = Post::where('is_featured', true)
+                         ->latest()
+                         ->take(3)
+                         ->get();
+
+        return view('home.index', [
+            'posts' => $posts,
+            'editorPicks' => $editorPicks,
+            'selectedType' => $type
+        ]);
     }
 }
