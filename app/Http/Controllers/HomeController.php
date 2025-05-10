@@ -8,26 +8,26 @@ use Illuminate\Http\Request;
 class HomeController extends Controller
 {
     /**
-     * Display the homepage with filtered posts.
+     * Display the home page with posts.
      */
     public function index(Request $request)
     {
-        $type = $request->get('type', 'question'); // Default to questions
+        $selectedType = $request->query('type', 'question');
 
-        $posts = Post::where('type', $type)
-                    ->latest()
-                    ->paginate(10);
+        // Get featured posts (editor's picks)
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(3)
+            ->get();
 
-        // Get featured posts for the editor's picks section
-        $editorPicks = Post::where('is_featured', true)
-                         ->latest()
-                         ->take(3)
-                         ->get();
+        // Get regular posts filtered by type
+        $posts = Post::where('type', $selectedType)
+            ->with(['user', 'answers']) // Load relationship data
+            ->latest()
+            ->paginate(10);
 
-        return view('home.index', [
-            'posts' => $posts,
-            'editorPicks' => $editorPicks,
-            'selectedType' => $type
-        ]);
+        return view('home.index', compact('posts', 'editorPicks', 'selectedType'));
     }
 }

@@ -6,22 +6,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
-class Post extends Model
+class Answer extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'post_id',
         'user_id',
-        'title',
         'content',
-        'type',
-        'is_featured',
-        'featured_type',
-        'view_count',
+        'is_editors_pick',
     ];
 
     protected $casts = [
-        'is_featured' => 'boolean',
+        'is_editors_pick' => 'boolean',
     ];
 
     /**
@@ -32,33 +29,24 @@ class Post extends Model
         'user_vote',
     ];
 
+    /**
+     * Get the post that owns the answer.
+     */
+    public function post()
+    {
+        return $this->belongsTo(Post::class);
+    }
+
+    /**
+     * Get the user who created the answer.
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function scopeQuestions($query)
-    {
-        return $query->where('type', 'question');
-    }
-
-    public function scopeDiscussions($query)
-    {
-        return $query->where('type', 'discussion');
-    }
-
-    public function scopeFeatured($query)
-    {
-        return $query->where('is_featured', true);
-    }
-
-    public function answers()
-    {
-        return $this->hasMany(Answer::class);
-    }
-
     /**
-     * Get all votes for this post
+     * Get all votes for this answer
      */
     public function votes()
     {
@@ -66,7 +54,7 @@ class Post extends Model
     }
 
     /**
-     * Get the total score (upvotes - downvotes) for this post
+     * Get the total score (upvotes - downvotes) for this answer
      */
     public function getVoteScoreAttribute()
     {
@@ -77,7 +65,7 @@ class Post extends Model
     }
 
     /**
-     * Get the current user's vote for this post (1, -1, or null)
+     * Get the current user's vote for this answer (1, -1, or null)
      */
     public function getUserVoteAttribute()
     {
@@ -87,5 +75,13 @@ class Post extends Model
 
         $vote = $this->votes()->where('user_id', Auth::id())->first();
         return $vote ? $vote->value : null;
+    }
+
+    /**
+     * Scope a query to only include featured answers.
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
     }
 }

@@ -47,6 +47,14 @@
 
     <!-- Stack for any additional scripts -->
     @stack('scripts')
+    @push('scripts')
+        <!-- Add this to your layouts/app.blade.php file before </body> tag -->
+        <script>
+            // Set the login URL for guest users
+            const loginUrl = "{{ route('login') }}";
+        </script>
+        <script src="{{ asset('js/voting.js') }}"></script>
+    @endpush
 </body>
 
 </html>

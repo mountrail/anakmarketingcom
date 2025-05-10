@@ -3,6 +3,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\VoteController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\TinyMCEUploadController;
@@ -41,6 +42,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Answer routes
+Route::middleware(['auth'])->group(function () {
+    Route::post('/posts/{post}/answers', [App\Http\Controllers\AnswerController::class, 'store'])->name('posts.answers.store');
+    Route::patch('/answers/{answer}/toggle-editors-pick', [App\Http\Controllers\AnswerController::class, 'toggleEditorsPick'])->name('answers.toggle-editors-pick');
+
+    // Voting routes
+    Route::post('/posts/{post}/vote', [VoteController::class, 'votePost'])->name('posts.vote');
+    Route::post('/answers/{answer}/vote', [VoteController::class, 'voteAnswer'])->name('answers.vote');
 });
 
 // Include authentication routes

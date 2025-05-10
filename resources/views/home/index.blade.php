@@ -1,4 +1,3 @@
-
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
@@ -21,11 +20,6 @@
                         class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                         {{ __('Buat Pertanyaan / Diskusi Baru') }}
                     </a>
-                @else
-                    <a href="{{ route('login') }}"
-                        class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                        {{ __('Login to Post') }}
-                    </a>
                 @endauth
             </div>
         </div>
@@ -33,24 +27,6 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <h1 class="text-2xl font-bold mb-4">Welcome to Anak Marketing!</h1>
-                    <p class="mb-4">This is our community platform for marketing professionals and enthusiasts.</p>
-
-                    @guest
-                        <div class="mt-6">
-                            <p class="mb-4">To post questions or participate in discussions, please log in or create an
-                                account.</p>
-                        </div>
-                    @else
-                        <div class="mt-6">
-                            <p>You're logged in as <strong>{{ Auth::user()->name }}</strong>!</p>
-                        </div>
-                    @endguest
-                </div>
-            </div>
-
             <!-- Editor's Picks Section -->
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-orange-500 dark:text-orange-400 mb-4">Editor's Picks</h2>
@@ -74,7 +50,11 @@
                                         </div>
                                     </div>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                        {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em><h1><h2><h3><h4><h5><h6><ul><ol><li><a><span>'), 100, "...") !!}
+                                        {!! Str::limit(
+                                            strip_tags($pick->content, '<p><br><b><i><strong><em><h1><h2><h3><h4><h5><h6><ul><ol><li><a><span>'),
+                                            100,
+                                            '...',
+                                        ) !!}
 
                                     </p>
 
@@ -108,7 +88,8 @@
                 @if ($posts->isEmpty())
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 text-gray-900 dark:text-gray-100">
-                            <p class="text-center">No {{ $selectedType == 'question' ? 'questions' : 'discussions' }}
+                            <p class="text-center">No
+                                {{ $selectedType == 'question' ? 'questions' : 'discussions' }}
                                 found.</p>
                         </div>
                     </div>
@@ -124,7 +105,11 @@
                                         </a>
                                     </div>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                        {!! Str::limit(strip_tags($post->content, '<p><br><b><i><strong><em><h1><h2><h3><h4><h5><h6><ul><ol><li><a><span>'), 100, '...')  !!}
+                                        {!! Str::limit(
+                                            strip_tags($post->content, '<p><br><b><i><strong><em><h1><h2><h3><h4><h5><h6><ul><ol><li><a><span>'),
+                                            100,
+                                            '...',
+                                        ) !!}
                                     </p>
 
 
@@ -136,24 +121,73 @@
                                             <span>{{ $post->view_count }} views</span>
                                         </div>
                                         <div class="flex items-center space-x-2">
-                                            <button
-                                                class="inline-flex items-center text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
-                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M5 15l7-7 7 7" />
-                                                </svg>
-                                                Upvote
-                                            </button>
-                                            <button
-                                                class="inline-flex items-center text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
-                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                                Downvote
-                                            </button>
+                                            <!-- Replace the existing vote buttons in index.blade.php -->
+                                            <div class="flex items-center space-x-2 vote-container">
+                                                @auth
+                                                    <form action="{{ route('posts.vote', $post->id) }}" method="POST"
+                                                        class="inline vote-form">
+                                                        @csrf
+                                                        <input type="hidden" name="value" value="1">
+                                                        <button type="button"
+                                                            class="vote-btn upvote-btn inline-flex items-center text-xs px-2 py-1 {{ $post->user_vote === 1 ? 'active-vote bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }} rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                            title="Upvote">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
+                                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2" d="M5 15l7-7 7 7" />
+                                                            </svg>
+                                                            Upvote
+                                                        </button>
+                                                    </form>
+
+                                                    <span class="vote-score text-xs font-medium px-2"
+                                                        data-post-id="{{ $post->id }}">
+                                                        {{ $post->vote_score }}
+                                                    </span>
+
+                                                    <form action="{{ route('posts.vote', $post->id) }}" method="POST"
+                                                        class="inline vote-form">
+                                                        @csrf
+                                                        <input type="hidden" name="value" value="-1">
+                                                        <button type="button"
+                                                            class="vote-btn downvote-btn inline-flex items-center text-xs px-2 py-1 {{ $post->user_vote === -1 ? 'active-vote bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }} rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                            title="Downvote">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
+                                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                            </svg>
+                                                            Downvote
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <button type="button"
+                                                        class="vote-btn guest-vote inline-flex items-center text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                        title="Login to vote">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
+                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M5 15l7-7 7 7" />
+                                                        </svg>
+                                                        Upvote
+                                                    </button>
+
+                                                    <span class="vote-score text-xs font-medium px-2">
+                                                        {{ $post->vote_score }}
+                                                    </span>
+
+                                                    <button type="button"
+                                                        class="vote-btn guest-vote inline-flex items-center text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                        title="Login to vote">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
+                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                        Downvote
+                                                    </button>
+                                                @endauth
+                                            </div>
                                             <span
                                                 class="inline-flex items-center text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
@@ -162,7 +196,7 @@
                                                         stroke-width="2"
                                                         d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                                                 </svg>
-                                                310
+                                                {{ $post->answers->count() }}
                                             </span>
                                             <button
                                                 class="inline-flex items-center text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md">

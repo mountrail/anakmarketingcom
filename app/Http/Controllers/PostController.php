@@ -47,10 +47,20 @@ class PostController extends Controller
         // Increment view count
         $post->increment('view_count');
 
+        // Load post with its answers and the users who wrote them
+        $post->load([
+            'answers' => function ($query) {
+                $query->latest();
+            },
+            'answers.user'
+        ]);
+
         // If you want to purify on display instead of storage
         // You can comment this out if you're already purifying in the blade template
         // $post->content = Purifier::clean($post->content);
 
         return view('posts.show', compact('post'));
     }
+
+
 }
