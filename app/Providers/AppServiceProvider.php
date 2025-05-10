@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Providers;
-
+// Register the PostList component
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Blade;
+use App\View\Components\PostListComponent;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             \URL::forceScheme('https');
         }
+
+        // Register the PostList component
+        Blade::component('post-list', PostListComponent::class);
 
         // Define a gate for managing editor's picks
         // For now, we'll use a simple approach where only user ID 1 has admin capabilities

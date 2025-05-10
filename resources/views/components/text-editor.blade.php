@@ -11,6 +11,7 @@
 @once
     @push('styles')
         <link href="https://cdn.jsdelivr.net/npm/tinymce@6/skins/ui/oxide/skin.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/tinymce@6/skins/content/default/content.min.css" rel="stylesheet">
     @endpush
 
     @push('scripts')
@@ -33,13 +34,59 @@
                 height: 400,
                 content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                 entity_encoding: 'raw',
+                branding: false,
+                promotion: false,
 
-                // Debug mode
-                extended_valid_elements: 'img[class|src|border=0|alt|title|hspace|vspace|width|height|align|onmouseover|onmouseout|name]',
-
-                // Improved image upload configuration
+                // Change default tab to "upload" when inserting image
+                file_picker_types: 'image',
                 images_upload_url: '{{ route('tinymce.upload') }}',
-                images_upload_handler: function (blobInfo, progress) {
+
+                // Set default tab to file browser when clicking image button
+                file_picker_callback: function(callback, value, meta) {
+                    // Open file browser directly
+                    let input = document.createElement('input');
+                    input.setAttribute('type', 'file');
+                    input.setAttribute('accept', 'image/*');
+
+                    input.onchange = function() {
+                        if (this.files && this.files[0]) {
+                            uploadStatus.innerHTML = 'Preparing image...';
+
+                            let file = this.files[0];
+                            let formData = new FormData();
+                            formData.append('file', file);
+
+                            fetch('{{ route('tinymce.upload') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': csrfToken
+                                    },
+                                    body: formData
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.location) {
+                                        callback(data.location, {
+                                            title: file.name,
+                                            alt: file.name
+                                        });
+                                        uploadStatus.innerHTML = 'Upload successful!';
+                                    } else {
+                                        uploadStatus.innerHTML = 'Upload error: ' + (data
+                                            .error || 'Unknown error');
+                                    }
+                                })
+                                .catch(error => {
+                                    uploadStatus.innerHTML = 'Upload error: ' + error;
+                                });
+                        }
+                    };
+
+                    input.click();
+                },
+
+                // Keep the standard image upload handler as fallback
+                images_upload_handler: function(blobInfo, progress) {
                     return new Promise((resolve, reject) => {
                         uploadStatus.innerHTML = 'Upload starting...';
 
@@ -50,15 +97,19 @@
                         // Important: Set CSRF token in header
                         xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
 
-                        xhr.upload.onprogress = function (e) {
+                        xhr.upload.onprogress = function(e) {
                             progress(e.loaded / e.total * 100);
-                            uploadStatus.innerHTML = 'Uploading: ' + Math.round(e.loaded / e.total * 100) + '%';
+                            uploadStatus.innerHTML = 'Uploading: ' + Math.round(e.loaded / e
+                                .total * 100) + '%';
                         };
 
                         xhr.onload = function() {
                             if (xhr.status === 403) {
                                 uploadStatus.innerHTML = 'Error: Forbidden (403)';
-                                reject({ message: 'HTTP Error: ' + xhr.status, remove: true });
+                                reject({
+                                    message: 'HTTP Error: ' + xhr.status,
+                                    remove: true
+                                });
                                 return;
                             }
 
@@ -80,16 +131,18 @@
                                     return;
                                 }
 
-                                uploadStatus.innerHTML = 'Upload successful! Image at: ' + json.location;
+                                uploadStatus.innerHTML = 'Upload successful! Image at: ' +
+                                    json.location;
                                 console.log('Image uploaded to:', json.location);
                                 resolve(json.location);
                             } catch (e) {
-                                uploadStatus.innerHTML = 'Error parsing response: ' + e.message;
+                                uploadStatus.innerHTML = 'Error parsing response: ' + e
+                                    .message;
                                 reject('Error parsing response: ' + e.message);
                             }
                         };
 
-                        xhr.onerror = function () {
+                        xhr.onerror = function() {
                             uploadStatus.innerHTML = 'Network error';
                             reject('Image upload failed due to a network error');
                         };
@@ -104,6 +157,11 @@
                 setup: function(editor) {
                     editor.on('change', function() {
                         editor.save();
+                    });
+
+                    // This ensures the content is properly initialized with any existing value
+                    editor.on('init', function() {
+                        editor.setContent(editor.getElement().value);
                     });
                 }
             });

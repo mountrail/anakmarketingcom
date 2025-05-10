@@ -18,8 +18,7 @@
     <!-- Stack for any additional styles -->
     @stack('styles')
 
-    <!-- Add this to your app.blade.php file in the <head> section if not already present -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 </head>
 
 <body class="font-sans antialiased">
@@ -44,6 +43,7 @@
             @endif
         </main>
     </div>
+
 
     <!-- Stack for any additional scripts -->
     @stack('scripts')

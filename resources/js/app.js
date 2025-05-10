@@ -1,4 +1,5 @@
 import './bootstrap';
+import './voting.js';
 
 import Alpine from 'alpinejs';
 

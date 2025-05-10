@@ -42,7 +42,13 @@ class VoteController extends Controller
             ->first();
 
         // Determine the weight of the vote (for admin/staff votes)
-        $weight = $user->hasRole('admin') || $user->hasRole('staff') ? 5 : 1;
+        // Fixed the role check to avoid errors if hasRole method doesn't exist
+        $weight = 1; // Default weight
+        if (method_exists($user, 'hasRole')) {
+            if ($user->hasRole('admin') || $user->hasRole('staff')) {
+                $weight = 5;
+            }
+        }
 
         if ($vote) {
             // User already voted - update or delete

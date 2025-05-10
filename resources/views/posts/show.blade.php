@@ -22,52 +22,6 @@
                                 <span>{{ $post->view_count }} views</span>
                             </div>
                         </div>
-
-                        @auth
-                            <div class="flex items-center space-x-2">
-                                <form action="{{ route('posts.vote', $post->id) }}" method="POST" class="inline vote-form">
-                                    @csrf
-                                    <input type="hidden" name="value" value="1">
-                                    <button type="submit"
-                                        class="vote-btn upvote-btn inline-flex items-center p-2 {{ $post->user_vote === 1 ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }} rounded hover:bg-gray-200 dark:hover:bg-gray-600"
-                                        title="Upvote">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 15l7-7 7 7" />
-                                        </svg>
-                                    </button>
-                                </form>
-
-                                <span class="vote-score text-lg font-medium px-2" data-post-id="{{ $post->id }}">
-                                    {{ $post->vote_score }}
-                                </span>
-
-                                <form action="{{ route('posts.vote', $post->id) }}" method="POST" class="inline vote-form">
-                                    @csrf
-                                    <input type="hidden" name="value" value="-1">
-                                    <button type="submit"
-                                        class="vote-btn downvote-btn inline-flex items-center p-2 {{ $post->user_vote === -1 ? 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }} rounded hover:bg-gray-200 dark:hover:bg-gray-600"
-                                        title="Downvote">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-                                </form>
-                            </div>
-                        @else
-                            <div class="flex items-center space-x-2">
-                                <span class="vote-score text-lg font-medium px-2">
-                                    {{ $post->vote_score }}
-                                </span>
-                                <a href="{{ route('login') }}"
-                                    class="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
-                                    Log in to vote
-                                </a>
-                            </div>
-                        @endauth
                     </div>
 
                     <div class="mt-6 border-t pt-6">
@@ -75,6 +29,98 @@
                             {!! $post->content !!}
                         </div>
                     </div>
+
+                    <!-- Updated to match post-list.blade.php voting UI -->
+                    <div class="flex items-center justify-end mt-4">
+                        <div class="flex items-center space-x-2">
+                            <!-- Vote buttons -->
+                            <div class="flex items-center space-x-2 vote-container">
+                                @auth
+                                    <form action="{{ route('posts.vote', $post->id) }}" method="POST"
+                                        class="inline vote-form">
+                                        @csrf
+                                        <input type="hidden" name="value" value="1">
+                                        <button type="button"
+                                            class="vote-btn upvote-btn inline-flex items-center text-xs px-2 py-1 {{ $post->user_vote === 1 ? 'active-vote bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }} rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            title="Upvote">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2" d="M5 15l7-7 7 7" />
+                                            </svg>
+                                            Upvote
+                                        </button>
+                                    </form>
+
+                                    <span class="vote-score text-xs font-medium px-2"
+                                        data-post-id="{{ $post->id }}">
+                                        {{ $post->vote_score }}
+                                    </span>
+
+                                    <form action="{{ route('posts.vote', $post->id) }}" method="POST"
+                                        class="inline vote-form">
+                                        @csrf
+                                        <input type="hidden" name="value" value="-1">
+                                        <button type="button"
+                                            class="vote-btn downvote-btn inline-flex items-center text-xs px-2 py-1 {{ $post->user_vote === -1 ? 'active-vote bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }} rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            title="Downvote">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                            Downvote
+                                        </button>
+                                    </form>
+                                @else
+                                    <button type="button"
+                                        class="vote-btn guest-vote inline-flex items-center text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                                        title="Login to vote">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 15l7-7 7 7" />
+                                        </svg>
+                                        Upvote
+                                    </button>
+
+                                    <span class="vote-score text-xs font-medium px-2">
+                                        {{ $post->vote_score }}
+                                    </span>
+
+                                    <button type="button"
+                                        class="vote-btn guest-vote inline-flex items-center text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                                        title="Login to vote">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                        Downvote
+                                    </button>
+                                @endauth
+                            </div>
+                            <span
+                                class="inline-flex items-center text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                </svg>
+                                {{ $post->answers->count() }}
+                            </span>
+                            <button
+                                class="inline-flex items-center text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                </svg>
+                                Share
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Include answer form component -->
                     <x-answer-form :post="$post" />
                     <!-- Include answers list component -->
@@ -95,74 +141,5 @@
 @endsection
 
 @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Handle vote forms submission via AJAX
-            const voteForms = document.querySelectorAll('.vote-form');
-
-            voteForms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    const formData = new FormData(form);
-                    const url = form.getAttribute('action');
-                    const voteValue = formData.get('value');
-                    const isPostVote = url.includes('/posts/');
-                    const targetId = url.match(/\/(posts|answers)\/(\d+)\/vote/)[2];
-
-                    fetch(url, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'X-CSRF-TOKEN': formData.get('_token')
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            // Update the score display
-                            const scoreElement = document.querySelector(
-                                `.vote-score[data-${isPostVote ? 'post' : 'answer'}-id="${targetId}"]`
-                            );
-                            if (scoreElement) {
-                                scoreElement.textContent = data.score;
-                            }
-
-                            // Update button styles
-                            const upvoteBtn = form.closest('.flex').querySelector(
-                                '.upvote-btn');
-                            const downvoteBtn = form.closest('.flex').querySelector(
-                                '.downvote-btn');
-
-                            // Reset button styles
-                            upvoteBtn.classList.remove('bg-green-100', 'dark:bg-green-900',
-                                'text-green-600', 'dark:text-green-400');
-                            upvoteBtn.classList.add('bg-gray-100', 'dark:bg-gray-700',
-                                'text-gray-600', 'dark:text-gray-400');
-
-                            downvoteBtn.classList.remove('bg-red-100', 'dark:bg-red-900',
-                                'text-red-600', 'dark:text-red-400');
-                            downvoteBtn.classList.add('bg-gray-100', 'dark:bg-gray-700',
-                                'text-gray-600', 'dark:text-gray-400');
-
-                            // Set active style if needed
-                            if (data.userVote === 1) {
-                                upvoteBtn.classList.remove('bg-gray-100', 'dark:bg-gray-700',
-                                    'text-gray-600', 'dark:text-gray-400');
-                                upvoteBtn.classList.add('bg-green-100', 'dark:bg-green-900',
-                                    'text-green-600', 'dark:text-green-400');
-                            } else if (data.userVote === -1) {
-                                downvoteBtn.classList.remove('bg-gray-100', 'dark:bg-gray-700',
-                                    'text-gray-600', 'dark:text-gray-400');
-                                downvoteBtn.classList.add('bg-red-100', 'dark:bg-red-900',
-                                    'text-red-600', 'dark:text-red-400');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                        });
-                });
-            });
-        });
-    </script>
+    <!-- No custom script needed here since we're using the global voting.js -->
 @endpush

@@ -9,17 +9,26 @@ use Mews\Purifier\Facades\Purifier;
 
 class PostController extends Controller
 {
-    public function index()
-    {
-        $posts = Post::latest()->paginate(10);
-        return view('home.index', compact('posts'));
-    }
+    /**
+     * Display a listing of posts based on type filter.
+     */
+    public function index(Request $request)
+{
+    $selectedType = $request->query('type', 'question');
+    return view('home.index', compact('selectedType'));
+}
 
+    /**
+     * Show the form for creating a new post.
+     */
     public function create()
     {
         return view('posts.create');
     }
 
+    /**
+     * Store a newly created post in storage.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -42,6 +51,9 @@ class PostController extends Controller
             ->with('success', 'Post created successfully.');
     }
 
+    /**
+     * Display the specified post.
+     */
     public function show(Post $post)
     {
         // Increment view count
@@ -55,12 +67,6 @@ class PostController extends Controller
             'answers.user'
         ]);
 
-        // If you want to purify on display instead of storage
-        // You can comment this out if you're already purifying in the blade template
-        // $post->content = Purifier::clean($post->content);
-
         return view('posts.show', compact('post'));
     }
-
-
 }
