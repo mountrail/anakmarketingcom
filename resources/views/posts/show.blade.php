@@ -23,23 +23,7 @@
                             </div>
                         </div>
 
-                        @if (auth()->id() === $post->user_id)
-                            <div class="flex space-x-2">
-                                <a href="{{ route('posts.edit', $post->id) }}"
-                                    class="inline-flex items-center px-3 py-1 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500">
-                                    Edit
-                                </a>
-                                <form action="{{ route('posts.destroy', $post->id) }}" method="POST"
-                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus postingan ini?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                        class="inline-flex items-center px-3 py-1 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500">
-                                        Hapus
-                                    </button>
-                                </form>
-                            </div>
-                        @endif
+
                     </div>
 
                     <div class="mt-6 border-t pt-6">

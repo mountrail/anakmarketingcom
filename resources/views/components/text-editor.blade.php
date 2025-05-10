@@ -28,7 +28,7 @@
                 height: 400,
                 content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                 entity_encoding: 'raw',
-                images_upload_url: '/admin/upload-tinymce-image',
+                images_upload_url: '{{ route('tinymce.upload') }}',
                 automatic_uploads: true,
                 file_picker_types: 'image',
                 images_reuse_filename: true,
@@ -46,7 +46,7 @@
                                 formData.append('file', file);
                                 const token = document.querySelector('meta[name="csrf-token"]')
                                     .getAttribute('content');
-                                fetch('/admin/upload-tinymce-image', {
+                                fetch('{{ route('tinymce.upload') }}', {
                                         method: 'POST',
                                         headers: {
                                             'X-CSRF-TOKEN': token
