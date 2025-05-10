@@ -26,9 +26,6 @@ Route::controller(GoogleController::class)->group(function () {
 
 // Protected post routes (require authentication)
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
 
     // Protected post routes - Only create and store (no edit or delete)
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');

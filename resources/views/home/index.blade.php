@@ -74,7 +74,7 @@
                                         </div>
                                     </div>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                        {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em><h1><h2><h3><h4><h5><h6><ul><ol><li><a><span><img>'), 100, "...") !!}
+                                        {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em><h1><h2><h3><h4><h5><h6><ul><ol><li><a><span>'), 100, "...") !!}
 
                                     </p>
 
@@ -124,7 +124,7 @@
                                         </a>
                                     </div>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                        {!! Str::limit(strip_tags($post->content, '<p><br><b><i><strong><em><h1><h2><h3><h4><h5><h6><ul><ol><li><a><span><img>'), 100, '...')  !!}
+                                        {!! Str::limit(strip_tags($post->content, '<p><br><b><i><strong><em><h1><h2><h3><h4><h5><h6><ul><ol><li><a><span>'), 100, '...')  !!}
                                     </p>
 
 
