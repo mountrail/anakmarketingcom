@@ -72,9 +72,12 @@ class RegisteredUserController extends Controller
             Log::info('User created successfully with ID: ' . $user->id);
 
             event(new Registered($user));
-            Auth::login($user);
 
-            return redirect(route('home', absolute: false));
+            // IMPORTANT CHANGE: Don't log the user in automatically
+            // Auth::login($user); - This line is removed
+
+            // Redirect to verification notice page
+            return redirect()->route('verification.notice');
         } catch (\Exception $e) {
             // Log any exceptions that occur
             Log::error('Error creating user: ' . $e->getMessage());

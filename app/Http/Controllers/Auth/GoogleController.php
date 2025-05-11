@@ -67,7 +67,18 @@ class GoogleController extends Controller
                 }
             } else {
                 \Log::info('Existing user found: ' . $user->id);
-                // Your existing update logic...
+
+                // Update existing user with Google information
+                // This ensures proper linkage with Google and verification status
+                $user->update([
+                    'google_id' => $googleUser->id,
+                    'avatar' => $googleUser->avatar,
+                    'provider' => 'google',
+                    'provider_id' => $googleUser->id,
+                    'email_verified_at' => $user->email_verified_at ?? now(), // Set verification timestamp if not already set
+                ]);
+
+                \Log::info('Existing user updated with Google information');
             }
 
             // Log the user in
