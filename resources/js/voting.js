@@ -13,12 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', function (e) {
             e.preventDefault();
 
-            // Check if user is logged in
-            if (button.classList.contains('guest-vote')) {
-                window.location.href = '/login'; // Adjust login URL as needed
-                return;
-            }
-
             const form = button.closest('.vote-form');
             if (!form) {
                 console.error('Could not find parent form element');
@@ -53,17 +47,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // Find all relevant vote containers that need updating
-            const voteContainers = document.querySelectorAll(`.vote-container`);
+            // Find the vote container either by data attribute on the container or by searching for a score element
+            const voteContainers = document.querySelectorAll(
+                `.vote-container[data-${isPostVote ? 'post' : 'answer'}-id="${targetId}"], ` +
+                `.vote-container:has(.vote-score[data-${isPostVote ? 'post' : 'answer'}-id="${targetId}"])`
+            );
 
             // Find all vote buttons for this target to disable them
             const targetVoteButtons = [];
             voteContainers.forEach(container => {
-                const scoreElement = container.querySelector(`.vote-score[data-${isPostVote ? 'post' : 'answer'}-id="${targetId}"]`);
-                if (scoreElement) {
-                    const btns = container.querySelectorAll('.vote-btn');
-                    btns.forEach(btn => targetVoteButtons.push(btn));
-                }
+                const btns = container.querySelectorAll('.vote-btn');
+                btns.forEach(btn => targetVoteButtons.push(btn));
             });
 
             // Disable all vote buttons for this target
@@ -79,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const previousStates = [];
 
             voteContainers.forEach(container => {
-                // Check if this container belongs to the current post/answer
+                // Find the score element, which might be hidden if showScore is false
                 const scoreElement = container.querySelector(`.vote-score[data-${isPostVote ? 'post' : 'answer'}-id="${targetId}"]`);
                 if (!scoreElement) return; // Skip if not related to current vote
 
@@ -254,35 +248,64 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Helper function to reset button styles
     function resetButtonStyles(upvoteBtn, downvoteBtn) {
-        // Remove active classes from upvote
-        upvoteBtn.classList.remove('active-vote', 'bg-green-100', 'dark:bg-green-900',
-            'text-green-600', 'dark:text-green-400');
-        // Add inactive classes to upvote
-        upvoteBtn.classList.add('bg-gray-100', 'dark:bg-gray-700',
-            'text-gray-600', 'dark:text-gray-400');
+        // Determine if we're in compact mode
+        const isCompact = upvoteBtn.classList.contains('text-sm');
 
-        // Remove active classes from downvote
-        downvoteBtn.classList.remove('active-vote', 'bg-red-100', 'dark:bg-red-900',
-            'text-red-600', 'dark:text-red-400');
-        // Add inactive classes to downvote
-        downvoteBtn.classList.add('bg-gray-100', 'dark:bg-gray-700',
-            'text-gray-600', 'dark:text-gray-400');
+        if (isCompact) {
+            // Handle compact mode styling
+            upvoteBtn.classList.remove('active-vote', 'text-green-600', 'dark:text-green-400');
+            upvoteBtn.classList.add('text-gray-500', 'dark:text-gray-400');
+
+            downvoteBtn.classList.remove('active-vote', 'text-red-600', 'dark:text-red-400');
+            downvoteBtn.classList.add('text-gray-500', 'dark:text-gray-400');
+        } else {
+            // Handle normal mode styling
+            upvoteBtn.classList.remove('active-vote', 'bg-green-100', 'dark:bg-green-900',
+                'text-green-600', 'dark:text-green-400');
+            upvoteBtn.classList.add('bg-gray-100', 'dark:bg-gray-700',
+                'text-gray-600', 'dark:text-gray-400');
+
+            downvoteBtn.classList.remove('active-vote', 'bg-red-100', 'dark:bg-red-900',
+                'text-red-600', 'dark:text-red-400');
+            downvoteBtn.classList.add('bg-gray-100', 'dark:bg-gray-700',
+                'text-gray-600', 'dark:text-gray-400');
+        }
     }
 
     // Helper function to set active upvote style
     function setActiveUpvote(upvoteBtn) {
-        upvoteBtn.classList.remove('bg-gray-100', 'dark:bg-gray-700',
-            'text-gray-600', 'dark:text-gray-400');
-        upvoteBtn.classList.add('active-vote', 'bg-green-100', 'dark:bg-green-900',
-            'text-green-600', 'dark:text-green-400');
+        // Determine if we're in compact mode
+        const isCompact = upvoteBtn.classList.contains('text-sm');
+
+        if (isCompact) {
+            // Handle compact mode styling
+            upvoteBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
+            upvoteBtn.classList.add('active-vote', 'text-green-600', 'dark:text-green-400');
+        } else {
+            // Handle normal mode styling
+            upvoteBtn.classList.remove('bg-gray-100', 'dark:bg-gray-700',
+                'text-gray-600', 'dark:text-gray-400');
+            upvoteBtn.classList.add('active-vote', 'bg-green-100', 'dark:bg-green-900',
+                'text-green-600', 'dark:text-green-400');
+        }
     }
 
     // Helper function to set active downvote style
     function setActiveDownvote(downvoteBtn) {
-        downvoteBtn.classList.remove('bg-gray-100', 'dark:bg-gray-700',
-            'text-gray-600', 'dark:text-gray-400');
-        downvoteBtn.classList.add('active-vote', 'bg-red-100', 'dark:bg-red-900',
-            'text-red-600', 'dark:text-red-400');
+        // Determine if we're in compact mode
+        const isCompact = downvoteBtn.classList.contains('text-sm');
+
+        if (isCompact) {
+            // Handle compact mode styling
+            downvoteBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
+            downvoteBtn.classList.add('active-vote', 'text-red-600', 'dark:text-red-400');
+        } else {
+            // Handle normal mode styling
+            downvoteBtn.classList.remove('bg-gray-100', 'dark:bg-gray-700',
+                'text-gray-600', 'dark:text-gray-400');
+            downvoteBtn.classList.add('active-vote', 'bg-red-100', 'dark:bg-red-900',
+                'text-red-600', 'dark:text-red-400');
+        }
     }
 
     // Helper function to show notifications

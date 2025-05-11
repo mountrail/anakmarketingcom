@@ -1,7 +1,7 @@
 @props([
     'model', // The model to vote on (post or answer)
     'modelType' => 'post', // Either 'post' or 'answer'
-    'showScore' => true, // Whether to show the vote score
+    'showScore' => false, // Whether to show the vote score
     'compact' => false, // Compact mode for smaller screens or tighter layouts
 ])
 
@@ -13,9 +13,7 @@
     $dataAttr = "data-{$modelType}-id";
 
     // Define button styles based on compact mode
-    $btnClass = $compact
-        ? 'text-sm flex items-center hover:text-gray-700 dark:hover:text-gray-200'
-        : 'inline-flex items-center text-xs px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600';
+    $btnClass = $compact ? 'text-sm flex items-center' : 'inline-flex items-center text-xs px-2 py-1 rounded';
 
     // Define active states - now with branding color borders
     $upvoteActiveClass =
@@ -25,7 +23,7 @@
                 : 'active-vote bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 border-2 border-branding-primary')
             : ($compact
                 ? 'text-gray-500 dark:text-gray-400'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-2 border-branding-primary');
+                : ' dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-2 border-branding-primary');
 
     $downvoteActiveClass =
         $userVote === -1
@@ -34,15 +32,15 @@
                 : 'active-vote bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 border-2 border-branding-dark')
             : ($compact
                 ? 'text-gray-500 dark:text-gray-400'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-2 border-branding-dark');
+                : ' dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-2 border-branding-dark');
 
     // Define guest button style - updated with branding borders
     $guestBtnClass = $compact
-        ? 'text-sm flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-        : 'inline-flex items-center text-xs px-2 py-1 text-gray-600 dark:text-gray-400 border-2 border-branding-dark rounded hover:bg-gray-200 dark:hover:bg-gray-600';
+        ? 'text-sm flex items-center text-gray-500 dark:text-gray-400 '
+        : 'inline-flex items-center text-xs px-2 py-1 text-gray-600 dark:text-gray-400 border-2 border-branding-dark rounded ';
 @endphp
 
-<div class="flex items-center {{ $compact ? 'space-x-4' : 'space-x-2' }} vote-container">
+<div class="flex items-center {{ $compact ? 'space-x-4' : 'space-x-2' }} vote-container" {{ $dataAttr }}="{{ $modelId }}">
     @auth
         <form action="{{ route($routeName, $modelId) }}" method="POST" class="inline vote-form ">
             @csrf
@@ -59,6 +57,8 @@
                 {{ $dataAttr }}="{{ $modelId }}">
                 {{ $voteScore }}
             </span>
+        @else
+            <span class="hidden vote-score" {{ $dataAttr }}="{{ $modelId }}">{{ $voteScore }}</span>
         @endif
 
         <form action="{{ route($routeName, $modelId) }}" method="POST" class="inline vote-form">
@@ -71,7 +71,7 @@
             </button>
         </form>
     @else
-        <a href="{{ route('login') }}" class="vote-btn guest-vote {{ $guestBtnClass }} border-branding-primary"
+        <a data-auth-action="login"class="vote-btn guest-vote {{ $guestBtnClass }} border-branding-primary"
             title="Login to vote">
             <x-icons.upvote class="mx-1 h-4 w-4 mr-1" />
             Upvote
@@ -82,9 +82,11 @@
                 class="vote-score {{ $compact ? 'text-sm text-gray-700 dark:text-gray-300' : 'text-xs font-medium px-2' }}">
                 {{ $voteScore }}
             </span>
+        @else
+            <span class="hidden vote-score" {{ $dataAttr }}="{{ $modelId }}">{{ $voteScore }}</span>
         @endif
 
-        <a href="{{ route('login') }}" class="vote-btn guest-vote {{ $guestBtnClass }} border-branding-dark"
+        <a data-auth-action="login"class="vote-btn guest-vote {{ $guestBtnClass }} border-branding-dark"
             title="Login to vote">
             <x-icons.downvote class="mx-1 h-4 w-4 mr-1" />
             Downvote

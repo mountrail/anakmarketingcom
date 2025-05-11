@@ -1,7 +1,7 @@
 <!-- resources/views/layouts/navigation.blade.php -->
-<nav x-data="{ open: false, userDropdown: false }" class="bg-white dark:bg-gray-800">
+<nav x-data="{ open: false, userDropdown: false }" class="bg-white dark:bg-gray-800 shadow-md fixed top-0 left-0 right-0 w-full z-50">
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
                 <!-- Logo -->
@@ -14,7 +14,7 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-4 sm:ml-10 sm:flex">
                     <a href="{{ route('home') }}"
-                        class="{{ request()->routeIs('home') ? 'bg-branding-primary text-branding-light' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700' }} px-4 py-2 rounded-md text-sm font-medium shadow-md">
+                        class="bg-branding-primary text-branding-light px-4 py-2 rounded-md text-sm font-medium shadow-md">
                         {{ __('Home') }}
                     </a>
                     <a href="https://anakmarketing.com"
@@ -164,6 +164,11 @@
         </div>
     @endguest
 </nav>
+
+<!-- Add padding to the body element to prevent content from being hidden under the navbar -->
+<div class="pt-16">
+    <!-- Your page content goes here -->
+</div>
 
 <!-- Auth Modal - Single Instance for whole layout -->
 <x-auth-modal />

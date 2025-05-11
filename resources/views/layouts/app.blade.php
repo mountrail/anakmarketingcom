@@ -45,6 +45,8 @@
             @else
                 {{ $slot ?? '' }}
             @endif
+            <div class="mt-20"></div>
+
         </main>
     </div>
 
