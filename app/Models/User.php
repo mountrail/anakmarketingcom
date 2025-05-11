@@ -30,6 +30,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'seniority',
         'company_size',
         'city',
+        'profile_picture',
+        'title',
     ];
 
     /**
@@ -63,5 +65,48 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasVerifiedEmail()
     {
         return $this->provider === 'google' || $this->email_verified_at !== null;
+    }
+
+    /**
+     * Get the user's posts.
+     */
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    /**
+     * Get the user's answers.
+     */
+    public function answers()
+    {
+        return $this->hasMany(Answer::class);
+    }
+
+    /**
+     * Get the user's votes.
+     */
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
+    }
+
+    /**
+     * Get the user's profile picture URL with priority:
+     * 1. Default profile_picture
+     * 2. Google avatar
+     * 3. Dummy image
+     *
+     * @return string
+     */
+    public function getProfileImageUrl()
+    {
+        if (!empty($this->profile_picture)) {
+            return asset('storage/' . $this->profile_picture);
+        } elseif (!empty($this->avatar)) {
+            return $this->avatar;
+        } else {
+            return asset('storage/uploads/images/portrait.png');
+        }
     }
 }

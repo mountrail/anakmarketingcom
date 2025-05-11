@@ -12,13 +12,16 @@
                         </div>
                     @endif
 
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h1 class="text-2xl font-bold">{{ $post->title }}</h1>
-                            <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                <span>{{ $post->type === 'question' ? 'Pertanyaan' : 'Diskusi' }}</span>
-                                <span>Oleh: {{ $post->user->name }}</span>
-                                <span>{{ $post->created_at->format('d M Y H:i') }}</span>
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold mb-3">{{ $post->title }}</h1>
+
+                        <div class="flex items-center">
+                            <x-user-profile :user="$post->user" :date="$post->created_at" />
+
+                            <div class="ml-auto flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                                <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+                                    {{ $post->type === 'question' ? 'Pertanyaan' : 'Diskusi' }}
+                                </span>
                                 <span>{{ $post->view_count }} views</span>
                             </div>
                         </div>

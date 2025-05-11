@@ -21,9 +21,12 @@
 
             <!-- Close Button -->
             <div class="absolute top-0 right-0 p-4">
-                <button @click="showModal = false" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                <button @click="showModal = false"
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
                     </svg>
                 </button>
             </div>
@@ -43,7 +46,7 @@
             </div>
 
             <!-- Content Area -->
-            <div class="p-6 max-h-[80vh] overflow-y-auto">
+            <div class="py-6 px-8 max-h-[80vh] overflow-y-auto">
                 <div x-show="activeTab === 'register'">
                     <x-register-form />
                 </div>

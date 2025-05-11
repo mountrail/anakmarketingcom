@@ -235,9 +235,14 @@
                     <div x-show="errorMessage && errorMessage.includes('password')" class="text-red-600 text-sm mt-1"
                         x-text="errorMessage"></div>
                 </div>
-
+                @if (Route::has('password.request'))
+                    <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
+                        href="{{ route('password.request') }}">
+                        {{ __('Forgot your password?') }}
+                    </a>
+                @endif
                 <!-- Remember Me -->
-                <div class="block mt-4">
+                <div class="block my-4">
                     <label for="remember_me" class="inline-flex items-center">
                         <input id="remember_me" type="checkbox"
                             class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800"
@@ -246,16 +251,11 @@
                     </label>
                 </div>
 
+
                 <div class="flex items-center justify-end mt-4">
-                    @if (Route::has('password.request'))
-                        <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-                            href="{{ route('password.request') }}">
-                            {{ __('Forgot your password?') }}
-                        </a>
-                    @endif
 
                     <button type="submit"
-                        class="ms-3 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 inline-flex items-center"
+                        class=" bg-branding-primary hover:bg-orange-600 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 inline-flex justify-center items-center"
                         :disabled="isSubmitting">
                         <span x-show="isSubmitting" class="inline-block animate-spin mr-2">
                             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
