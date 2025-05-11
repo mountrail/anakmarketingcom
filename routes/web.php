@@ -54,5 +54,8 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
+
+
+
 // Include authentication routes
 require __DIR__ . '/auth.php';

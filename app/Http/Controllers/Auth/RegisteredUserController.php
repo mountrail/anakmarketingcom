@@ -80,8 +80,10 @@ class RegisteredUserController extends Controller
             Log::error('Error creating user: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
-            // Rethrow the exception to maintain normal error flow
-            throw $e;
+            // Return back with an error message instead of rethrowing the exception
+            return back()
+                ->withInput($request->except(['password', 'password_confirmation']))
+                ->withErrors(['error' => 'Registration failed. Please try again.']);
         }
     }
 }

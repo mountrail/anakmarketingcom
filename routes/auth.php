@@ -33,9 +33,15 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+
+    // Registration step 1 validation
+    Route::post('/register/validate-step1', [App\Http\Controllers\Auth\RegisterController::class, 'validateStep1'])
+        ->middleware('guest')
+        ->name('register.validate.step1');
 });
 
 Route::middleware('auth')->group(function () {
+
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 

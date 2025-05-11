@@ -17,7 +17,11 @@
 
     <!-- Stack for any additional styles -->
     @stack('styles')
-
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 
 </head>
 
@@ -53,7 +57,7 @@
             // Set the login URL for guest users
             const loginUrl = "{{ route('login') }}";
         </script>
-        <script src="{{ asset('js/voting.js') }}"></script>
+        {{-- <script src="{{ asset('js/voting.js') }}"></script> --}}
     @endpush
 </body>
 
