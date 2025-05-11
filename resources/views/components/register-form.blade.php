@@ -4,25 +4,26 @@
     registrationStep: 1,
     registrationSuccess: false,
     isSubmitting: false,
+    csrfTokenRefreshed: false,
 
     // Method to refresh CSRF token
     refreshCsrfToken() {
         return fetch('/sanctum/csrf-cookie', {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(() => {
-            // Get the refreshed token from meta tag
-            const refreshedToken = document.querySelector('meta[name=\'csrf-token\']').getAttribute('content');
-            // Update the form's hidden input
-            document.getElementById('register_csrf_token').value = refreshedToken;
-            console.log('Registration CSRF token refreshed');
-            return refreshedToken;
-        })
-        .catch(error => {
-            console.error('Error refreshing CSRF token:', error);
-        });
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(() => {
+                // Get the refreshed token from meta tag
+                const refreshedToken = document.querySelector('meta[name=\'csrf-token\']').getAttribute('content');
+                // Update the form's hidden input
+                document.getElementById('register_csrf_token').value = refreshedToken;
+                console.log('Registration CSRF token refreshed');
+                return refreshedToken;
+            })
+            .catch(error => {
+                console.error('Error refreshing CSRF token:', error);
+            });
     }
 }">
     <!-- Registration Success Message -->
@@ -59,7 +60,8 @@
                 </a>
             </div>
 
-            <div @click="showRegisterForm = !showRegisterForm; if(showRegisterForm) { refreshCsrfToken(); }" x-show="registrationStep === 1"
+            <div @click="showRegisterForm = !showRegisterForm; if(showRegisterForm) { refreshCsrfToken(); }"
+                x-show="registrationStep === 1"
                 class="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold py-3 px-4 rounded text-center cursor-pointer mb-6">
                 Register with Email
             </div>

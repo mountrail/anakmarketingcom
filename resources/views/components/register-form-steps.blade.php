@@ -1,11 +1,11 @@
 <!-- resources/views/components/register-form-steps.blade.php -->
 <form method="POST" action="{{ route('register') }}" id="register-form"
     @submit.prevent="if (registrationStep === 1) {
-        isSubmitting = true;
+    isSubmitting = true;
 
-        // Get the CSRF token from the dynamic hidden input
-        const csrfToken = document.getElementById('register_csrf_token').value;
-
+    // Always refresh CSRF token before validation
+    refreshCsrfToken().then(csrfToken => {
+        // Now proceed with the validation using the refreshed token
         fetch('{{ route('register.validate.step1') }}', {
             method: 'POST',
             headers: {
@@ -51,63 +51,90 @@
 
             // Handle errors from the response
             if (error.errors) {
+                // Clear previous errors first
+                document.querySelectorAll('.text-red-500').forEach(el => {
+                    el.textContent = '';
+                    el.classList.add('hidden');
+                });
+
+                // Now show new errors
                 Object.keys(error.errors).forEach(field => {
+                    // Handle standard fields
                     const errorEl = document.getElementById(field + '-error');
                     if (errorEl) {
                         errorEl.textContent = error.errors[field][0];
                         errorEl.classList.remove('hidden');
+                    }
+
+                    // Special handling for email field which might be named differently
+                    if (field === 'email') {
+                        const registerEmailError = document.getElementById('register_email-error');
+                        if (registerEmailError) {
+                            registerEmailError.textContent = error.errors[field][0];
+                            registerEmailError.classList.remove('hidden');
+                        }
                     }
                 });
             } else {
                 console.error('Validation error:', error);
             }
         });
-    } else {
-        isSubmitting = true;
-        const formData = new FormData(document.getElementById('register-form'));
+    }).catch(error => {
+        isSubmitting = false;
+        console.error('Error refreshing CSRF token:', error);
+    });
+} else {
+    isSubmitting = true;
+    const formData = new FormData(document.getElementById('register-form'));
 
-        // Get the CSRF token from the dynamic hidden input
-        const csrfToken = document.getElementById('register_csrf_token').value;
+    // Get the CSRF token from the dynamic hidden input
+    const csrfToken = document.getElementById('register_csrf_token').value;
 
-        fetch('{{ route('register') }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw data;
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            isSubmitting = false;
-            if (data.success) {
-                registrationSuccess = true;
-            }
-        })
-        .catch(error => {
-            isSubmitting = false;
+    fetch('{{ route('register') }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw data;
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        isSubmitting = false;
+        if (data.success) {
+            registrationSuccess = true;
+        }
+    })
+    .catch(error => {
+        isSubmitting = false;
 
-            if (error.errors) {
-                Object.keys(error.errors).forEach(field => {
-                    const errorEl = document.getElementById(field + '-error');
-                    if (errorEl) {
-                        errorEl.textContent = error.errors[field][0];
-                        errorEl.classList.remove('hidden');
-                    }
-                });
-            } else {
-                console.error('Registration error:', error);
-            }
-        });
-    }">
+        if (error.errors) {
+            // Clear previous errors first
+            document.querySelectorAll('.text-red-500').forEach(el => {
+                el.textContent = '';
+                el.classList.add('hidden');
+            });
+
+            Object.keys(error.errors).forEach(field => {
+                const errorEl = document.getElementById(field + '-error');
+                if (errorEl) {
+                    errorEl.textContent = error.errors[field][0];
+                    errorEl.classList.remove('hidden');
+                }
+            });
+        } else {
+            console.error('Registration error:', error);
+        }
+    });
+}">
     @csrf
     <!-- Dynamic CSRF token input that can be updated if needed -->
     <input type="hidden" id="register_csrf_token" name="_token" value="{{ csrf_token() }}">

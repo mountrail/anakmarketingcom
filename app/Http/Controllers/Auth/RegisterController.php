@@ -24,6 +24,12 @@ class RegisterController extends Controller
     public function validateStep1(Request $request): JsonResponse
     {
         try {
+            // Log validation attempt for debugging
+            \Illuminate\Support\Facades\Log::info('Step 1 validation attempt', [
+                'email' => $request->email,
+                'has_password' => !empty($request->password)
+            ]);
+
             $validator = Validator::make($request->all(), [
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
@@ -33,6 +39,11 @@ class RegisterController extends Controller
             ]);
 
             if ($validator->fails()) {
+                // Log validation failures for debugging
+                \Illuminate\Support\Facades\Log::info('Step 1 validation failed', [
+                    'errors' => $validator->errors()->toArray()
+                ]);
+
                 return response()->json([
                     'success' => false,
                     'errors' => $validator->errors()
@@ -41,6 +52,8 @@ class RegisterController extends Controller
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Exception in validateStep1: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'errors' => ['general' => [$e->getMessage()]]
