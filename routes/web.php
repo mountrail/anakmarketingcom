@@ -53,5 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+
+
 // Include authentication routes
 require __DIR__ . '/auth.php';

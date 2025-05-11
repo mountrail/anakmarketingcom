@@ -38,6 +38,27 @@ Route::middleware('guest')->group(function () {
     Route::post('/register/validate-step1', [App\Http\Controllers\Auth\RegisterController::class, 'validateStep1'])
         ->middleware('guest')
         ->name('register.validate.step1');
+
+    // Added a guest-accessible version of verification resend for our login-form
+    Route::post('resend-verification', function (Illuminate\Http\Request $request) {
+        $user = \App\Models\User::where('email', $request->email)->first();
+
+        if ($user && !$user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'Verification link has been sent!']);
+            }
+
+            return back()->with('status', 'Verification link has been sent!');
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => 'Unable to resend verification email.']);
+        }
+
+        return back()->with('error', 'Unable to resend verification email.');
+    })->middleware('throttle:6,1')->name('verification.guest.send');
 });
 
 Route::middleware('auth')->group(function () {
@@ -52,6 +73,8 @@ Route::middleware('auth')->group(function () {
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
+
+
 
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');

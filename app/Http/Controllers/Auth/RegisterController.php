@@ -47,4 +47,19 @@ class RegisterController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Handle AJAX responses to the RegisteredUserController store method
+     *
+     * @param Request $request
+     * @param User $user
+     * @return JsonResponse
+     */
+    public function ajaxRegistrationSuccess(Request $request, User $user): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'redirect' => route('verification.notice')
+        ]);
+    }
 }

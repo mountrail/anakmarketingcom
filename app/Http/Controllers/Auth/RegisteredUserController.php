@@ -7,11 +7,13 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class RegisteredUserController extends Controller
 {
@@ -28,12 +30,13 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         // Log all request data to see what's happening
         Log::info('Registration request data:', $request->except(['password', 'password_confirmation']));
 
-        $request->validate([
+        // Define validation rules
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'phone_country_code' => ['required', 'string', 'max:3'],
@@ -44,7 +47,23 @@ class RegisteredUserController extends Controller
             'seniority' => ['required', 'string', 'in:Junior Staff,Senior Staff,Assistant Manager,Manager,Vice President,Director (C-Level),Owner,Others'],
             'company_size' => ['required', 'string', 'in:0-10,11-50,51-100,101-500,501++'],
             'city' => ['required', 'string', 'in:Bandung,Jabodetabek,Jogjakarta,Makassar,Medan,Surabaya,Others'],
-        ]);
+        ];
+
+        // Validate request using Validator instead of validate() method
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            return back()
+                ->withErrors($validator)
+                ->withInput($request->except(['password', 'password_confirmation']));
+        }
 
         // Combine phone country code and phone number
         $phone = '+' . $request->phone_country_code . ' ' . $request->phone_number;
@@ -76,12 +95,28 @@ class RegisteredUserController extends Controller
             // IMPORTANT CHANGE: Don't log the user in automatically
             // Auth::login($user); - This line is removed
 
+            // Handle JSON response if requested
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect' => route('verification.notice')
+                ]);
+            }
+
             // Redirect to verification notice page
             return redirect()->route('verification.notice');
         } catch (\Exception $e) {
             // Log any exceptions that occur
             Log::error('Error creating user: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
+
+            // Return JSON error if requested
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['error' => ['Registration failed. Please try again.']]
+                ], 500);
+            }
 
             // Return back with an error message instead of rethrowing the exception
             return back()

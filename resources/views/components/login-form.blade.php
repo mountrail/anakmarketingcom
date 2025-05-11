@@ -1,12 +1,95 @@
 <!-- resources/views/components/login-form.blade.php -->
 <div x-data="{
     showLoginForm: false,
-    isSubmitting: false
-}">
+    isSubmitting: false,
+    verificationRequired: false,
+    verificationEmail: '',
+    successMessage: '',
+    errorMessage: ''
+}"
+    @verification-sent.window="successMessage = 'Verification link has been sent!'; setTimeout(() => successMessage = '', 5000)">
     <!-- Login Header -->
     <h2 class="text-4xl font-bold text-center text-orange-500 mb-6">
         Login
     </h2>
+
+    <!-- Verification Required Notice -->
+    <div x-cloak x-show="verificationRequired" class="rounded-md bg-yellow-50 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">
+                    Email Not Verified
+                </h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                    <p>You need to verify your email address before logging in.</p>
+                    <div x-show="verificationEmail.length > 0" class="mt-2">
+                        <button
+                            @click.prevent="
+                            fetch('{{ route('verification.guest.send') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')
+                                },
+                                body: JSON.stringify({
+                                    email: verificationEmail
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                successMessage = 'Verification link has been sent!';
+                                setTimeout(() => successMessage = '', 5000);
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                            });"
+                            class="text-sm font-medium text-yellow-800 underline hover:text-yellow-900">
+                            Resend verification email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    <div x-cloak x-show="successMessage" class="rounded-md bg-green-50 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-green-800" x-text="successMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div x-cloak x-show="errorMessage" class="rounded-md bg-red-50 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-red-800" x-text="errorMessage"></p>
+            </div>
+        </div>
+    </div>
 
     <!-- Login Content -->
     <div>
@@ -29,10 +112,52 @@
 
         <div x-show="showLoginForm" class="mt-4">
             <!-- Login form -->
-            <form method="POST" action="{{ route('login') }}" id="login-form"
+            <form id="login-form"
                 @submit.prevent="
-                isSubmitting = true;
-                document.getElementById('login-form').submit();">
+                    isSubmitting = true;
+                    errorMessage = '';
+                    verificationRequired = false;
+
+                    // Get form data
+                    const formData = new FormData(document.getElementById('login-form'));
+
+                    // Make AJAX request
+                    fetch('{{ route('login') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw data;
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = data.redirect;
+                        }
+                    })
+                    .catch(error => {
+                        isSubmitting = false;
+
+                        if (error.verification_required) {
+                            verificationRequired = true;
+                            verificationEmail = error.email;
+                        } else if (error.errors) {
+                            // Handle validation errors
+                            const firstError = Object.values(error.errors)[0];
+                            errorMessage = firstError ? Array.isArray(firstError) ? firstError[0] : firstError : 'An error occurred';
+                        } else {
+                            errorMessage = error.message || 'An error occurred during login';
+                        }
+                    });">
                 @csrf
 
                 <!-- Email Address -->
@@ -40,7 +165,8 @@
                     <x-input-label for="login_email" :value="__('Email')" />
                     <x-text-input id="login_email" class="block mt-1 w-full" type="email" name="email"
                         :value="old('email')" required autofocus autocomplete="username" />
-                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                    <div x-show="errorMessage && errorMessage.includes('email')" class="text-red-600 text-sm mt-1"
+                        x-text="errorMessage"></div>
                 </div>
 
                 <!-- Password -->
@@ -50,7 +176,8 @@
                     <x-text-input id="login_password" class="block mt-1 w-full" type="password" name="password" required
                         autocomplete="current-password" />
 
-                    <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                    <div x-show="errorMessage && errorMessage.includes('password')" class="text-red-600 text-sm mt-1"
+                        x-text="errorMessage"></div>
                 </div>
 
                 <!-- Remember Me -->

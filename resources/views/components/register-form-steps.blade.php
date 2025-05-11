@@ -2,11 +2,17 @@
 <form method="POST" action="{{ route('register') }}" id="register-form"
     @submit.prevent="if (registrationStep === 1) {
         isSubmitting = true;
+
+        // Get the CSRF token from the meta tag
+        const csrfToken = document.querySelector('meta[name=\'csrf-token\']').getAttribute('content');
+
         fetch('{{ route('register.validate.step1') }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 name: document.getElementById('register_name').value,
@@ -17,7 +23,14 @@
                 password_confirmation: document.getElementById('register_password_confirmation').value
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw data;
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             isSubmitting = false;
             if (data.success) {
@@ -35,7 +48,19 @@
         })
         .catch(error => {
             isSubmitting = false;
-            console.error('Validation error:', error);
+
+            // Handle errors from the response
+            if (error.errors) {
+                Object.keys(error.errors).forEach(field => {
+                    const errorEl = document.getElementById(field + '-error');
+                    if (errorEl) {
+                        errorEl.textContent = error.errors[field][0];
+                        errorEl.classList.remove('hidden');
+                    }
+                });
+            } else {
+                console.error('Validation error:', error);
+            }
         });
     } else {
         isSubmitting = true;
@@ -44,31 +69,40 @@
         fetch('{{ route('register') }}', {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')
+                'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
             },
             body: formData
         })
         .then(response => {
-            isSubmitting = false;
-            if (response.ok) {
-                registrationSuccess = true;
-            } else {
-                response.json().then(data => {
-                    if (data.errors) {
-                        Object.keys(data.errors).forEach(field => {
-                            const errorEl = document.getElementById(field + '-error');
-                            if (errorEl) {
-                                errorEl.textContent = data.errors[field][0];
-                                errorEl.classList.remove('hidden');
-                            }
-                        });
-                    }
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw data;
                 });
+            }
+            return response.json();
+        })
+        .then(data => {
+            isSubmitting = false;
+            if (data.success) {
+                registrationSuccess = true;
             }
         })
         .catch(error => {
             isSubmitting = false;
-            console.error('Registration error:', error);
+
+            if (error.errors) {
+                Object.keys(error.errors).forEach(field => {
+                    const errorEl = document.getElementById(field + '-error');
+                    if (errorEl) {
+                        errorEl.textContent = error.errors[field][0];
+                        errorEl.classList.remove('hidden');
+                    }
+                });
+            } else {
+                console.error('Registration error:', error);
+            }
         });
     }">
     @csrf
