@@ -3,8 +3,8 @@
     @submit.prevent="if (registrationStep === 1) {
         isSubmitting = true;
 
-        // Get the CSRF token from the meta tag
-        const csrfToken = document.querySelector('meta[name=\'csrf-token\']').getAttribute('content');
+        // Get the CSRF token from the dynamic hidden input
+        const csrfToken = document.getElementById('register_csrf_token').value;
 
         fetch('{{ route('register.validate.step1') }}', {
             method: 'POST',
@@ -66,10 +66,13 @@
         isSubmitting = true;
         const formData = new FormData(document.getElementById('register-form'));
 
+        // Get the CSRF token from the dynamic hidden input
+        const csrfToken = document.getElementById('register_csrf_token').value;
+
         fetch('{{ route('register') }}', {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content'),
+                'X-CSRF-TOKEN': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             },
@@ -106,6 +109,8 @@
         });
     }">
     @csrf
+    <!-- Dynamic CSRF token input that can be updated if needed -->
+    <input type="hidden" id="register_csrf_token" name="_token" value="{{ csrf_token() }}">
 
     <!-- Step 1: Personal Information -->
     <div x-show="registrationStep === 1">

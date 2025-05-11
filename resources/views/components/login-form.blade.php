@@ -5,9 +5,39 @@
     verificationRequired: false,
     verificationEmail: '',
     successMessage: '',
-    errorMessage: ''
+    errorMessage: '',
+    csrfTokenRefreshed: false,
+
+    // Method to refresh CSRF token
+    refreshCsrfToken() {
+        return fetch('/sanctum/csrf-cookie', {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(() => {
+            // Get the refreshed token from meta tag
+            const refreshedToken = document.querySelector('meta[name=\'csrf-token\']').getAttribute('content');
+            // Update the form's hidden input
+            document.getElementById('dynamic_csrf_token').value = refreshedToken;
+            this.csrfTokenRefreshed = true;
+            console.log('CSRF token refreshed');
+            return refreshedToken;
+        })
+        .catch(error => {
+            console.error('Error refreshing CSRF token:', error);
+        });
+    }
 }"
-    @verification-sent.window="successMessage = 'Verification link has been sent!'; setTimeout(() => successMessage = '', 5000)">
+    @verification-sent.window="successMessage = 'Verification link has been sent!'; setTimeout(() => successMessage = '', 5000)"
+    x-init="() => {
+        // If we're here due to a verification_required redirect, refresh token on load
+        if ({{ session('verification_required') ? 'true' : 'false' }}) {
+            verificationRequired = true;
+            verificationEmail = '{{ session('email', '') }}';
+            refreshCsrfToken();
+        }
+    }">
     <!-- Login Header -->
     <h2 class="text-4xl font-bold text-center text-orange-500 mb-6">
         Login
@@ -32,23 +62,26 @@
                     <div x-show="verificationEmail.length > 0" class="mt-2">
                         <button
                             @click.prevent="
-                            fetch('{{ route('verification.guest.send') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')
-                                },
-                                body: JSON.stringify({
-                                    email: verificationEmail
+                            // Always refresh the CSRF token before sending the verification email
+                            refreshCsrfToken().then(token => {
+                                fetch('{{ route('verification.guest.send') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': token
+                                    },
+                                    body: JSON.stringify({
+                                        email: verificationEmail
+                                    })
                                 })
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                successMessage = 'Verification link has been sent!';
-                                setTimeout(() => successMessage = '', 5000);
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
+                                .then(response => response.json())
+                                .then(data => {
+                                    successMessage = 'Verification link has been sent!';
+                                    setTimeout(() => successMessage = '', 5000);
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                });
                             });"
                             class="text-sm font-medium text-yellow-800 underline hover:text-yellow-900">
                             Resend verification email
@@ -105,7 +138,7 @@
             </a>
         </div>
 
-        <div @click="showLoginForm = !showLoginForm"
+        <div @click="showLoginForm = !showLoginForm; if(showLoginForm) { refreshCsrfToken(); }"
             class="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold py-3 px-4 rounded text-center cursor-pointer mb-6">
             Login with Email
         </div>
@@ -114,9 +147,13 @@
             <!-- Login form -->
             <form id="login-form"
                 @submit.prevent="
+                    if (isSubmitting) return; // Prevent multiple submissions
+
                     isSubmitting = true;
                     errorMessage = '';
-                    verificationRequired = false;
+
+                    // Get fresh CSRF token from the hidden input
+                    const csrfToken = document.getElementById('dynamic_csrf_token').value;
 
                     // Get form data
                     const formData = new FormData(document.getElementById('login-form'));
@@ -127,7 +164,7 @@
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')
+                            'X-CSRF-TOKEN': csrfToken
                         },
                         body: formData
                     })
@@ -150,15 +187,34 @@
                         if (error.verification_required) {
                             verificationRequired = true;
                             verificationEmail = error.email;
+                            // Hide any other error messages when showing verification notice
+                            errorMessage = '';
+
+                            // Critically important: refresh the CSRF token immediately
+                            // when we get a verification_required response
+                            refreshCsrfToken();
                         } else if (error.errors) {
                             // Handle validation errors
                             const firstError = Object.values(error.errors)[0];
                             errorMessage = firstError ? Array.isArray(firstError) ? firstError[0] : firstError : 'An error occurred';
+                        } else if (error.message && error.message.includes('CSRF')) {
+                            // If we hit a CSRF error, refresh the token and provide a user-friendly message
+                            refreshCsrfToken().then(() => {
+                                errorMessage = 'Session expired. Please try again.';
+                            });
                         } else {
                             errorMessage = error.message || 'An error occurred during login';
                         }
+                    })
+                    .finally(() => {
+                        // Re-enable the submit button after a short delay to prevent double clicks
+                        setTimeout(() => {
+                            isSubmitting = false;
+                        }, 500);
                     });">
                 @csrf
+                <!-- Hidden input for CSRF token that can be updated dynamically -->
+                <input type="hidden" id="dynamic_csrf_token" name="_token" value="{{ csrf_token() }}">
 
                 <!-- Email Address -->
                 <div>
