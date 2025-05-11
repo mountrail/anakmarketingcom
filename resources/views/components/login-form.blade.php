@@ -11,22 +11,22 @@
     // Method to refresh CSRF token
     refreshCsrfToken() {
         return fetch('/sanctum/csrf-cookie', {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(() => {
-            // Get the refreshed token from meta tag
-            const refreshedToken = document.querySelector('meta[name=\'csrf-token\']').getAttribute('content');
-            // Update the form's hidden input
-            document.getElementById('dynamic_csrf_token').value = refreshedToken;
-            this.csrfTokenRefreshed = true;
-            console.log('CSRF token refreshed');
-            return refreshedToken;
-        })
-        .catch(error => {
-            console.error('Error refreshing CSRF token:', error);
-        });
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(() => {
+                // Get the refreshed token from meta tag
+                const refreshedToken = document.querySelector('meta[name=\'csrf-token\']').getAttribute('content');
+                // Update the form's hidden input
+                document.getElementById('dynamic_csrf_token').value = refreshedToken;
+                this.csrfTokenRefreshed = true;
+                console.log('CSRF token refreshed');
+                return refreshedToken;
+            })
+            .catch(error => {
+                console.error('Error refreshing CSRF token:', error);
+            });
     }
 }"
     @verification-sent.window="successMessage = 'Verification link has been sent!'; setTimeout(() => successMessage = '', 5000)"

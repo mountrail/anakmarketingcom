@@ -30,76 +30,11 @@
                         </div>
                     </div>
 
-                    <!-- Updated to match post-list.blade.php voting UI -->
+                    <!-- Using the new vote-buttons component -->
                     <div class="flex items-center justify-end mt-4">
                         <div class="flex items-center space-x-2">
-                            <!-- Vote buttons -->
-                            <div class="flex items-center space-x-2 vote-container">
-                                @auth
-                                    <form action="{{ route('posts.vote', $post->id) }}" method="POST"
-                                        class="inline vote-form">
-                                        @csrf
-                                        <input type="hidden" name="value" value="1">
-                                        <button type="button"
-                                            class="vote-btn upvote-btn inline-flex items-center text-xs px-2 py-1 {{ $post->user_vote === 1 ? 'active-vote bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }} rounded hover:bg-gray-200 dark:hover:bg-gray-600"
-                                            title="Upvote">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    stroke-width="2" d="M5 15l7-7 7 7" />
-                                            </svg>
-                                            Upvote
-                                        </button>
-                                    </form>
+                            <x-vote-buttons :model="$post" modelType="post" />
 
-                                    <span class="vote-score text-xs font-medium px-2"
-                                        data-post-id="{{ $post->id }}">
-                                        {{ $post->vote_score }}
-                                    </span>
-
-                                    <form action="{{ route('posts.vote', $post->id) }}" method="POST"
-                                        class="inline vote-form">
-                                        @csrf
-                                        <input type="hidden" name="value" value="-1">
-                                        <button type="button"
-                                            class="vote-btn downvote-btn inline-flex items-center text-xs px-2 py-1 {{ $post->user_vote === -1 ? 'active-vote bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }} rounded hover:bg-gray-200 dark:hover:bg-gray-600"
-                                            title="Downvote">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1"
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    stroke-width="2" d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                            Downvote
-                                        </button>
-                                    </form>
-                                @else
-                                    <button type="button"
-                                        class="vote-btn guest-vote inline-flex items-center text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
-                                        title="Login to vote">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 15l7-7 7 7" />
-                                        </svg>
-                                        Upvote
-                                    </button>
-
-                                    <span class="vote-score text-xs font-medium px-2">
-                                        {{ $post->vote_score }}
-                                    </span>
-
-                                    <button type="button"
-                                        class="vote-btn guest-vote inline-flex items-center text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
-                                        title="Login to vote">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                        Downvote
-                                    </button>
-                                @endauth
-                            </div>
                             <span
                                 class="inline-flex items-center text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded-md">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
@@ -125,7 +60,6 @@
                     <x-answer-form :post="$post" />
                     <!-- Include answers list component -->
                     <x-answers-list :post="$post" />
-
 
                     <div class="mt-8 flex justify-end">
                         <a href="{{ route('home') }}"
