@@ -13,10 +13,25 @@ class PostController extends Controller
      * Display a listing of posts based on type filter.
      */
     public function index(Request $request)
-{
-    $selectedType = $request->query('type', 'question');
-    return view('home.index', compact('selectedType'));
-}
+    {
+        $selectedType = $request->query('type', 'question');
+
+        // Get featured posts (editor's picks)
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(3)
+            ->get();
+
+        // Get regular posts filtered by type
+        $posts = Post::where('type', $selectedType)
+            ->with(['user', 'answers']) // Load relationship data
+            ->latest()
+            ->paginate(10);
+
+        return view('home.index', compact('selectedType', 'posts', 'editorPicks'));
+    }
 
     /**
      * Show the form for creating a new post.
@@ -68,5 +83,88 @@ class PostController extends Controller
         ]);
 
         return view('posts.show', compact('post'));
+    }
+
+    /**
+     * Show the form for editing the specified post.
+     */
+    public function edit(Post $post)
+    {
+        // Check if user is owner or has editor/admin role
+        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('posts.edit', compact('post'));
+    }
+
+    /**
+     * Update the specified post in storage.
+     */
+    public function update(Request $request, Post $post)
+    {
+        // Check if user is owner or has editor/admin role
+        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'type' => 'required|in:question,discussion',
+        ]);
+
+        // Purify the content before storing
+        $purifiedContent = Purifier::clean($validated['content']);
+
+        $post->update([
+            'title' => $validated['title'],
+            'content' => $purifiedContent,
+            'type' => $validated['type'],
+        ]);
+
+        return redirect()->route('posts.show', $post->id)
+            ->with('success', 'Post updated successfully.');
+    }
+
+    /**
+     * Remove the specified post from storage.
+     */
+    public function destroy(Post $post)
+    {
+        // Check if user is owner or has editor/admin role
+        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $post->delete();
+
+        return redirect()->route('home')
+            ->with('success', 'Post deleted successfully.');
+    }
+
+    /**
+     * Toggle the featured status of a post (Editor's Pick)
+     */
+    public function toggleFeatured(Post $post)
+    {
+        // Check if user has editor/admin role
+        if (!Auth::user()->hasRole(['editor', 'admin'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Toggle featured status
+        if ($post->featured_type === 'none') {
+            $post->is_featured = true;
+            $post->featured_type = 'editors_pick';
+        } else {
+            $post->is_featured = false;
+            $post->featured_type = 'none';
+        }
+
+        $post->save();
+
+        return redirect()->back()
+            ->with('success', 'Editor\'s pick status updated successfully.');
     }
 }

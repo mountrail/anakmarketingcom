@@ -40,16 +40,23 @@
 
         <!-- Page Content -->
         <main>
-            @hasSection('content')
-                @yield('content')
-            @else
-                {{ $slot ?? '' }}
-            @endif
-            <div class="mt-20"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col lg:flex-row">
+                    <div class="flex-grow">
+                        @hasSection('content')
+                            @yield('content')
+                        @else
+                            {{ $slot ?? '' }}
+                        @endif
+                    </div>
 
+                    <!-- Sidebar - Editor's Picks -->
+                    {{-- @include('layouts.sidebar') --}}
+                </div>
+            </div>
+            <div class="mt-20"></div>
         </main>
     </div>
-
 
     <!-- Stack for any additional scripts -->
     @stack('scripts')

@@ -38,9 +38,9 @@ class AnswerController extends Controller
      */
     public function toggleEditorsPick(Answer $answer)
     {
-        // Only allow authorized users to set editor's pick
-        if (!Auth::user()->can('manage-editor-picks')) {
-            abort(403);
+        // Using Spatie's permission system instead of a direct can check
+        if (!Auth::user()->hasRole(['editor', 'admin'])) {
+            abort(403, 'You do not have permission to manage editor picks');
         }
 
         $answer->is_editors_pick = !$answer->is_editors_pick;
