@@ -44,7 +44,8 @@
             @if ($editorPicks->count() > 0)
                 <div>
                     @foreach ($editorPicks as $pick)
-                        <div class="bg-branding-primary/20 dark:bg-branding-primary/10 border-b border-essentials-inactive">
+                        <div
+                            class="bg-branding-primary/20 dark:bg-branding-primary/10 border-b border-essentials-inactive">
                             <div class="p-4">
                                 <div class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
                                     <span>By: {{ $pick->user->name ?? 'Unknown' }}</span>

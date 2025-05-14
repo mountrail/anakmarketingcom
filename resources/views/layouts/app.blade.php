@@ -41,8 +41,9 @@
         <!-- Page Content -->
         <main>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col lg:flex-row">
-                    <div class="flex-grow">
+                <div class="flex flex-col lg:flex-row lg:justify-between">
+                    <!-- Main Content Area -->
+                    <div class="w-full lg:w-3/4 lg:pr-6">
                         @hasSection('content')
                             @yield('content')
                         @else
@@ -50,8 +51,10 @@
                         @endif
                     </div>
 
-                    <!-- Sidebar - Editor's Picks -->
-                    {{-- @include('layouts.sidebar') --}}
+                    <!-- Sidebar - Editor's Picks (only visible on lg screens and up) -->
+                    <div class="hidden lg:block lg:w-1/4">
+                        @include('layouts.sidebar')
+                    </div>
                 </div>
             </div>
             <div class="mt-20"></div>
