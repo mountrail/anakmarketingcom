@@ -45,24 +45,29 @@
                 @foreach ($editorPicks as $pick)
                     <div class="bg-branding-primary/20 dark:bg-branding-primary/10 border-b border-essentials-inactive">
                         <div class="p-4">
-                            <div class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                                <span>By: {{ $pick->user->name ?? 'Unknown' }}</span>
-                                <span>{{ $pick->created_at->diffForHumans() }}</span>
-                                <span>{{ $pick->view_count }} views</span>
-                            </div>
-                            <div class="flex justify-between items-start">
-                                <a href="{{ route('posts.show', $pick->id) }}"
-                                    class="text-lg font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
-                                    {{ $pick->title }}
-                                </a>
-                                <div class="flex items-center">
-                                    <x-icons.lamp class="h-12 w-12 text-orange-500" />
+                            <a href="{{ route('posts.show', $pick->id) }}">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-col">
+                                        <div
+                                            class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                                            <span>By: {{ $pick->user->name ?? 'Unknown' }}</span>
+                                            <span>{{ $pick->created_at->diffForHumans() }}</span>
+                                            <span>{{ $pick->view_count }} views</span>
+                                        </div>
+                                        <h3
+                                            class="font-bold text-xl text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                            {{ $pick->title }}
+                                        </h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                            {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em>'), 100, '...') !!}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <x-icons.lightbulb class="h-10 w-10 text-orange-500" />
+                                    </div>
                                 </div>
-                            </div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em>'), 100, '...') !!}
-                            </p>
 
+                            </a>
                             <div class="flex items-center mt-3 relative">
                                 <!-- Using the new action-bar component -->
                                 <x-action-bar :model="$pick" modelType="post" :showVoteScore="false" :showCommentCount="true"
@@ -96,24 +101,29 @@
                     @foreach ($posts as $post)
                         <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
                             <div class="p-4">
-                                <div class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                                    <span>By: {{ $post->user->name ?? 'Unknown' }}</span>
-                                    <span>{{ $post->created_at->diffForHumans() }}</span>
-                                    <span>{{ $post->view_count }} views</span>
-                                </div>
-                                <div class="flex justify-between items-start">
-                                    <a href="{{ route('posts.show', $post->id) }}"
-                                        class="text-lg font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
-                                        {{ $post->title }}
-                                    </a>
-                                </div>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                    {!! Str::limit(strip_tags($post->content, '<b><i><strong><em>'), 100, '...') !!}
-                                </p>
+                                <a href="{{ route('posts.show', $pick->id) }}">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-col">
+                                            <div
+                                                class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                                                <span>By: {{ $pick->user->name ?? 'Unknown' }}</span>
+                                                <span>{{ $pick->created_at->diffForHumans() }}</span>
+                                                <span>{{ $pick->view_count }} views</span>
+                                            </div>
+                                            <h3
+                                                class="font-bold text-xl text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                                {{ $pick->title }}
+                                            </h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                                {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em>'), 100, '...') !!}
+                                            </p>
+                                        </div>
+                                    </div>
 
+                                </a>
                                 <div class="flex items-center mt-3 relative">
                                     <!-- Using the new action-bar component -->
-                                    <x-action-bar :model="$post" modelType="post" :showVoteScore="false" :showCommentCount="true"
+                                    <x-action-bar :model="$pick" modelType="post" :showVoteScore="false" :showCommentCount="true"
                                         :showShare="true" />
                                 </div>
                             </div>

@@ -43,7 +43,7 @@
             <div class="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8">
                 <div class="flex flex-col lg:flex-row">
                     <!-- Main Content Area -->
-                    <div class="w-full lg:w-3/4 lg:pr-6">
+                    <div class="w-full lg:w-3/4">
                         @hasSection('content')
                             @yield('content')
                         @else
