@@ -49,4 +49,24 @@ class AnswerController extends Controller
         return redirect()->back()
             ->with('success', 'Editor\'s pick status updated successfully.');
     }
+
+    /**
+     * Remove the specified answer from storage.
+     */
+    public function destroy(Answer $answer)
+    {
+        // Check if user is authorized to delete the answer
+        if (Auth::id() !== $answer->user_id && !Auth::user()->hasRole(['admin'])) {
+            abort(403, 'You do not have permission to delete this answer');
+        }
+
+        // Get the post ID before deleting the answer
+        $postId = $answer->post_id;
+
+        // Delete the answer
+        $answer->delete();
+
+        return redirect()->route('posts.show', $postId)
+            ->with('success', 'Answer deleted successfully.');
+    }
 }

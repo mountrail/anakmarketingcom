@@ -40,7 +40,7 @@
         $showMenu = $isOwner || $isAdmin || $isEditor;
 
         // Determine edit/delete permissions
-        $canEdit = $isOwner || $isAdmin;
+        $canEdit = ($isOwner || $isAdmin) && $modelType === 'post'; // Only allow editing for posts, not answers
         $canDelete = $isOwner || $isAdmin;
 
         // Feature/editors pick permissions

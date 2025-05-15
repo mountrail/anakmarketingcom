@@ -1,4 +1,4 @@
-@props(['post'])
+{{-- resources/views/posts/partials/answer-form.blade.php --}}
 
 <div class="mt-8 border-t pt-6">
     <h3 class="text-xl font-semibold mb-4">Your Answer</h3>

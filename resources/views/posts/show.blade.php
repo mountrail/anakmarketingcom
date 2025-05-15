@@ -33,16 +33,17 @@
                         </div>
                     </div>
 
-                    <!-- Using the new action-bar component -->
+                    <!-- Using the action-bar component -->
                     <div class="flex items-center justify-end mt-4">
                         <x-action-bar :model="$post" modelType="post" :showVoteScore="false" :showCommentCount="true"
                             :showShare="true" />
                     </div>
 
-                    <!-- Include answer form component -->
-                    <x-answer-form :post="$post" />
-                    <!-- Include answers list component -->
-                    <x-answers-list :post="$post" />
+                    <!-- Include answer form partial -->
+                    @include('posts.partials.answer-form', ['post' => $post])
+
+                    <!-- Include answers list partial -->
+                    @include('posts.partials.answers-list', ['post' => $post])
 
                     <div class="mt-8 flex justify-end">
                         <a href="{{ route('home') }}"

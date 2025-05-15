@@ -41,6 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Answer routes
     Route::post('/posts/{post}/answers', [AnswerController::class, 'store'])->name('posts.answers.store');
     Route::patch('/answers/{answer}/toggle-editors-pick', [AnswerController::class, 'toggleEditorsPick'])->name('answers.toggle-editors-pick');
+    Route::delete('/answers/{answer}', [AnswerController::class, 'destroy'])->name('answers.destroy');
 
     // Voting routes
     Route::post('/posts/{post}/vote', [VoteController::class, 'votePost'])->name('posts.vote');
