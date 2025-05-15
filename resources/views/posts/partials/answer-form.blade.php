@@ -30,9 +30,9 @@
     @else
         <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-md">
             <p class="text-gray-600 dark:text-gray-300">
-                Please <a href="{{ route('login') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">log
+                Please <a data-auth-action="login" class="text-indigo-600 dark:text-indigo-400 hover:underline">log
                     in</a>
-                or <a href="{{ route('register') }}"
+                or <a  data-auth-action="register"
                     class="text-indigo-600 dark:text-indigo-400 hover:underline">register</a>
                 to post an answer.
             </p>
