@@ -163,13 +163,9 @@
 
     <!-- Form Footer -->
     <div class="flex items-center justify-end mt-4">
-        <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-            href="#" @click.prevent="$parent.activeTab = 'login'">
-            {{ __('Already registered?') }}
-        </a>
 
         <button type="submit"
-            class="ms-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 inline-flex items-center"
+            class="w-full bg-branding-primary hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 inline-flex items-center justify-center"
             :disabled="isSubmitting">
             <span x-show="isSubmitting" class="inline-block animate-spin mr-2">
                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

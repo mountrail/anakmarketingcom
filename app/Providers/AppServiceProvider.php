@@ -5,7 +5,9 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\View;
 use App\View\Components\PostListComponent;
+use App\Models\Post;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +37,18 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-editor-picks', function ($user) {
             return $user->id === 1; // User ID 1 is assumed to be admin
             // You can expand this with proper roles later
+        });
+
+        // Share editor's picks data with all views that use the app layout
+        View::composer('layouts.app', function ($view) {
+            $editorPicks = Post::featured()
+                ->where('featured_type', '!=', 'none')
+                ->with(['user', 'answers'])
+                ->latest()
+                ->take(5)
+                ->get();
+
+            $view->with('editorPicks', $editorPicks);
         });
     }
 }

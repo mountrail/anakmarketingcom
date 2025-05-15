@@ -36,6 +36,7 @@
                         <div class="flex items-center space-x-1">
                             <span><x-icons.badge class="w-5 h-5" /></span>
                             <span><x-icons.badge class="w-5 h-5" /></span>
+                            <span><x-icons.badge class="w-5 h-5" /></span>
                         </div>
                     </div>
                 </div>
