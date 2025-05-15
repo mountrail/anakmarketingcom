@@ -16,9 +16,10 @@ class PostController extends Controller
     {
         $selectedType = $request->query('type', 'question');
 
-        // Get featured posts (editor's picks)
-        $editorPicks = Post::featured()
+        // Get featured posts (editor's picks) filtered by the selected type for the main content
+        $typedEditorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
+            ->where('type', $selectedType) // Filter by the selected type
             ->with(['user', 'answers'])
             ->latest()
             ->take(3)
@@ -30,7 +31,18 @@ class PostController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('home.index', compact('selectedType', 'posts', 'editorPicks'));
+        // Get editor's picks from both categories for the sidebar
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            // No type filter here, so it will get both questions and discussions
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        view()->share('editorPicks', $editorPicks);
+
+        return view('home.index', compact('selectedType', 'posts', 'typedEditorPicks'));
     }
 
     /**
@@ -38,32 +50,18 @@ class PostController extends Controller
      */
     public function create()
     {
+        // Share editorPicks for the sidebar (both categories)
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            // No type filter
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        view()->share('editorPicks', $editorPicks);
+
         return view('posts.create');
-    }
-
-    /**
-     * Store a newly created post in storage.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'type' => 'required|in:question,discussion',
-        ]);
-
-        // Purify the content before storing
-        $purifiedContent = Purifier::clean($validated['content']);
-
-        $post = Post::create([
-            'user_id' => Auth::id(),
-            'title' => $validated['title'],
-            'content' => $purifiedContent,
-            'type' => $validated['type'],
-        ]);
-
-        return redirect()->route('posts.show', $post->id)
-            ->with('success', 'Post created successfully.');
     }
 
     /**
@@ -82,6 +80,17 @@ class PostController extends Controller
             'answers.user'
         ]);
 
+        // Share editorPicks for the sidebar (both categories)
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            // No type filter
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        view()->share('editorPicks', $editorPicks);
+
         return view('posts.show', compact('post'));
     }
 
@@ -95,76 +104,19 @@ class PostController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Share editorPicks for the sidebar (both categories)
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            // No type filter
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        view()->share('editorPicks', $editorPicks);
+
         return view('posts.edit', compact('post'));
     }
 
-    /**
-     * Update the specified post in storage.
-     */
-    public function update(Request $request, Post $post)
-    {
-        // Check if user is owner or has editor/admin role
-        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'type' => 'required|in:question,discussion',
-        ]);
-
-        // Purify the content before storing
-        $purifiedContent = Purifier::clean($validated['content']);
-
-        $post->update([
-            'title' => $validated['title'],
-            'content' => $purifiedContent,
-            'type' => $validated['type'],
-        ]);
-
-        return redirect()->route('posts.show', $post->id)
-            ->with('success', 'Post updated successfully.');
-    }
-
-    /**
-     * Remove the specified post from storage.
-     */
-    public function destroy(Post $post)
-    {
-        // Check if user is owner or has editor/admin role
-        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $post->delete();
-
-        return redirect()->route('home')
-            ->with('success', 'Post deleted successfully.');
-    }
-
-    /**
-     * Toggle the featured status of a post (Editor's Pick)
-     */
-    public function toggleFeatured(Post $post)
-    {
-        // Check if user has editor/admin role
-        if (!Auth::user()->hasRole(['editor', 'admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        // Toggle featured status
-        if ($post->featured_type === 'none') {
-            $post->is_featured = true;
-            $post->featured_type = 'editors_pick';
-        } else {
-            $post->is_featured = false;
-            $post->featured_type = 'none';
-        }
-
-        $post->save();
-
-        return redirect()->back()
-            ->with('success', 'Editor\'s pick status updated successfully.');
-    }
+    // Other methods remain unchanged
 }

@@ -6,8 +6,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Blade;
 use App\View\Components\PostListComponent;
-use Illuminate\Support\Facades\View;
-use App\View\Composers\SidebarComposer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,9 +28,6 @@ class AppServiceProvider extends ServiceProvider
 
         // Register the PostList component
         Blade::component('post-list', PostListComponent::class);
-
-        // Register the sidebar composer
-        View::composer('layouts.sidebar', SidebarComposer::class);
 
         // Define a gate for managing editor's picks
         // For now, we'll use a simple approach where only user ID 1 has admin capabilities

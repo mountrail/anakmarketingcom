@@ -40,9 +40,9 @@
 
     <div class="py-2">
         <!-- Editor's Picks Section -->
-        @if ($editorPicks->count() > 0)
+        @if (isset($typedEditorPicks) && $typedEditorPicks->count() > 0)
             <div>
-                @foreach ($editorPicks as $pick)
+                @foreach ($typedEditorPicks as $pick)
                     <div class="bg-branding-primary/20 dark:bg-branding-primary/10 border-b border-essentials-inactive">
                         <div class="p-4">
                             <a href="{{ route('posts.show', $pick->id) }}">
@@ -101,21 +101,21 @@
                     @foreach ($posts as $post)
                         <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
                             <div class="p-4">
-                                <a href="{{ route('posts.show', $pick->id) }}">
+                                <a href="{{ route('posts.show', $post->id) }}">
                                     <div class="flex justify-between items-start">
                                         <div class="flex-col">
                                             <div
                                                 class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                                                <span>By: {{ $pick->user->name ?? 'Unknown' }}</span>
-                                                <span>{{ $pick->created_at->diffForHumans() }}</span>
-                                                <span>{{ $pick->view_count }} views</span>
+                                                <span>By: {{ $post->user->name ?? 'Unknown' }}</span>
+                                                <span>{{ $post->created_at->diffForHumans() }}</span>
+                                                <span>{{ $post->view_count }} views</span>
                                             </div>
                                             <h3
                                                 class="font-bold text-xl text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400">
-                                                {{ $pick->title }}
+                                                {{ $post->title }}
                                             </h3>
                                             <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                                {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em>'), 100, '...') !!}
+                                                {!! Str::limit(strip_tags($post->content, '<p><br><b><i><strong><em>'), 100, '...') !!}
                                             </p>
                                         </div>
                                     </div>
@@ -123,7 +123,7 @@
                                 </a>
                                 <div class="flex items-center mt-3 relative">
                                     <!-- Using the new action-bar component -->
-                                    <x-action-bar :model="$pick" modelType="post" :showVoteScore="false" :showCommentCount="true"
+                                    <x-action-bar :model="$post" modelType="post" :showVoteScore="false" :showCommentCount="true"
                                         :showShare="true" />
                                 </div>
                             </div>

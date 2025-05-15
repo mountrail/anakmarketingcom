@@ -21,9 +21,10 @@ class PostListComponent extends Component
     {
         $this->selectedType = $selectedType;
 
-        // Get featured posts (editor's picks)
+        // Get featured posts (editor's picks) filtered by the selected type
         $this->editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
+            ->where('type', $this->selectedType) // Filter by the selected type
             ->with(['user', 'answers'])
             ->latest()
             ->take(3)
