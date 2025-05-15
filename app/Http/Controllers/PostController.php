@@ -16,9 +16,10 @@ class PostController extends Controller
     {
         $selectedType = $request->query('type', 'question');
 
-        // Get featured posts (editor's picks)
+        // Get featured posts (editor's picks) filtered by the selected type
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
+            ->where('type', $selectedType) // Filter by the selected type
             ->with(['user', 'answers'])
             ->latest()
             ->take(3)
@@ -30,7 +31,10 @@ class PostController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('home.index', compact('selectedType', 'posts', 'editorPicks'));
+        // Share editorPicks with all views
+        view()->share('editorPicks', $editorPicks);
+
+        return view('home.index', compact('selectedType', 'posts'));
     }
 
     /**
@@ -38,6 +42,16 @@ class PostController extends Controller
      */
     public function create()
     {
+        // Share editorPicks for the sidebar
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        view()->share('editorPicks', $editorPicks);
+
         return view('posts.create');
     }
 
@@ -46,6 +60,9 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        // No need to fetch editor's picks here as it redirects
+        // without directly returning a view
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
@@ -82,6 +99,16 @@ class PostController extends Controller
             'answers.user'
         ]);
 
+        // Share editorPicks for the sidebar
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        view()->share('editorPicks', $editorPicks);
+
         return view('posts.show', compact('post'));
     }
 
@@ -95,6 +122,16 @@ class PostController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Share editorPicks for the sidebar
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        view()->share('editorPicks', $editorPicks);
+
         return view('posts.edit', compact('post'));
     }
 
@@ -103,6 +140,9 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        // No need to fetch editor's picks here as it redirects
+        // without directly returning a view
+
         // Check if user is owner or has editor/admin role
         if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
             abort(403, 'Unauthorized action.');
@@ -132,6 +172,9 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        // No need to fetch editor's picks here as it redirects
+        // without directly returning a view
+
         // Check if user is owner or has editor/admin role
         if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
             abort(403, 'Unauthorized action.');
@@ -148,6 +191,9 @@ class PostController extends Controller
      */
     public function toggleFeatured(Post $post)
     {
+        // No need to fetch editor's picks here as it redirects
+        // without directly returning a view
+
         // Check if user has editor/admin role
         if (!Auth::user()->hasRole(['editor', 'admin'])) {
             abort(403, 'Unauthorized action.');
