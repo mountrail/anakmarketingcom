@@ -2,7 +2,6 @@
     'model', // The model to vote on (post or answer)
     'modelType' => 'post', // Either 'post' or 'answer'
     'showScore' => false, // Whether to show the vote score
-    'compact' => false, // Compact mode for smaller screens or tighter layouts
 ])
 
 @php
@@ -12,36 +11,25 @@
     $userVote = $model->user_vote;
     $dataAttr = "data-{$modelType}-id";
 
-    // Define button styles based on compact mode
-    $btnClass = $compact ? 'text-sm flex items-center' : 'inline-flex items-center text-xs px-2 py-1 rounded';
+    // Define consistent button styles with borders
+    $btnClass = 'inline-flex items-center text-xs px-2 py-1 rounded';
 
     // Define active states with border styling but no background, text black
     $upvoteActiveClass =
         $userVote === 1
-            ? ($compact
-                ? 'active-vote text-black dark:text-white'
-                : 'active-vote text-black dark:text-white border-2 border-branding-primary')
-            : ($compact
-                ? 'text-black dark:text-white'
-                : 'text-black dark:text-white border-2 border-branding-primary');
+            ? 'active-vote text-black dark:text-white border-2 border-branding-primary'
+            : 'text-black dark:text-white border-2 border-branding-primary';
 
     $downvoteActiveClass =
         $userVote === -1
-            ? ($compact
-                ? 'active-vote text-black dark:text-white'
-                : 'active-vote text-black dark:text-white border-2 border-branding-dark')
-            : ($compact
-                ? 'text-black dark:text-white'
-                : 'text-black dark:text-white border-2 border-branding-dark');
+            ? 'active-vote text-black dark:text-white border-2 border-branding-dark'
+            : 'text-black dark:text-white border-2 border-branding-dark';
 
     // Define guest button style
-    $guestBtnClass = $compact
-        ? 'text-sm flex items-center text-black dark:text-white'
-        : 'inline-flex items-center text-xs px-2 py-1 text-black dark:text-white border-2 border-branding-dark rounded';
+    $guestBtnClass = 'inline-flex items-center text-xs px-2 py-1 text-black dark:text-white border-2 rounded';
 @endphp
 
-<div class="flex items-center {{ $compact ? 'space-x-4' : 'space-x-2' }} vote-container"
-    {{ $dataAttr }}="{{ $modelId }}">
+<div class="flex items-center space-x-2 vote-container" {{ $dataAttr }}="{{ $modelId }}">
     @auth
         <form action="{{ route($routeName, $modelId) }}" method="POST" class="inline vote-form">
             @csrf
@@ -56,9 +44,7 @@
         </form>
 
         @if ($showScore)
-            <span
-                class="vote-score {{ $compact ? 'text-sm text-gray-700 dark:text-gray-300' : 'text-xs font-medium px-2' }}"
-                {{ $dataAttr }}="{{ $modelId }}">
+            <span class="vote-score text-xs font-medium px-2" {{ $dataAttr }}="{{ $modelId }}">
                 {{ $voteScore }}
             </span>
         @else
@@ -85,8 +71,7 @@
         </a>
 
         @if ($showScore)
-            <span
-                class="vote-score {{ $compact ? 'text-sm text-gray-700 dark:text-gray-300' : 'text-xs font-medium px-2' }}">
+            <span class="vote-score text-xs font-medium px-2">
                 {{ $voteScore }}
             </span>
         @else

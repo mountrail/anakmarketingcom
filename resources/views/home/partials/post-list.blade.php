@@ -39,96 +39,92 @@
     </div>
 
     <div class="py-2">
-        <div class="max-w-7xl mx-auto">
-            <!-- Editor's Picks Section -->
-            @if ($editorPicks->count() > 0)
+        <!-- Editor's Picks Section -->
+        @if ($editorPicks->count() > 0)
+            <div>
+                @foreach ($editorPicks as $pick)
+                    <div class="bg-branding-primary/20 dark:bg-branding-primary/10 border-b border-essentials-inactive">
+                        <div class="p-4">
+                            <div class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                                <span>By: {{ $pick->user->name ?? 'Unknown' }}</span>
+                                <span>{{ $pick->created_at->diffForHumans() }}</span>
+                                <span>{{ $pick->view_count }} views</span>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <a href="{{ route('posts.show', $pick->id) }}"
+                                    class="text-lg font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
+                                    {{ $pick->title }}
+                                </a>
+                                <div class="flex items-center">
+                                    <x-icons.lamp class="h-12 w-12 text-orange-500" />
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em>'), 100, '...') !!}
+                            </p>
+
+                            <div class="flex items-center mt-3 relative">
+                                <!-- Using the new action-bar component -->
+                                <x-action-bar :model="$pick" modelType="post" :showVoteScore="false" :showCommentCount="true"
+                                    :showShare="true" />
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        <!-- Latest Posts -->
+        <div>
+            @if (session('success'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
+                    role="alert">
+                    <span class="block sm:inline">{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if ($posts->isEmpty())
+                <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
+                    <div class="p-6 text-gray-900 dark:text-gray-100">
+                        <p class="text-center">No
+                            {{ $selectedType == 'question' ? 'questions' : 'discussions' }}
+                            found.</p>
+                    </div>
+                </div>
+            @else
                 <div>
-                    @foreach ($editorPicks as $pick)
-                        <div
-                            class="bg-branding-primary/20 dark:bg-branding-primary/10 border-b border-essentials-inactive">
+                    @foreach ($posts as $post)
+                        <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
                             <div class="p-4">
                                 <div class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                                    <span>By: {{ $pick->user->name ?? 'Unknown' }}</span>
-                                    <span>{{ $pick->created_at->diffForHumans() }}</span>
-                                    <span>{{ $pick->view_count }} views</span>
+                                    <span>By: {{ $post->user->name ?? 'Unknown' }}</span>
+                                    <span>{{ $post->created_at->diffForHumans() }}</span>
+                                    <span>{{ $post->view_count }} views</span>
                                 </div>
                                 <div class="flex justify-between items-start">
-                                    <a href="{{ route('posts.show', $pick->id) }}"
+                                    <a href="{{ route('posts.show', $post->id) }}"
                                         class="text-lg font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
-                                        {{ $pick->title }}
+                                        {{ $post->title }}
                                     </a>
-                                    <div class="flex items-center">
-                                        <x-icons.lamp class="h-12 w-12 text-orange-500" />
-                                    </div>
                                 </div>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                    {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em><span>'), 100, '...') !!}
+                                    {!! Str::limit(strip_tags($post->content, '<b><i><strong><em>'), 100, '...') !!}
                                 </p>
 
                                 <div class="flex items-center mt-3 relative">
                                     <!-- Using the new action-bar component -->
-                                    <x-action-bar :model="$pick" modelType="post" :showVoteScore="false" :showCommentCount="true"
+                                    <x-action-bar :model="$post" modelType="post" :showVoteScore="false" :showCommentCount="true"
                                         :showShare="true" />
                                 </div>
                             </div>
                         </div>
                     @endforeach
                 </div>
+
+                <div class="mt-6">
+                    {{ $posts->links() }}
+                </div>
             @endif
-
-            <!-- Latest Posts -->
-            <div>
-                @if (session('success'))
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
-                        role="alert">
-                        <span class="block sm:inline">{{ session('success') }}</span>
-                    </div>
-                @endif
-
-                @if ($posts->isEmpty())
-                    <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
-                        <div class="p-6 text-gray-900 dark:text-gray-100">
-                            <p class="text-center">No
-                                {{ $selectedType == 'question' ? 'questions' : 'discussions' }}
-                                found.</p>
-                        </div>
-                    </div>
-                @else
-                    <div>
-                        @foreach ($posts as $post)
-                            <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
-                                <div class="p-4">
-                                    <div
-                                        class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                                        <span>By: {{ $post->user->name ?? 'Unknown' }}</span>
-                                        <span>{{ $post->created_at->diffForHumans() }}</span>
-                                        <span>{{ $post->view_count }} views</span>
-                                    </div>
-                                    <div class="flex justify-between items-start">
-                                        <a href="{{ route('posts.show', $post->id) }}"
-                                            class="text-lg font-medium hover:text-indigo-600 dark:hover:text-indigo-400">
-                                            {{ $post->title }}
-                                        </a>
-                                    </div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                        {!! Str::limit(strip_tags($post->content, '<b><i><strong><em><span>'), 100, '...') !!}
-                                    </p>
-
-                                    <div class="flex items-center mt-3 relative">
-                                        <!-- Using the new action-bar component -->
-                                        <x-action-bar :model="$post" modelType="post" :showVoteScore="false"
-                                            :showCommentCount="true" :showShare="true" />
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <div class="mt-6">
-                        {{ $posts->links() }}
-                    </div>
-                @endif
-            </div>
         </div>
     </div>
 </div>

@@ -37,9 +37,8 @@
                     </div>
 
                     <div class="mt-4 flex space-x-4">
-                        <!-- Using the new vote-buttons component with compact mode -->
                         <div class="vote-container">
-                            <x-vote-buttons :model="$answer" modelType="answer" compact="true" />
+                            <x-vote-buttons :model="$answer" modelType="answer"  />
                         </div>
 
                         <!-- Editor's Pick Toggle (visible only to admins with the right permissions) -->

@@ -1,3 +1,5 @@
 <x-app-layout>
-    @include('home.partials.post-list')
+    <div class="w-full">
+        @include('home.partials.post-list')
+    </div>
 </x-app-layout>

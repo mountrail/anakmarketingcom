@@ -2,20 +2,20 @@
     'model', // The model to vote on (post or answer)
     'modelType' => 'post', // Either 'post' or 'answer'
     'showVoteScore' => false, // Whether to show the vote score in the vote buttons
-    'compact' => false, // Compact mode for smaller screens or tighter layouts
     'showCommentCount' => true, // Whether to show comment/answer count
     'showShare' => true, // Whether to show share button
+    'showThreeDots' => true, // Whether to show the three dots menu
     'customClasses' => '', // Additional custom classes for the container
 ])
 
-<div class="flex items-center justify-between {{ $customClasses }} w-full">
-    <div class="flex items-center space-x-2">
+<div class="flex flex-wrap items-center justify-between {{ $customClasses }} w-full">
+    <div class="action-bar-container flex flex-wrap items-center gap-3">
         {{-- Include vote buttons component --}}
-        <x-vote-buttons :model="$model" :modelType="$modelType" :showScore="$showVoteScore" :compact="$compact" />
+        <x-vote-buttons :model="$model" :modelType="$modelType" :showScore="$showVoteScore" />
 
         {{-- Comment/Answer count --}}
         @if ($showCommentCount)
-            <span class="flex items-center text-xs px-2 py-1 rounded-md">
+            <span class="flex items-center text-xs py-1 rounded-md">
                 <x-icons.comment class="h-4 w-4 mr-1" />
                 {{ $modelType === 'post' ? $model->answers->count() : $model->comments->count() }}
             </span>
@@ -23,7 +23,7 @@
 
         {{-- Share button --}}
         @if ($showShare)
-            <button class="flex items-center text-xs px-2 py-1 rounded-md">
+            <button class="flex items-center text-xs py-1 rounded-md">
                 <x-icons.share class="h-4 w-4 mr-1" />
                 Share
             </button>
@@ -47,7 +47,7 @@
         $canFeature = $isAdmin || $isEditor;
     @endphp
 
-    @if ($showMenu)
+    @if ($showMenu && $showThreeDots)
         <div>
             <x-dropdown align="right" width="48">
                 <x-slot name="trigger">

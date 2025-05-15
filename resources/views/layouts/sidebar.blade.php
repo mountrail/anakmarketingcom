@@ -16,7 +16,7 @@
                                     </h4>
                                 </a>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                                    {!! Str::limit(strip_tags($pick->content, '<b><i><strong><em><span>'), 75, '...') !!}
+                                    {!! Str::limit(strip_tags($pick->content, '<b><i><strong><em>'), 75, '...') !!}
                                 </p>
                             </div>
                             <div class="ml-2 flex-shrink-0">
@@ -27,7 +27,7 @@
                         <div class="mt-2">
                             <!-- Using the action-bar component without the three dots menu -->
                             <x-action-bar :model="$pick" modelType="post" :showVoteScore="false" :showCommentCount="true"
-                                :showShare="false" compact="true" customClasses="text-xs" />
+                                :showShare="true" :showThreeDots="false"  customClasses="text-xs" />
                         </div>
                     </div>
                 @endforeach
