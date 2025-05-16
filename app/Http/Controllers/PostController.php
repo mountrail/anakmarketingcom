@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\PostImage;  // Assuming you'll create this model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
@@ -69,9 +70,6 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        // No need to fetch editor's picks here as it redirects
-        // without directly returning a view
-
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
@@ -88,6 +86,21 @@ class PostController extends Controller
             'type' => $validated['type'],
         ]);
 
+        // Handle the uploaded images if any
+        if ($request->has('uploaded_images')) {
+            $images = json_decode($request->uploaded_images, true);
+
+            if (!empty($images) && is_array($images)) {
+                foreach ($images as $image) {
+                    // Create a record for each image
+                    $post->images()->create([
+                        'url' => $image['url'],
+                        'name' => $image['name'] ?? 'Uploaded image',
+                    ]);
+                }
+            }
+        }
+
         return redirect()->route('posts.show', $post->id)
             ->with('success', 'Post created successfully.');
     }
@@ -100,12 +113,13 @@ class PostController extends Controller
         // Increment view count
         $post->increment('view_count');
 
-        // Load post with its answers and the users who wrote them
+        // Load post with its answers, images, and the users who wrote them
         $post->load([
             'answers' => function ($query) {
                 $query->latest();
             },
-            'answers.user'
+            'answers.user',
+            'images' // Load associated images
         ]);
 
         // Share editorPicks for the sidebar (both categories)
@@ -132,6 +146,9 @@ class PostController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Load post with its images
+        $post->load('images');
+
         // Share editorPicks for the sidebar (both categories)
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
@@ -151,9 +168,6 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        // No need to fetch editor's picks here as it redirects
-        // without directly returning a view
-
         // Check if user is owner or has editor/admin role
         if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
             abort(403, 'Unauthorized action.');
@@ -174,6 +188,40 @@ class PostController extends Controller
             'type' => $validated['type'],
         ]);
 
+        // Handle the uploaded images if any
+        if ($request->has('uploaded_images')) {
+            $newImages = json_decode($request->uploaded_images, true);
+
+            // Get current image IDs
+            $existingImageIds = $post->images->pluck('id')->toArray();
+            $newImageIds = [];
+
+            if (!empty($newImages) && is_array($newImages)) {
+                foreach ($newImages as $image) {
+                    // Check if this is a new image or existing one
+                    if (isset($image['id']) && strpos($image['id'], 'img-') === 0) {
+                        // This is a new image from the current session
+                        $post->images()->create([
+                            'url' => $image['url'],
+                            'name' => $image['name'] ?? 'Uploaded image',
+                        ]);
+                    } else if (isset($image['id'])) {
+                        // This is an existing image we want to keep
+                        $newImageIds[] = $image['id'];
+                    }
+                }
+            }
+
+            // Remove images that were deleted by the user
+            $imagesToDelete = array_diff($existingImageIds, $newImageIds);
+            if (!empty($imagesToDelete)) {
+                $post->images()->whereIn('id', $imagesToDelete)->delete();
+            }
+        } else {
+            // If no images data provided, remove all images
+            $post->images()->delete();
+        }
+
         return redirect()->route('posts.show', $post->id)
             ->with('success', 'Post updated successfully.');
     }
@@ -183,14 +231,15 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        // No need to fetch editor's picks here as it redirects
-        // without directly returning a view
-
         // Check if user is owner or has editor/admin role
         if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
             abort(403, 'Unauthorized action.');
         }
 
+        // Delete associated images
+        $post->images()->delete();
+
+        // Delete the post
         $post->delete();
 
         return redirect()->route('home')
@@ -202,9 +251,6 @@ class PostController extends Controller
      */
     public function toggleFeatured(Post $post)
     {
-        // No need to fetch editor's picks here as it redirects
-        // without directly returning a view
-
         // Check if user has editor/admin role
         if (!Auth::user()->hasRole(['editor', 'admin'])) {
             abort(403, 'Unauthorized action.');

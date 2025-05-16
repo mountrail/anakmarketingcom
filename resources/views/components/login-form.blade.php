@@ -186,10 +186,10 @@
         </div>
 
         <!-- Email Login Section -->
-        <div
+        {{-- <div
             class="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold py-3 px-4 rounded text-center mb-6">
             Login with Email
-        </div>
+        </div> --}}
 
         <!-- Login form - Traditional POST submission -->
         <form method="POST" action="{{ route('login') }}">

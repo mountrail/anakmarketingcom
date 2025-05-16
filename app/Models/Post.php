@@ -52,6 +52,15 @@ class Post extends Model
         return $query->where('is_featured', true);
     }
 
+
+    /**
+     * Get the images associated with this post.
+     */
+    public function images()
+    {
+        return $this->hasMany(PostImage::class);
+    }
+
     public function answers()
     {
         return $this->hasMany(Answer::class);

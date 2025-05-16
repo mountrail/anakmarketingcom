@@ -13,3 +13,40 @@
     -moz-appearance: textfield;
     /* Firefox */
 }
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 16px; /* Base mobile size */
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 24px; /* 1.5x ratio for desktop */
+    }
+  }
+
+  body {
+    @apply text-base leading-relaxed text-gray-900; /* Apply your default font size + line-height + color */
+  }
+
+  p, li {
+    @apply text-base;
+  }
+
+  h1 {
+    @apply text-2xl font-bold;
+  }
+
+  h2 {
+    @apply text-xl font-semibold;
+  }
+
+  h3 {
+    @apply text-lg font-semibold;
+  }
+}

@@ -29,11 +29,11 @@
                         <div class="flex items-center">
                             <div class="flex items-center">
                                 <img src="{{ $post->user->getProfileImageUrl() }}" alt="{{ $post->user->name }}"
-                                    class="h-12 w-12 rounded-full object-cover mr-3">
+                                    class="h-12 w-12 rounded-full object-cover shadow-sm mr-3">
                                 <div>
                                     <div class="font-medium">{{ $post->user->name }}</div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $post->user->description }}
-                                    </div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">Efficient Problem Solver at Apple
+                                        Inc.</div>
                                 </div>
                             </div>
 
@@ -57,12 +57,52 @@
                         @auth
                             <div class="prose dark:prose-invert max-w-none">
                                 {!! $post->content !!}
+
+                                <!-- Image Gallery Display -->
+                                @if ($post->images->count() > 0)
+                                    <div class="mt-6">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                            @foreach ($post->images as $image)
+                                                <div class="relative">
+                                                    <img src="{{ $image->url }}" alt="{{ $image->name }}"
+                                                        class="rounded-md shadow-sm" style="max-width: 100%;">
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         @else
                             <div class="prose dark:prose-invert max-w-none relative">
                                 <!-- Limited content container with fixed height -->
                                 <div class="content-limited">
                                     {!! $post->content !!}
+
+                                    <!-- Image Gallery Display (limited for non-authenticated users) -->
+                                    @if ($post->images->count() > 0)
+                                        <div class="mt-6">
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                                @foreach ($post->images->take(2) as $image)
+                                                    <div class="relative">
+                                                        <img src="{{ $image->url }}" alt="{{ $image->name }}"
+                                                            class="rounded-md shadow-sm" style="max-width: 100%;">
+                                                    </div>
+                                                @endforeach
+
+                                                @if ($post->images->count() > 2)
+                                                    <div class="relative flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-md shadow-sm"
+                                                        style="height: 200px;">
+                                                        <div class="text-center">
+                                                            <p class="text-lg font-medium">+{{ $post->images->count() - 2 }}
+                                                                more</p>
+                                                            <p class="text-sm text-gray-500 dark:text-gray-400">Login to view
+                                                                all</p>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Fade overlay - always visible -->
@@ -156,8 +196,4 @@
             background: linear-gradient(to bottom, rgba(31, 41, 55, 0), rgba(31, 41, 55, 1));
         }
     </style>
-@endpush
-
-@push('scripts')
-    <!-- No custom script needed here since we're using the global voting.js -->
 @endpush

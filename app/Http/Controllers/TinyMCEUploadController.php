@@ -24,6 +24,11 @@ class TinyMCEUploadController extends Controller
                 return response()->json(['error' => 'Invalid file type'], 400);
             }
 
+            // Validate file size (2MB maximum)
+            if ($file->getSize() > 2097152) { // 2MB in bytes
+                return response()->json(['error' => 'File size exceeds 2MB limit'], 400);
+            }
+
             // Generate unique filename
             $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
 

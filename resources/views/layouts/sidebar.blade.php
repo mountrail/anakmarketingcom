@@ -1,7 +1,7 @@
 {{-- layouts/sidebar.blade.php --}}
 <div class="hidden lg:block w-1/3 mt-20">
     <div class="bg-white dark:bg-gray-800 p-4">
-        <h3 class="text-2xl font-bold mb-4 text-branding-primary dark:text-gray-200">Editor's Picks</h3>
+        <h3 class="text-xl font-bold mb-4 text-branding-primary dark:text-gray-200">Editor's Picks</h3>
 
         @if ($editorPicks->count() > 0)
             <div class="space-y-4 ml-6">
@@ -11,7 +11,7 @@
                             <div class="flex items-start">
                                 <div class="flex-grow">
                                     <h3
-                                        class="font-bold text-xl text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                        class="font-bold text-lg text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400">
                                         {{ $pick->title }}
                                     </h3>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">

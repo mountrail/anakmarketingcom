@@ -14,6 +14,12 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            fontSize: {
+                base: ['18px', '1.5'],
+                lg: ['24px', '1.6'],
+                xl: ['28px', '1.6'],
+                '2xl': ['32px', '1.6'],
+            },
             colors: {
                 branding: {
                     primary: '#FA9332',
