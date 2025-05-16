@@ -11,6 +11,7 @@
         "laravel/sanctum": "^4.1",
         "laravel/socialite": "^5.20",
         "laravel/tinker": "^2.10.1",
+        "livewire/livewire": "^3.6",
         "mews/purifier": "^3.4",
         "spatie/laravel-permission": "^6.18"
     },

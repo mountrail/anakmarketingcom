@@ -59,6 +59,11 @@ Route::middleware('guest')->group(function () {
 
         return back()->with('error', 'Unable to resend verification email.');
     })->middleware('throttle:6,1')->name('verification.guest.send');
+
+    // Move the email verification route to be accessible by guests
+    Route::get('verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
 });
 
 Route::middleware('auth')->group(function () {
@@ -66,15 +71,11 @@ Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 
-    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
+    // The verify-email/{id}/{hash} route has been moved to the guest middleware group
 
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
-
-
 
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');
