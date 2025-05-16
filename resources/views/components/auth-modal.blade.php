@@ -1,7 +1,6 @@
-<!-- resources/views/components/auth-modal.blade.php -->
 <div x-data="{
     activeTab: '{{ $activeTab ?? 'login' }}',
-    showModal: false
+    showModal: {{ session('show_auth_modal') ? 'true' : 'false' }}
 }" @keydown.escape.window="showModal = false"
     @open-auth-modal.window="showModal = true; activeTab = $event.detail || '{{ $activeTab ?? 'login' }}'">
 
@@ -58,3 +57,14 @@
         </div>
     </div>
 </div>
+
+@if (session('show_auth_modal'))
+    <script>
+        // Force the correct tab if specified
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dispatchEvent(new CustomEvent('open-auth-modal', {
+                detail: '{{ session('show_auth_modal') }}'
+            }));
+        });
+    </script>
+@endif

@@ -8,22 +8,7 @@
 
     // Method to refresh CSRF token
     refreshCsrfToken() {
-        return fetch('/sanctum/csrf-cookie', {
-                method: 'GET',
-                credentials: 'same-origin',
-                headers: { 'Accept': 'application/json' }
-            })
-            .then(() => {
-                // Get the refreshed token from meta tag
-                const refreshedToken = document.querySelector('meta[name=\'csrf-token\']').getAttribute('content');
-                // Update the form's hidden input
-                document.getElementById('register_csrf_token').value = refreshedToken;
-                console.log('Registration CSRF token refreshed');
-                return refreshedToken;
-            })
-            .catch(error => {
-                console.error('Error refreshing CSRF token:', error);
-            });
+        return window.refreshAuthCsrfToken();
     }
 }">
     <!-- Registration Success Message -->

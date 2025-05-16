@@ -7,7 +7,7 @@
  */
 ?>
 
-<x-guest-layout>
+<x-app-layout>
     <div class="flex flex-col items-center justify-center h-full p-6">
         <h1 class="text-5xl font-bold text-orange-500 mb-8">User Registered!</h1>
 
@@ -46,4 +46,4 @@
             </form>
         </div>
     </div>
-</x-guest-layout>
+</x-app-layout>

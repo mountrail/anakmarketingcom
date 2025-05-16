@@ -39,29 +39,39 @@ Route::middleware('guest')->group(function () {
         ->middleware('guest')
         ->name('register.validate.step1');
 
-    // Added a guest-accessible version of verification resend for our login-form
-
-    // Add this route to your auth.php file to ensure it's explicitly CSRF protected
+    // Updated guest-accessible version of verification resend with AJAX support
     Route::post('resend-verification', function (Illuminate\Http\Request $request) {
+        // Validate the request
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
         $user = \App\Models\User::where('email', $request->email)->first();
 
         if ($user && !$user->hasVerifiedEmail()) {
             $user->sendEmailVerificationNotification();
 
-            if ($request->expectsJson()) {
-                return response()->json(['success' => true, 'message' => 'Verification link has been sent!']);
+            // Check if it's an AJAX request
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Verification link has been sent!'
+                ]);
             }
 
             return back()->with('status', 'Verification link has been sent!');
         }
 
-        if ($request->expectsJson()) {
-            return response()->json(['success' => false, 'message' => 'Unable to resend verification email.']);
+        // Check if it's an AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to resend verification email.'
+            ], 400);
         }
 
         return back()->with('error', 'Unable to resend verification email.');
     })->middleware(['throttle:6,1', 'web'])->name('verification.guest.send');
-
 
     // Move the email verification route to be accessible by guests
     Route::get('verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])

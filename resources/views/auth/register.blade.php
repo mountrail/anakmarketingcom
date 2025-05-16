@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-app-layout>
     <div class="flex items-center justify-center mb-6">
         <x-google-button href="{{ route('auth.google') }}">
             Continue with Google
@@ -112,4 +112,4 @@
             </x-primary-button>
         </div>
     </form>
-</x-guest-layout>
+</x-app-layout>

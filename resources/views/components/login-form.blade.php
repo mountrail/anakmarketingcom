@@ -1,131 +1,178 @@
 <!-- resources/views/components/login-form.blade.php -->
-<div x-data="{
-    showLoginForm: false,
-    isSubmitting: false,
-    verificationRequired: false,
-    verificationEmail: '',
-    successMessage: '',
-    errorMessage: '',
-    csrfTokenRefreshed: false,
-
-    // Method to refresh CSRF token
-    refreshCsrfToken() {
-        return fetch('/sanctum/csrf-cookie', {
-                method: 'GET',
-                credentials: 'same-origin',
-                headers: { 'Accept': 'application/json' }
-            })
-            .then(() => {
-                // Get the refreshed token from meta tag
-                const refreshedToken = document.querySelector('meta[name=\'csrf-token\']').getAttribute('content');
-                // Update the form's hidden input
-                document.getElementById('dynamic_csrf_token').value = refreshedToken;
-                this.csrfTokenRefreshed = true;
-                console.log('CSRF token refreshed');
-                return refreshedToken;
-            })
-            .catch(error => {
-                console.error('Error refreshing CSRF token:', error);
-            });
-    }
-}"
-    @verification-sent.window="successMessage = 'Verification link has been sent!'; setTimeout(() => successMessage = '', 5000)"
-    x-init="() => {
-        // If we're here due to a verification_required redirect, refresh token on load
-        if ({{ session('verification_required') ? 'true' : 'false' }}) {
-            verificationRequired = true;
-            verificationEmail = '{{ session('email', '') }}';
-            refreshCsrfToken();
-        }
-    }">
+<div>
     <!-- Login Header -->
     <h2 class="text-4xl font-bold text-center text-orange-500 mb-6">
         Login
     </h2>
 
-    <!-- Verification Required Notice -->
-    <div x-cloak x-show="verificationRequired" class="rounded-md bg-yellow-50 p-4 mb-6">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd" />
-                </svg>
+    <!-- Success Message -->
+    @if (session('status'))
+        <div class="rounded-md bg-green-50 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-green-800">{{ session('status') }}</p>
+                </div>
             </div>
-            <div class="ml-3">
-                <h3 class="text-sm font-medium text-yellow-800">
-                    Email Not Verified
-                </h3>
-                <div class="mt-2 text-sm text-yellow-700">
-                    <p>You need to verify your email address before logging in.</p>
-                    <div x-show="verificationEmail.length > 0" class="mt-2">
-                        <button
-                            @click.prevent="
-                            // Always refresh the CSRF token before sending the verification email
-                            refreshCsrfToken().then(token => {
-                                fetch('{{ route('verification.guest.send') }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': token
-                                    },
-                                    body: JSON.stringify({
-                                        email: verificationEmail
-                                    })
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    successMessage = 'Verification link has been sent!';
-                                    setTimeout(() => successMessage = '', 5000);
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                });
-                            });"
-                            class="text-sm font-medium text-yellow-800 underline hover:text-yellow-900">
-                            Resend verification email
-                        </button>
+        </div>
+    @endif
+
+    <!-- Error Message -->
+    @if (session('error'))
+        <div class="rounded-md bg-red-50 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Verification Required Notice -->
+    @if (session('verification_required'))
+        <div id="verification-notice" class="rounded-md bg-yellow-50 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">
+                        Email Not Verified
+                    </h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                        <p>You need to verify your email address before logging in.</p>
+
+                        <!-- Resend verification link using AJAX -->
+                        <div class="mt-2">
+                            <a href="#" id="resend-verification-link"
+                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                <span id="resend-button-text">Resend Verification Email</span>
+                                <span id="resend-spinner" class="hidden ml-2 animate-spin">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                </span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Success Message -->
-    <div x-cloak x-show="successMessage" class="rounded-md bg-green-50 p-4 mb-6">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clip-rule="evenodd" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <p class="text-sm font-medium text-green-800" x-text="successMessage"></p>
-            </div>
-        </div>
-    </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const resendLink = document.getElementById('resend-verification-link');
+                const buttonText = document.getElementById('resend-button-text');
+                const spinner = document.getElementById('resend-spinner');
+                const noticeDiv = document.getElementById('verification-notice');
 
-    <!-- Error Message -->
-    <div x-cloak x-show="errorMessage" class="rounded-md bg-red-50 p-4 mb-6">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clip-rule="evenodd" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <p class="text-sm font-medium text-red-800" x-text="errorMessage"></p>
-            </div>
-        </div>
-    </div>
+                if (resendLink) {
+                    resendLink.addEventListener('click', function(e) {
+                        e.preventDefault();
 
-    <!-- Login Content -->
+                        // Show loading state
+                        buttonText.textContent = 'Sending...';
+                        spinner.classList.remove('hidden');
+                        resendLink.classList.add('opacity-75', 'cursor-not-allowed');
+
+                        // Create form data
+                        const formData = new FormData();
+                        formData.append('email', '{{ session('email') }}');
+                        formData.append('_token', '{{ csrf_token() }}');
+
+                        // Send AJAX request
+                        fetch('{{ route('verification.guest.send') }}', {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                // Create success message
+                                const successDiv = document.createElement('div');
+                                successDiv.className = 'rounded-md bg-green-50 p-4 mb-6';
+                                successDiv.innerHTML = `
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-green-800">Verification link has been sent!</p>
+                                    </div>
+                                </div>
+                            `;
+
+                                // Insert success message before notice div
+                                noticeDiv.parentNode.insertBefore(successDiv, noticeDiv);
+
+                                // Reset button state
+                                buttonText.textContent = 'Resend Verification Email';
+                                spinner.classList.add('hidden');
+                                resendLink.classList.remove('opacity-75', 'cursor-not-allowed');
+                            })
+                            .catch(error => {
+                                // Create error message
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'rounded-md bg-red-50 p-4 mb-6';
+                                errorDiv.innerHTML = `
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-red-800">Unable to send verification email. Please try again.</p>
+                                    </div>
+                                </div>
+                            `;
+
+                                // Insert error message before notice div
+                                noticeDiv.parentNode.insertBefore(errorDiv, noticeDiv);
+
+                                // Reset button state
+                                buttonText.textContent = 'Resend Verification Email';
+                                spinner.classList.add('hidden');
+                                resendLink.classList.remove('opacity-75', 'cursor-not-allowed');
+
+                                console.error('Error sending verification email:', error);
+                            });
+                    });
+                }
+            });
+        </script>
+    @endif
+
+
+    <!-- Login Options -->
     <div>
+        <!-- Google Login -->
         <div class="flex items-center justify-center mb-6">
             <a href="{{ route('auth.google') }}"
                 class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded flex items-center justify-center">
@@ -138,138 +185,59 @@
             </a>
         </div>
 
-        <div @click="showLoginForm = !showLoginForm; if(showLoginForm) { refreshCsrfToken(); }"
-            class="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold py-3 px-4 rounded text-center cursor-pointer mb-6">
+        <!-- Email Login Section -->
+        <div
+            class="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold py-3 px-4 rounded text-center mb-6">
             Login with Email
         </div>
 
-        <div x-show="showLoginForm" class="mt-4">
-            <!-- Login form -->
-            <form id="login-form"
-                @submit.prevent="
-                    if (isSubmitting) return; // Prevent multiple submissions
+        <!-- Login form - Traditional POST submission -->
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
 
-                    isSubmitting = true;
-                    errorMessage = '';
+            <!-- Email Address -->
+            <div>
+                <x-input-label for="login_email" :value="__('Email')" />
+                <x-text-input id="login_email" class="block mt-1 w-full" type="email" name="email" :value="old('email')"
+                    required autofocus autocomplete="username" />
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            </div>
 
-                    // Get fresh CSRF token from the hidden input
-                    const csrfToken = document.getElementById('dynamic_csrf_token').value;
+            <!-- Password -->
+            <div class="mt-4">
+                <x-input-label for="login_password" :value="__('Password')" />
+                <x-text-input id="login_password" class="block mt-1 w-full" type="password" name="password" required
+                    autocomplete="current-password" />
+                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            </div>
 
-                    // Get form data
-                    const formData = new FormData(document.getElementById('login-form'));
-
-                    // Make AJAX request
-                    fetch('{{ route('login') }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
-                        },
-                        body: formData
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(data => {
-                                throw data;
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            window.location.href = data.redirect;
-                        }
-                    })
-                    .catch(error => {
-                        isSubmitting = false;
-
-                        if (error.verification_required) {
-                            verificationRequired = true;
-                            verificationEmail = error.email;
-                            // Hide any other error messages when showing verification notice
-                            errorMessage = '';
-
-                            // Critically important: refresh the CSRF token immediately
-                            // when we get a verification_required response
-                            refreshCsrfToken();
-                        } else if (error.errors) {
-                            // Handle validation errors
-                            const firstError = Object.values(error.errors)[0];
-                            errorMessage = firstError ? Array.isArray(firstError) ? firstError[0] : firstError : 'An error occurred';
-                        } else if (error.message && error.message.includes('CSRF')) {
-                            // If we hit a CSRF error, refresh the token and provide a user-friendly message
-                            refreshCsrfToken().then(() => {
-                                errorMessage = 'Session expired. Please try again.';
-                            });
-                        } else {
-                            errorMessage = error.message || 'An error occurred during login';
-                        }
-                    })
-                    .finally(() => {
-                        // Re-enable the submit button after a short delay to prevent double clicks
-                        setTimeout(() => {
-                            isSubmitting = false;
-                        }, 500);
-                    });">
-                @csrf
-                <!-- Hidden input for CSRF token that can be updated dynamically -->
-                <input type="hidden" id="dynamic_csrf_token" name="_token" value="{{ csrf_token() }}">
-
-                <!-- Email Address -->
-                <div>
-                    <x-input-label for="login_email" :value="__('Email')" />
-                    <x-text-input id="login_email" class="block mt-1 w-full" type="email" name="email"
-                        :value="old('email')" required autofocus autocomplete="username" />
-                    <div x-show="errorMessage && errorMessage.includes('email')" class="text-red-600 text-sm mt-1"
-                        x-text="errorMessage"></div>
-                </div>
-
-                <!-- Password -->
-                <div class="mt-4">
-                    <x-input-label for="login_password" :value="__('Password')" />
-
-                    <x-text-input id="login_password" class="block mt-1 w-full" type="password" name="password" required
-                        autocomplete="current-password" />
-
-                    <div x-show="errorMessage && errorMessage.includes('password')" class="text-red-600 text-sm mt-1"
-                        x-text="errorMessage"></div>
-                </div>
-                @if (Route::has('password.request'))
+            <!-- Forgot Password Link -->
+            @if (Route::has('password.request'))
+                <div class="mt-2">
                     <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
                         href="{{ route('password.request') }}">
                         {{ __('Forgot your password?') }}
                     </a>
-                @endif
-                <!-- Remember Me -->
-                <div class="block my-4">
-                    <label for="remember_me" class="inline-flex items-center">
-                        <input id="remember_me" type="checkbox"
-                            class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800"
-                            name="remember">
-                        <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-                    </label>
                 </div>
+            @endif
 
+            <!-- Remember Me -->
+            <div class="block my-4">
+                <label for="remember_me" class="inline-flex items-center">
+                    <input id="remember_me" type="checkbox"
+                        class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800"
+                        name="remember">
+                    <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
+                </label>
+            </div>
 
-                <div class="flex items-center justify-end mt-4">
-
-                    <button type="submit"
-                        class=" bg-branding-primary hover:bg-orange-600 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 inline-flex justify-center items-center"
-                        :disabled="isSubmitting">
-                        <span x-show="isSubmitting" class="inline-block animate-spin mr-2">
-                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                        </span>
-                        {{ __('Log in') }}
-                    </button>
-                </div>
-            </form>
-        </div>
+            <!-- Submit Button -->
+            <div class="flex items-center justify-end mt-4">
+                <button type="submit"
+                    class="bg-branding-primary hover:bg-orange-600 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 inline-flex justify-center items-center">
+                    {{ __('Log in') }}
+                </button>
+            </div>
+        </form>
     </div>
 </div>

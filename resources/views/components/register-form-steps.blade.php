@@ -1,140 +1,134 @@
 <!-- resources/views/components/register-form-steps.blade.php -->
 <form method="POST" action="{{ route('register') }}" id="register-form"
-    @submit.prevent="if (registrationStep === 1) {
-    isSubmitting = true;
+    @submit.prevent="
+    if (registrationStep === 1) {
+        isSubmitting = true;
 
-    // Always refresh CSRF token before validation
-    refreshCsrfToken().then(csrfToken => {
-        // Now proceed with the validation using the refreshed token
-        fetch('{{ route('register.validate.step1') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                name: document.getElementById('register_name').value,
-                email: document.getElementById('register_email').value,
-                phone_country_code: document.getElementById('register_phone_country_code').value,
-                phone_number: document.getElementById('register_phone_number').value,
-                password: document.getElementById('register_password').value,
-                password_confirmation: document.getElementById('register_password_confirmation').value
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw data;
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            isSubmitting = false;
-            if (data.success) {
-                registrationStep = 2;
-                document.querySelectorAll('.text-red-500').forEach(el => el.classList.add('hidden'));
-            } else {
-                Object.keys(data.errors).forEach(field => {
-                    const errorEl = document.getElementById(field + '-error');
-                    if (errorEl) {
-                        errorEl.textContent = data.errors[field][0];
-                        errorEl.classList.remove('hidden');
-                    }
-                });
-            }
-        })
-        .catch(error => {
-            isSubmitting = false;
+        // Use the global CSRF token refreshing function
+        window.refreshAuthCsrfToken()
+            .then(csrfToken => {
+                // Gather form data
+                const formData = {
+                    name: document.getElementById('register_name').value,
+                    email: document.getElementById('register_email').value,
+                    phone_country_code: document.getElementById('register_phone_country_code').value,
+                    phone_number: document.getElementById('register_phone_number').value,
+                    password: document.getElementById('register_password').value,
+                    password_confirmation: document.getElementById('register_password_confirmation').value
+                };
 
-            // Handle errors from the response
-            if (error.errors) {
-                // Clear previous errors first
+                // Clear any existing errors
                 document.querySelectorAll('.text-red-500').forEach(el => {
                     el.textContent = '';
                     el.classList.add('hidden');
                 });
 
-                // Now show new errors
-                Object.keys(error.errors).forEach(field => {
-                    // Handle standard fields
-                    const errorEl = document.getElementById(field + '-error');
-                    if (errorEl) {
-                        errorEl.textContent = error.errors[field][0];
-                        errorEl.classList.remove('hidden');
-                    }
-
-                    // Special handling for email field which might be named differently
-                    if (field === 'email') {
-                        const registerEmailError = document.getElementById('register_email-error');
-                        if (registerEmailError) {
-                            registerEmailError.textContent = error.errors[field][0];
-                            registerEmailError.classList.remove('hidden');
-                        }
-                    }
+                // Send validation request for step 1
+                return fetch('{{ route('register.validate.step1') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
                 });
-            } else {
-                console.error('Validation error:', error);
-            }
-        });
-    }).catch(error => {
-        isSubmitting = false;
-        console.error('Error refreshing CSRF token:', error);
-    });
-} else {
-    isSubmitting = true;
-    const formData = new FormData(document.getElementById('register-form'));
-
-    // Get the CSRF token from the dynamic hidden input
-    const csrfToken = document.getElementById('register_csrf_token').value;
-
-    fetch('{{ route('register') }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        },
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw data;
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        isSubmitting = false;
-        if (data.success) {
-            registrationSuccess = true;
-        }
-    })
-    .catch(error => {
-        isSubmitting = false;
-
-        if (error.errors) {
-            // Clear previous errors first
-            document.querySelectorAll('.text-red-500').forEach(el => {
-                el.textContent = '';
-                el.classList.add('hidden');
-            });
-
-            Object.keys(error.errors).forEach(field => {
-                const errorEl = document.getElementById(field + '-error');
-                if (errorEl) {
-                    errorEl.textContent = error.errors[field][0];
-                    errorEl.classList.remove('hidden');
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => { throw data; });
                 }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Move to step 2 on successful validation
+                    registrationStep = 2;
+                }
+            })
+            .catch(error => {
+                // Handle validation errors
+                if (error.errors) {
+                    Object.keys(error.errors).forEach(field => {
+                        const errorEl = document.getElementById(field + '-error');
+                        if (errorEl) {
+                            errorEl.textContent = error.errors[field][0];
+                            errorEl.classList.remove('hidden');
+                        }
+
+                        // Special handling for email field which might be named differently
+                        if (field === 'email') {
+                            const registerEmailError = document.getElementById('register_email-error');
+                            if (registerEmailError) {
+                                registerEmailError.textContent = error.errors[field][0];
+                                registerEmailError.classList.remove('hidden');
+                            }
+                        }
+                    });
+                } else {
+                    console.error('Validation error:', error);
+                }
+            })
+            .finally(() => {
+                isSubmitting = false;
             });
-        } else {
-            console.error('Registration error:', error);
-        }
-    });
-}">
+    } else {
+        // Handle step 2 submission (final registration)
+        isSubmitting = true;
+
+        // Use the global CSRF token refreshing function first
+        window.refreshAuthCsrfToken()
+            .then(csrfToken => {
+                const formData = new FormData(document.getElementById('register-form'));
+
+                // Submit the registration form
+                return fetch('{{ route('register') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => { throw data; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    registrationSuccess = true;
+                }
+            })
+            .catch(error => {
+                // Handle registration errors
+                if (error.errors) {
+                    // Clear previous errors first
+                    document.querySelectorAll('.text-red-500').forEach(el => {
+                        el.textContent = '';
+                        el.classList.add('hidden');
+                    });
+
+                    // Display new errors
+                    Object.keys(error.errors).forEach(field => {
+                        const errorEl = document.getElementById(field + '-error');
+                        if (errorEl) {
+                            errorEl.textContent = error.errors[field][0];
+                            errorEl.classList.remove('hidden');
+                        }
+                    });
+                } else {
+                    console.error('Registration error:', error);
+                }
+            })
+            .finally(() => {
+                isSubmitting = false;
+            });
+    }">
     @csrf
     <!-- Dynamic CSRF token input that can be updated if needed -->
     <input type="hidden" id="register_csrf_token" name="_token" value="{{ csrf_token() }}">

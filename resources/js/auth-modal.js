@@ -1,5 +1,36 @@
 // resources/js/auth-modal.js
 document.addEventListener('DOMContentLoaded', function () {
+
+    // Global CSRF token refresh function
+    window.refreshAuthCsrfToken = function () {
+        return fetch('/sanctum/csrf-cookie', {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(() => {
+                // Get the refreshed token from meta tag
+                const refreshedToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                // Update all dynamic CSRF token inputs in the page
+                document.querySelectorAll('input[name="_token"]').forEach(input => {
+                    input.value = refreshedToken;
+                });
+
+                // Also update any dynamic_csrf_token elements specifically
+                document.querySelectorAll('#dynamic_csrf_token').forEach(input => {
+                    input.value = refreshedToken;
+                });
+
+                console.log('CSRF token refreshed globally');
+                return refreshedToken;
+            })
+            .catch(error => {
+                console.error('Error refreshing CSRF token:', error);
+                throw error; // Re-throw to allow handling in the calling code
+            });
+    };
+
     // Handle all login buttons
     document.querySelectorAll('[data-auth-action="login"]').forEach(button => {
         button.addEventListener('click', function (e) {

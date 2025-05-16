@@ -38,7 +38,7 @@
         @endif
 
         <!-- Page Content -->
-        <main>
+        <main class="py-6">
             <div class="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8">
                 <div class="flex flex-col lg:flex-row">
                     <!-- Main Content Area -->

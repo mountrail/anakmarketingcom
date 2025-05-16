@@ -1,6 +1,6 @@
 import './bootstrap';
-import './voting.js';
 import './auth-modal.js';
+import './voting.js';
 import './register-validation.js';
 import './voting.js'
 

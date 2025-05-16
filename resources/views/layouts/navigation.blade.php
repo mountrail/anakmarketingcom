@@ -69,11 +69,13 @@
             @else
                 <!-- Login/Register Links (For Guests) -->
                 <div class="hidden sm:flex sm:items-center sm:space-x-4">
-                    <a href="#" data-auth-action="register"
+                    <a href="#"
+                        @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'register'}))"
                         class="px-4 py-2 bg-branding-dark text-branding-light rounded-md text-sm font-medium shadow-md">
                         Sign Up
                     </a>
-                    <a href="#" data-auth-action="login"
+                    <a href="#"
+                        @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'login'}))"
                         class="px-4 py-2 bg-branding-primary text-branding-light rounded-md text-sm font-medium shadow-md">
                         Login
                     </a>
@@ -133,10 +135,10 @@
                             </form>
                         @else
                             <!-- Auth Actions for Mobile -->
-                            <x-dropdown-link data-auth-action="login">
+                            <x-dropdown-link href="#"
+                                @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'login'}))">
                                 {{ __('Masuk / Daftar') }}
                             </x-dropdown-link>
-
                         @endauth
                     </x-slot>
                 </x-dropdown>
@@ -151,13 +153,15 @@
 
             <div class="flex justify-between items-center space-x-4">
                 <!-- Sign Up Button (40%) -->
-                <a href="#" data-auth-action="register"
+                <a href="#"
+                    @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'register'}))"
                     class="w-2/5 text-center px-4 py-2 bg-branding-dark text-branding-light rounded-md text-sm font-medium shadow-md">
                     Daftar
                 </a>
 
                 <!-- Login Button (60%) -->
-                <a href="#" data-auth-action="login"
+                <a href="#"
+                    @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'login'}))"
                     class="w-3/5 text-center px-4 py-2 bg-branding-primary text-branding-light rounded-md text-sm font-medium shadow-md">
                     Masuk
                 </a>
@@ -173,3 +177,19 @@
 
 <!-- Auth Modal - Single Instance for whole layout -->
 <x-auth-modal />
+
+<script>
+    // Initialize event handlers for auth modal triggers
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle data-auth-action attributes
+        document.querySelectorAll('[data-auth-action]').forEach(function(element) {
+            element.addEventListener('click', function(e) {
+                e.preventDefault();
+                const action = this.getAttribute('data-auth-action');
+                window.dispatchEvent(new CustomEvent('open-auth-modal', {
+                    detail: action
+                }));
+            });
+        });
+    });
+</script>
