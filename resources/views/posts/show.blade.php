@@ -1,5 +1,6 @@
 @extends('layouts.app')
 
+{{-- resources/views/posts/show.blade.php --}}
 @section('content')
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -56,27 +57,24 @@
                     <div class="mt-6 border-t pt-6">
                         @auth
                             <div class="prose dark:prose-invert max-w-none">
-                                {!! $post->content !!}
+                                {!! Illuminate\Support\Str::of($post->content)->replaceMatches(
+                                    '/<(?!\/?(b|strong|u|i|em|ul|ol|li)(?=>|\s.*>))\/?([a-z][a-z0-9]*)\b[^>]*>/i',
+                                    '',
+                                ) !!}
 
-                                <!-- Image Gallery Display -->
+                                <!-- Image Gallery Display using the partial -->
                                 @if ($post->images->count() > 0)
-                                    <div class="mt-6">
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                            @foreach ($post->images as $image)
-                                                <div class="relative">
-                                                    <img src="{{ $image->url }}" alt="{{ $image->name }}"
-                                                        class="rounded-md shadow-sm" style="max-width: 100%;">
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
+                                    @include('posts.partials.image-gallery', ['images' => $post->images])
                                 @endif
                             </div>
                         @else
                             <div class="prose dark:prose-invert max-w-none relative">
                                 <!-- Limited content container with fixed height -->
                                 <div class="content-limited">
-                                    {!! $post->content !!}
+                                    {!! Illuminate\Support\Str::of(strip_tags($post->content, '<b><strong><u><i><em><ul><ol><li>'))->limit(
+                                        200,
+                                        '...',
+                                    ) !!}
 
                                     <!-- Image Gallery Display (limited for non-authenticated users) -->
                                     @if ($post->images->count() > 0)

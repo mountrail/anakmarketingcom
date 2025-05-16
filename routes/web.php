@@ -13,11 +13,6 @@ use App\Http\Controllers\AnswerController;
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
 
-// tinymce
-Route::middleware(['auth'])->group(function () {
-    Route::post('/admin/upload-tinymce-image', [TinyMCEUploadController::class, 'store'])->name('tinymce.upload');
-});
-
 
 // Google login routes
 Route::controller(GoogleController::class)->group(function () {

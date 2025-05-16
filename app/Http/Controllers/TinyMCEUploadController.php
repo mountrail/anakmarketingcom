@@ -47,11 +47,12 @@ class TinyMCEUploadController extends Controller
             // Debug info
             Log::info('TinyMCE Upload Success', [
                 'path' => $path,
-                'url' => Storage::disk('public')->url($path)
+                'url' => '/storage/' . $path
             ]);
 
+            // Return the relative URL instead of the full URL
             return response()->json([
-                'location' => Storage::disk('public')->url($path),
+                'location' => '/storage/' . $path,
             ]);
         } catch (\Exception $e) {
             // Log the error
