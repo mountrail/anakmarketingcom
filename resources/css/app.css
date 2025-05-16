@@ -24,11 +24,6 @@
     font-size: 16px; /* Base mobile size */
   }
 
-  @media (min-width: 768px) {
-    html {
-      font-size: 24px; /* 1.5x ratio for desktop */
-    }
-  }
 
   body {
     @apply text-base leading-relaxed text-gray-900; /* Apply your default font size + line-height + color */

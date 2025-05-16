@@ -15,10 +15,10 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
             fontSize: {
-                base: ['18px', '1.5'],
-                lg: ['24px', '1.6'],
-                xl: ['28px', '1.6'],
-                '2xl': ['32px', '1.6'],
+                base: ['clamp(1rem, 1vw + 0.5rem, 1.125rem)', '1.6'], // 16px to 18px
+                lg: ['clamp(1.125rem, 1vw + 0.75rem, 1.375rem)', '1.6'], // 18px to 22px
+                xl: ['clamp(1.25rem, 1vw + 1rem, 1.5rem)', '1.6'], // 20px to 24px
+                '2xl': ['clamp(1.5rem, 2vw + 1rem, 2rem)', '1.6'], // 24px to 32px
             },
             colors: {
                 branding: {
