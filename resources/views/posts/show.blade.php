@@ -16,7 +16,7 @@
                     <!-- Post Header Section -->
                     <div class="mb-6">
                         <!-- Category and post time info -->
-                        <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
+                        <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
                             <span class="mr-2">{{ $post->type === 'question' ? 'Pertanyaan' : 'Diskusi' }}</span>
                             <span class="mx-2">|</span>
                             <span>{{ $post->created_at->diffForHumans() }}</span>
@@ -33,7 +33,7 @@
                                     class="h-12 w-12 rounded-full object-cover shadow-sm mr-3">
                                 <div>
                                     <div class="font-medium">{{ $post->user->name }}</div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">Efficient Problem Solver at Apple
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Efficient Problem Solver at Apple
                                         Inc.</div>
                                 </div>
                             </div>
@@ -57,10 +57,7 @@
                     <div class="mt-6 border-t pt-6">
                         @auth
                             <div class="prose dark:prose-invert max-w-none">
-                                {!! Illuminate\Support\Str::of($post->content)->replaceMatches(
-                                    '/<(?!\/?(b|strong|u|i|em|ul|ol|li)(?=>|\s.*>))\/?([a-z][a-z0-9]*)\b[^>]*>/i',
-                                    '',
-                                ) !!}
+                                {!! clean($post->content) !!}
 
                                 <!-- Image Gallery Display using the partial -->
                                 @if ($post->images->count() > 0)
@@ -71,10 +68,7 @@
                             <div class="prose dark:prose-invert max-w-none relative">
                                 <!-- Limited content container with fixed height -->
                                 <div class="content-limited">
-                                    {!! Illuminate\Support\Str::of(strip_tags($post->content, '<b><strong><u><i><em><ul><ol><li>'))->limit(
-                                        200,
-                                        '...',
-                                    ) !!}
+                                    <p>@excerpt($post->content, 200, '...')</p>
 
                                     <!-- Image Gallery Display (limited for non-authenticated users) -->
                                     @if ($post->images->count() > 0)

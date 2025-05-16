@@ -14,8 +14,8 @@
                                         class="font-bold text-lg text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400">
                                         {{ $pick->title }}
                                     </h3>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                        {!! Str::limit(strip_tags($pick->content, '<p><br><b><i><strong><em>'), 100, '...') !!}
+                                    <p class=" text-gray-600 dark:text-gray-400 mt-2">
+                                        @excerpt($pick->content, 100, '...')
                                     </p>
                                 </div>
                                 <div class="ml-2 flex-shrink-0">

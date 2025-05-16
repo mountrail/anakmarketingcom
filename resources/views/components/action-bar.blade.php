@@ -59,7 +59,6 @@
         @if ($showShare)
             <button type="button" class="flex items-center text-xs py-1 rounded-md">
                 <x-icons.share class="h-4 w-4 mr-1" />
-                Share
             </button>
         @endif
     </div>

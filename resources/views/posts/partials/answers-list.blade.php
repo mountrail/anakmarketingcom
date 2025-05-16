@@ -14,7 +14,7 @@
                         <div class="flex flex-col">
                             <span class="font-medium text-gray-900 dark:text-gray-100">{{ $answer->user->name }}</span>
                             <span
-                                class="text-sm text-gray-500 dark:text-gray-400">{{ $answer->created_at->diffForHumans() }}</span>
+                                class="text-xs text-gray-500 dark:text-gray-400">{{ $answer->created_at->diffForHumans() }}</span>
                         </div>
                     </div>
 
