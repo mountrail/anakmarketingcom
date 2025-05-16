@@ -40,6 +40,8 @@ Route::middleware('guest')->group(function () {
         ->name('register.validate.step1');
 
     // Added a guest-accessible version of verification resend for our login-form
+
+    // Add this route to your auth.php file to ensure it's explicitly CSRF protected
     Route::post('resend-verification', function (Illuminate\Http\Request $request) {
         $user = \App\Models\User::where('email', $request->email)->first();
 
@@ -58,11 +60,12 @@ Route::middleware('guest')->group(function () {
         }
 
         return back()->with('error', 'Unable to resend verification email.');
-    })->middleware('throttle:6,1')->name('verification.guest.send');
+    })->middleware(['throttle:6,1', 'web'])->name('verification.guest.send');
+
 
     // Move the email verification route to be accessible by guests
     Route::get('verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
-        ->middleware(['signed', 'throttle:6,1'])
+        ->middleware(['throttle:6,1'])
         ->name('verification.verify');
 });
 

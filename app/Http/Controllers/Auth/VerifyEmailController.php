@@ -4,29 +4,33 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Requests\Auth\CustomEmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth; // Add this import
+use Illuminate\Support\Facades\Auth;
 
 class VerifyEmailController extends Controller
 {
     /**
      * Mark the authenticated user's email address as verified.
      */
-    public function __invoke(EmailVerificationRequest $request): RedirectResponse
+    public function __invoke(CustomEmailVerificationRequest $request): RedirectResponse
     {
+        // Verification logic is handled in the custom request's authorize method
+
+        // If already verified, just redirect
         if ($request->user()->hasVerifiedEmail()) {
+            // User might not be logged in, so log them in
+            if (!Auth::check()) {
+                Auth::login($request->user());
+            }
             return redirect()->intended(route('home', absolute: false) . '?verified=1');
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
-        }
+        // Otherwise fulfill the verification
+        $request->fulfill();
 
-        // Ensure the user is authenticated (log them in) if not already
-        if (!Auth::check()) {
-            Auth::login($request->user());
-        }
+        // Log the user in after verification
+        Auth::login($request->user());
 
         return redirect()->intended(route('home', absolute: false) . '?verified=1');
     }
