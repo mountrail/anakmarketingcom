@@ -42,12 +42,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/posts/{post}/vote', [VoteController::class, 'votePost'])->name('posts.vote');
     Route::post('/answers/{answer}/vote', [VoteController::class, 'voteAnswer'])->name('answers.vote');
 
-    // TinyMCE upload routes
-    Route::post('/admin/upload-tinymce-image', [TinyMCEUploadController::class, 'store'])->name('tinymce.upload');
-
-    // Add this route for TinyMCE image uploads
-    Route::post('/tinymce/upload', [App\Http\Controllers\TinyMCEUploadController::class, 'store'])
-        ->name('tinymce.upload');
+    // TinyMCE upload route
+    Route::post('/tinymce/upload', [TinyMCEUploadController::class, 'store'])->name('tinymce.upload');
 });
 
 // Post route for viewing individual posts - accessible to all users
