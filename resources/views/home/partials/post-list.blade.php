@@ -1,4 +1,4 @@
-{{-- home/partials/post-list.blade.php --}}
+{{-- resources\views\home\partials\post-list.blade.php --}}
 <div>
     <div class="flex flex-col items-center space-x-2 mt-4">
         <div class="inline-flex items-center my-1 px-4 py-2 ">
@@ -41,40 +41,10 @@
     <div class="py-2">
         <!-- Editor's Picks Section -->
         @if (isset($typedEditorPicks) && $typedEditorPicks->count() > 0)
-            <div>
+            <div class="mb-4">
                 @foreach ($typedEditorPicks as $pick)
-                    <div class="bg-branding-primary/20 dark:bg-branding-primary/10 border-b border-essentials-inactive">
-                        <div class="p-4">
-                            <a href="{{ route('posts.show', $pick->id) }}">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-col">
-                                        <div
-                                            class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                                            <span>By: {{ $pick->user->name ?? 'Unknown' }}</span>
-                                            <span>{{ $pick->created_at->diffForHumans() }}</span>
-                                            <span>{{ $pick->view_count }} views</span>
-                                        </div>
-                                        <h3
-                                            class="font-bold text-lg text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400">
-                                            {{ $pick->title }}
-                                        </h3>
-                                        <p class="text-gray-600 dark:text-gray-400 mt-2">
-                                            @excerpt($pick->content, 100, '...')
-                                        </p>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <x-icons.lightbulb class="h-10 w-10 text-orange-500" />
-                                    </div>
-                                </div>
-
-                            </a>
-                            <div class="flex items-center mt-3 relative">
-                                <!-- Using the new action-bar component -->
-                                <x-action-bar :model="$pick" modelType="post" :showVoteScore="false" :showCommentCount="true"
-                                    :showShare="true" />
-                            </div>
-                        </div>
-                    </div>
+                    <x-post-item :post="$pick" :isHighlighted="true" :showVoteScore="false" :showCommentCount="true"
+                        :showShare="true" />
                 @endforeach
             </div>
         @endif
@@ -99,35 +69,7 @@
             @else
                 <div>
                     @foreach ($posts as $post)
-                        <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
-                            <div class="p-4">
-                                <a href="{{ route('posts.show', $post->id) }}">
-                                    <div class="flex justify-between items-start">
-                                        <div class="flex-col">
-                                            <div
-                                                class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                                                <span>By: {{ $post->user->name ?? 'Unknown' }}</span>
-                                                <span>{{ $post->created_at->diffForHumans() }}</span>
-                                                <span>{{ $post->view_count }} views</span>
-                                            </div>
-                                            <h3
-                                                class="font-bold text-lg text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400">
-                                                {{ $post->title }}
-                                            </h3>
-                                            <p class="text-gray-600 dark:text-gray-400 mt-2">
-                                                @excerpt($post->content, 100, '...')
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                </a>
-                                <div class="flex items-center mt-3 relative">
-                                    <!-- Using the new action-bar component -->
-                                    <x-action-bar :model="$post" modelType="post" :showVoteScore="false" :showCommentCount="true"
-                                        :showShare="true" />
-                                </div>
-                            </div>
-                        </div>
+                        <x-post-item :post="$post" :showVoteScore="false" :showCommentCount="true" :showShare="true" />
                     @endforeach
                 </div>
 

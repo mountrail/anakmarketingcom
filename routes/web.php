@@ -12,6 +12,7 @@ use App\Http\Controllers\AnswerController;
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
+Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 
 Route::get('/admin-test', function () {
     return response()->json([
@@ -59,11 +60,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Post route for viewing individual posts - accessible to all users
 Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
 
-// User profile routes
+// User account routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/account', [ProfileController::class, 'edit'])->name('account.edit');
+    Route::patch('/account', [ProfileController::class, 'update'])->name('account.update');
+    Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
 });
 
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
+use App\Models\Post;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +20,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
+        return view('account.edit', [
             'user' => $request->user(),
         ]);
     }
@@ -66,7 +67,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route('account.edit')->with('status', 'profile-updated');
     }
 
     /**
@@ -76,7 +77,24 @@ class ProfileController extends Controller
     {
         $isOwner = auth()->check() && auth()->id() === $user->id;
 
-        return view('profile.show', compact('user', 'isOwner'));
+        // Get user's posts with pagination
+        $posts = $user->posts()
+            ->withCount('answers')
+            ->latest()
+            ->paginate(10);
+
+        // Get editor's picks for sidebar
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            ->with(['user', 'answers'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Share editorPicks for the sidebar
+        view()->share('editorPicks', $editorPicks);
+
+        return view('profile.show', compact('user', 'isOwner', 'posts'));
     }
 
     /**
@@ -144,4 +162,6 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+
+
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use App\Models\PostImage;  // Assuming you'll create this model
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
@@ -18,13 +18,13 @@ class PostController extends Controller
         $selectedType = $request->query('type', 'question');
 
         // Get featured posts (editor's picks) filtered by the selected type for the main content
+        // Removed take(3) to show all available editor's picks for the selected type
         $typedEditorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
             ->where('type', $selectedType) // Filter by the selected type
             ->with(['user', 'answers'])
             ->latest()
-            ->take(3)
-            ->get();
+            ->get(); // Changed from take(3) to get() to show all
 
         // Get the IDs of featured posts to exclude them from regular posts
         $featuredPostIds = $typedEditorPicks->pluck('id')->toArray();
@@ -117,12 +117,13 @@ class PostController extends Controller
         // Increment view count
         $post->increment('view_count');
 
-        // Load post with its answers, images, and the users who wrote them
+        // Load post with its answers, images, user, and the users who wrote the answers
         $post->load([
+            'user', // Load the post author
             'answers' => function ($query) {
                 $query->latest();
             },
-            'answers.user',
+            'answers.user', // Load answer authors
             'images' // Load associated images
         ]);
 
@@ -273,5 +274,48 @@ class PostController extends Controller
 
         return redirect()->back()
             ->with('success', 'Editor\'s pick status updated successfully.');
+    }
+
+    /**
+     * Load more posts for a specific user (AJAX)
+     */
+    public function loadUserPosts(Request $request, User $user)
+    {
+        $offset = $request->get('offset', 0);
+        $limit = $request->get('limit', 2);
+        $currentPostId = $request->get('current_post_id', null);
+
+        // Get user's posts excluding the current post if provided
+        $postsQuery = $user->posts()->withCount('answers')->latest();
+
+        if ($currentPostId) {
+            $postsQuery->where('id', '!=', $currentPostId);
+        }
+
+        $posts = $postsQuery->skip($offset)->take($limit)->get();
+
+        if ($request->wantsJson()) {
+            $html = '';
+            foreach ($posts as $post) {
+                $html .= view('components.post-item', [
+                    'post' => $post,
+                    'showMeta' => false,
+                    'showVoteScore' => false,
+                    'showCommentCount' => true,
+                    'showShare' => true,
+                    'showThreeDots' => false,
+                    'customClasses' => 'text-xs',
+                    'containerClasses' => 'border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 last:pb-0'
+                ])->render();
+            }
+
+            return response()->json([
+                'success' => true,
+                'html' => $html,
+                'count' => $posts->count()
+            ]);
+        }
+
+        return response()->json(['success' => false], 400);
     }
 }
