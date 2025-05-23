@@ -7,38 +7,37 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
-    use HasRoles;
+    use HasFactory, Notifiable, HasRoles;
+
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
-        'google_id',
-        'avatar',
-        'provider',
-        'provider_id',
-        'phone',
         'password',
+        'phone',
         'industry',
         'seniority',
         'company_size',
         'city',
-        'profile_picture',
         'title',
+        'provider',
+        'provider_id',
+        'profile_picture',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -59,13 +58,26 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Override the hasVerifiedEmail method to always return true for Google users
-     *
-     * @return bool
+     * Determine if the user can access Filament admin panel.
      */
-    public function hasVerifiedEmail()
+    public function canAccessPanel(Panel $panel): bool
     {
-        return $this->provider === 'google' || $this->email_verified_at !== null;
+        // Option 1: Check if user has admin role
+        if ($this->hasRole('admin')) {
+            return true;
+        }
+
+        // Option 2: Check specific email domains (if needed)
+        // if (str_ends_with($this->email, '@yourdomain.com') && $this->hasVerifiedEmail()) {
+        //     return true;
+        // }
+
+        // Option 3: Check specific user IDs (for development/testing)
+        // if (in_array($this->id, [1, 2, 3])) { // Replace with your admin user IDs
+        //     return true;
+        // }
+
+        return false;
     }
 
     /**
@@ -93,21 +105,15 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the user's profile picture URL with priority:
-     * 1. Default profile_picture
-     * 2. Google avatar
-     * 3. Dummy image
-     *
-     * @return string
+     * Get the profile image URL.
      */
     public function getProfileImageUrl()
     {
-        if (!empty($this->profile_picture)) {
+        if ($this->profile_picture) {
             return asset('storage/' . $this->profile_picture);
-        } elseif (!empty($this->avatar)) {
-            return $this->avatar;
-        } else {
-            return asset('storage/uploads/images/portrait.png');
         }
+
+        // Default avatar using Gravatar or a placeholder
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
     }
 }
