@@ -29,6 +29,8 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'company_size',
         'city',
         'title',
+        'google_id',
+        'avatar',
         'provider',
         'provider_id',
         'profile_picture',
@@ -55,6 +57,16 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Override the hasVerifiedEmail method to always return true for Google users
+     *
+     * @return bool
+     */
+    public function hasVerifiedEmail()
+    {
+        return $this->provider === 'google' || $this->email_verified_at !== null;
     }
 
     /**
@@ -105,15 +117,22 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     }
 
     /**
-     * Get the profile image URL.
+     * Get the user's profile picture URL with priority:
+     * 1. Default profile_picture
+     * 2. Google avatar
+     * 3. UI Avatars fallback
+     *
+     * @return string
      */
     public function getProfileImageUrl()
     {
-        if ($this->profile_picture) {
+        if (!empty($this->profile_picture)) {
             return asset('storage/' . $this->profile_picture);
+        } elseif (!empty($this->avatar)) {
+            return $this->avatar;
+        } else {
+            // Default avatar using UI Avatars
+            return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
         }
-
-        // Default avatar using Gravatar or a placeholder
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
     }
 }

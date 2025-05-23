@@ -50,14 +50,14 @@ class GoogleController extends Controller
                         'provider' => 'google',
                         'provider_id' => $googleUser->id,
                         'password' => bcrypt(Str::random(24)), // Random password
-                        'email_verified_at' => now(),
+                        'email_verified_at' => now(), // Auto-verify Google users
                     ];
 
                     \Log::info('User data for creation:', ['data' => array_keys($userData)]);
 
                     $user = User::create($userData);
 
-                    \Log::info('New user created successfully with ID: ' . $user->id);
+                    \Log::info('New user created successfully with ID: ' . $user->id . ' and auto-verified');
                 } catch (\Exception $createEx) {
                     \Log::error('Failed to create user: ' . $createEx->getMessage());
                     \Log::error($createEx->getTraceAsString());
@@ -68,15 +68,21 @@ class GoogleController extends Controller
             } else {
                 \Log::info('Existing user found: ' . $user->id);
 
-                // Update existing user with Google information
-                // This ensures proper linkage with Google and verification status
-                $user->update([
+                // Update existing user with Google information and auto-verify
+                $updateData = [
                     'google_id' => $googleUser->id,
                     'avatar' => $googleUser->avatar,
                     'provider' => 'google',
                     'provider_id' => $googleUser->id,
-                    'email_verified_at' => $user->email_verified_at ?? now(), // Set verification timestamp if not already set
-                ]);
+                ];
+
+                // Auto-verify if not already verified
+                if (!$user->hasVerifiedEmail()) {
+                    $updateData['email_verified_at'] = now();
+                    \Log::info('Auto-verifying existing user: ' . $user->id);
+                }
+
+                $user->update($updateData);
 
                 \Log::info('Existing user updated with Google information');
             }
