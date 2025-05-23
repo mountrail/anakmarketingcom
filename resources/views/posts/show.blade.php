@@ -1,6 +1,6 @@
+{{-- resources/views/posts/show.blade.php --}}
 @extends('layouts.app')
 
-{{-- resources/views/posts/show.blade.php --}}
 @section('content')
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -29,12 +29,26 @@
                         <!-- User Profile Section -->
                         <div class="flex items-center">
                             <div class="flex items-center">
-                                <img src="{{ $post->user->getProfileImageUrl() }}" alt="{{ $post->user->name }}"
-                                    class="h-12 w-12 rounded-full object-cover shadow-sm mr-3">
+                                <a href="{{ route('profile.show', $post->user) }}" class="flex-shrink-0 mr-3">
+                                    <img src="{{ $post->user->getProfileImageUrl() }}" alt="{{ $post->user->name }}"
+                                        class="h-12 w-12 rounded-full object-cover shadow-sm hover:opacity-80 transition-opacity">
+                                </a>
                                 <div>
-                                    <div class="font-medium">{{ $post->user->name }}</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Efficient Problem Solver at Apple
-                                        Inc.</div>
+                                    <a href="{{ route('profile.show', $post->user) }}"
+                                        class="font-medium hover:text-branding-primary dark:hover:text-branding-primary transition-colors">
+                                        {{ $post->user->name }}
+                                    </a>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        @if ($post->user->job_title && $post->user->company)
+                                            {{ $post->user->job_title }} at {{ $post->user->company }}
+                                        @elseif($post->user->job_title)
+                                            {{ $post->user->job_title }}
+                                        @elseif($post->user->company)
+                                            {{ $post->user->company }}
+                                        @else
+                                            Member
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
 
@@ -188,4 +202,3 @@
             background: linear-gradient(to bottom, rgba(31, 41, 55, 0), rgba(31, 41, 55, 1));
         }
     </style>
-@endpush

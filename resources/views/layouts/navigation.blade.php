@@ -45,11 +45,11 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('profile.edit')">
+                            <x-dropdown-link :href="route('profile.show', Auth::user())">
                                 {{ __('Profil Saya') }}
                             </x-dropdown-link>
 
-                            <x-dropdown-link href="#">
+                            <x-dropdown-link :href="route('profile.edit')">
                                 {{ __('Pusat Akun') }}
                             </x-dropdown-link>
 
@@ -116,11 +116,11 @@
 
                         @auth
                             <!-- User Menu Items -->
-                            <x-dropdown-link :href="route('profile.edit')">
+                            <x-dropdown-link :href="route('profile.show', Auth::user())">
                                 {{ __('Profil Saya') }}
                             </x-dropdown-link>
 
-                            <x-dropdown-link href="#">
+                            <x-dropdown-link :href="route('profile.edit')">
                                 {{ __('Pusat Akun') }}
                             </x-dropdown-link>
 

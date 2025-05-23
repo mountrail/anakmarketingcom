@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
 
@@ -68,6 +70,57 @@ class ProfileController extends Controller
     }
 
     /**
+     * Display the specified user's profile.
+     */
+    public function show(User $user)
+    {
+        $isOwner = auth()->check() && auth()->id() === $user->id;
+
+        return view('profile.show', compact('user', 'isOwner'));
+    }
+
+    /**
+     * Update the user's profile information from public profile page.
+     */
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'bio' => ['nullable', 'string', 'max:1000'],
+            'job_title' => ['nullable', 'string', 'max:255'],
+            'company' => ['nullable', 'string', 'max:255'],
+            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        ]);
+
+        $user = auth()->user();
+
+        // Handle profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            // Delete old profile picture if exists
+            if ($user->profile_picture) {
+                Storage::delete('public/' . $user->profile_picture);
+            }
+
+            // Store new profile picture
+            $file = $request->file('profile_picture');
+            $filename = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads/profile-pictures', $filename, 'public');
+
+            $user->profile_picture = $path;
+        }
+
+        $user->update([
+            'name' => $request->name,
+            'bio' => $request->bio,
+            'job_title' => $request->job_title,
+            'company' => $request->company,
+            'profile_picture' => $user->profile_picture,
+        ]);
+
+        return redirect()->route('profile.show', $user)->with('success', 'Profile updated successfully!');
+    }
+
+    /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse
@@ -77,6 +130,11 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Delete profile picture if exists
+        if ($user->profile_picture) {
+            Storage::delete('public/' . $user->profile_picture);
+        }
 
         Auth::logout();
         $user->delete();

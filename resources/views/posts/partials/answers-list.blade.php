@@ -1,3 +1,4 @@
+{{-- resources\views\posts\partials\answers-list.blade.php --}}
 @if ($post->answers->count() > 0)
     <div class="space-y-8">
         @foreach ($post->answers->sortByDesc('is_editors_pick')->sortByDesc('created_at') as $answer)
@@ -7,12 +8,17 @@
                     <!-- Left side: Profile Picture and User Info -->
                     <div class="flex items-start space-x-3">
                         <!-- Profile Picture -->
-                        <img src="{{ $answer->user->getProfileImageUrl() }}" alt="{{ $answer->user->name }}"
-                            class="h-10 w-10 rounded-full object-cover">
+                        <a href="{{ route('profile.show', $answer->user) }}" class="flex-shrink-0">
+                            <img src="{{ $answer->user->getProfileImageUrl() }}" alt="{{ $answer->user->name }}"
+                                class="h-10 w-10 rounded-full object-cover hover:opacity-80 transition-opacity">
+                        </a>
 
                         <!-- Name and Time -->
                         <div class="flex flex-col">
-                            <span class="font-medium text-gray-900 dark:text-gray-100">{{ $answer->user->name }}</span>
+                            <a href="{{ route('profile.show', $answer->user) }}"
+                                class="font-medium text-gray-900 dark:text-gray-100 hover:text-branding-primary dark:hover:text-branding-primary transition-colors">
+                                {{ $answer->user->name }}
+                            </a>
                             <span
                                 class="text-xs text-gray-500 dark:text-gray-400">{{ $answer->created_at->diffForHumans() }}</span>
                         </div>

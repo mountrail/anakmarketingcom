@@ -34,6 +34,9 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'provider',
         'provider_id',
         'profile_picture',
+        'bio',
+        'job_title',
+        'company',
     ];
 
     /**
@@ -118,7 +121,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 
     /**
      * Get the user's profile picture URL with priority:
-     * 1. Default profile_picture
+     * 1. Custom uploaded profile picture
      * 2. Google avatar
      * 3. UI Avatars fallback
      *
