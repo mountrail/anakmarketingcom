@@ -13,6 +13,14 @@ Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
 
 
+Route::get('/admin-test', function () {
+    return response()->json([
+        'message' => 'Laravel is working',
+        'user' => auth()->check() ? auth()->user()->email : 'Not logged in',
+        'timestamp' => now()
+    ]);
+});
+
 // Google login routes
 Route::controller(GoogleController::class)->group(function () {
     Route::get('auth/google', 'redirectToGoogle')->name('auth.google');

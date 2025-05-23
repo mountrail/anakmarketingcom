@@ -17,11 +17,15 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Support\Facades\Log;
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        // Log when the panel is being configured
+        Log::info('AdminPanelProvider: Panel configuration started');
+
         return $panel
             ->default()
             ->id('admin')
@@ -53,7 +57,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                \App\Http\Middleware\CheckAdminRole::class, // Custom middleware
+                // TEMPORARILY COMMENT OUT THE CUSTOM MIDDLEWARE FOR TESTING
+                // \App\Http\Middleware\CheckAdminRole::class,
             ])
             ->brandName('Admin Panel')
             ->favicon(asset('favicon.ico'))
