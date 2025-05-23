@@ -53,6 +53,12 @@
                                 {{ __('Pusat Akun') }}
                             </x-dropdown-link>
 
+                            @if (Auth::user()->hasRole(['admin', 'editor']))
+                                <x-dropdown-link href="{{ url('/admin') }}" target="_blank">
+                                    {{ __('Admin Panel') }}
+                                </x-dropdown-link>
+                            @endif
+
                             <!-- Authentication -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf

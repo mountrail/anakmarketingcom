@@ -33,9 +33,20 @@ class RegisterController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'phone_country_code' => ['required', 'string', 'max:5'],
-                'phone_number' => ['required', 'string', 'max:20'],
+                'phone_country_code' => ['required', 'string', 'max:5', 'regex:/^\d+$/'],
+                'phone_number' => [
+                    'required',
+                    'string',
+                    'min:8',        // Minimum 8 digits
+                    'max:12',       // Maximum 12 digits
+                    'regex:/^\d+$/' // Only digits
+                ],
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ], [
+                'phone_number.min' => 'Phone number must be at least 8 digits long.',
+                'phone_number.max' => 'Phone number cannot exceed 12 digits.',
+                'phone_number.regex' => 'Phone number must contain only digits.',
+                'phone_country_code.regex' => 'Country code must contain only digits.',
             ]);
 
             if ($validator->fails()) {
