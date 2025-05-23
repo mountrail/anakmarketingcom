@@ -39,8 +39,14 @@ class RegisteredUserController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
-            'phone_country_code' => ['required', 'string', 'max:3'],
-            'phone_number' => ['required', 'string', 'max:12'],
+            'phone_country_code' => ['required', 'string', 'max:5', 'regex:/^\d+$/'],
+            'phone_number' => [
+                'required',
+                'string',
+                'min:8',        // Minimum 8 digits
+                'max:12',       // Maximum 12 digits
+                'regex:/^\d+$/' // Only digits
+            ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             // Add validation rules for the select fields
             'industry' => ['required', 'string', 'in:Beauty,Consumer,Education,Financial or Banking,Health,Media,Products,Property,Services,Tech,Others'],
@@ -49,8 +55,16 @@ class RegisteredUserController extends Controller
             'city' => ['required', 'string', 'in:Bandung,Jabodetabek,Jogjakarta,Makassar,Medan,Surabaya,Others'],
         ];
 
+        // Custom error messages
+        $messages = [
+            'phone_number.min' => 'Phone number must be at least 8 digits long.',
+            'phone_number.max' => 'Phone number cannot exceed 12 digits.',
+            'phone_number.regex' => 'Phone number must contain only digits.',
+            'phone_country_code.regex' => 'Country code must contain only digits.',
+        ];
+
         // Validate request using Validator instead of validate() method
-        $validator = Validator::make($request->all(), $rules);
+        $validator = Validator::make($request->all(), $rules, $messages);
 
         if ($validator->fails()) {
             if ($request->expectsJson()) {

@@ -26,8 +26,12 @@ class PostController extends Controller
             ->take(3)
             ->get();
 
-        // Get regular posts filtered by type
+        // Get the IDs of featured posts to exclude them from regular posts
+        $featuredPostIds = $typedEditorPicks->pluck('id')->toArray();
+
+        // Get regular posts filtered by type, excluding featured posts
         $posts = Post::where('type', $selectedType)
+            ->whereNotIn('id', $featuredPostIds) // Exclude featured posts
             ->with(['user', 'answers']) // Load relationship data
             ->latest()
             ->paginate(10);

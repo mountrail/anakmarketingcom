@@ -8,7 +8,6 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\TinyMCEUploadController;
 use App\Http\Controllers\AnswerController;
 
-
 // Main posts listing route - accessible to all users (replaces old home route)
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
