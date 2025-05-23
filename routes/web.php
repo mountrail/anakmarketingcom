@@ -11,7 +11,7 @@ use App\Http\Controllers\AnswerController;
 // Main posts listing route - accessible to all users (replaces old home route)
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
-
+Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
 
 Route::get('/admin-test', function () {
     return response()->json([
@@ -51,6 +51,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // TinyMCE upload route
     Route::post('/tinymce/upload', [TinyMCEUploadController::class, 'store'])->name('tinymce.upload');
+
+    // Protected profile update route
+    Route::patch('/profile/update-profile', [ProfileController::class, 'updateProfile'])->name('profile.update-profile');
 });
 
 // Post route for viewing individual posts - accessible to all users
