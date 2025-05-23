@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckAdminRole
@@ -16,19 +17,16 @@ class CheckAdminRole
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // If user is not logged in, show 404 instead of redirecting to login
         if (!Auth::check()) {
-            abort(404);
+            return redirect()->route('filament.admin.auth.login');
         }
 
         $user = Auth::user();
 
         // Check if user has admin or editor role
-        // If not, show 404 instead of 403 to hide the existence of admin panel
         if (!$user->hasRole(['admin', 'editor'])) {
-            abort(404);
+            abort(403, 'Access denied. You need admin or editor privileges.');
         }
-
         return $next($request);
     }
 }
