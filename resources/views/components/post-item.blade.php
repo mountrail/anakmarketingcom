@@ -10,7 +10,7 @@
     'showShare' => true, // Show share button in action bar
     'showThreeDots' => true, // Show three dots menu in action bar
     'customClasses' => '', // Custom classes for action bar
-    'containerClasses' => 'bg-white dark:bg-gray-800 border-b border-essentials-inactive', // Container styling
+    'containerClasses' => ' p-4 px-6 border-b border-essentials-inactive', // Container styling
     'isHighlighted' => false, // For editor's picks highlighting
     'excerptLength' => 100, // Length of excerpt
 ])
@@ -18,7 +18,7 @@
 @php
     // Determine container classes
     $containerClass = $isHighlighted
-        ? 'bg-branding-primary/20 dark:bg-branding-primary/10 border-b border-essentials-inactive'
+        ? 'bg-branding-primary/20 dark:bg-branding-primary/10 py-4 px-6 border-b border-essentials-inactive'
         : $containerClasses;
 @endphp
 

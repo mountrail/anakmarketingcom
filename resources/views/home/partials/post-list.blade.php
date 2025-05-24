@@ -41,10 +41,10 @@
     <div class="py-2">
         <!-- Editor's Picks Section -->
         @if (isset($typedEditorPicks) && $typedEditorPicks->count() > 0)
-            <div class="mb-4">
+            <div>
                 @foreach ($typedEditorPicks as $pick)
                     <x-post-item :post="$pick" :isHighlighted="true" :showVoteScore="false" :showCommentCount="true"
-                        :showShare="true" />
+                        :showShare="true"  />
                 @endforeach
             </div>
         @endif
@@ -69,7 +69,7 @@
             @else
                 <div>
                     @foreach ($posts as $post)
-                        <x-post-item :post="$post" :showVoteScore="false" :showCommentCount="true" :showShare="true" />
+                        <x-post-item :post="$post" :showVoteScore="false" :showCommentCount="true" :showShare="true"  />
                     @endforeach
                 </div>
 
