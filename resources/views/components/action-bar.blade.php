@@ -142,7 +142,7 @@
                                 @csrf
                                 <button type="button" @click.stop.prevent="$el.closest('form').submit();"
                                     class="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <x-icons.lightbulb class="h-5 w-5 mr-2" />
+                                    <x-icons.lamp class="h-5 w-5 mr-2" />
                                     <span class="text-center w-full md:text-left md:w-auto">
                                         {{ $model->featured_type === 'none' ? 'Mark as Editor\'s Pick' : 'Remove from Editor\'s Pick' }}
                                     </span>
@@ -153,7 +153,7 @@
                                 @csrf
                                 <button type="button" @click.stop.prevent="$el.closest('form').submit();"
                                     class="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <x-icons.lightbulb class="h-5 w-5 mr-2" />
+                                    <x-icons.lamp class="h-5 w-5 mr-2" />
                                     <span class="text-center w-full md:text-left md:w-auto">
                                         {{ $model->is_editors_pick ? 'Remove from Editor\'s Pick' : 'Mark as Editor\'s Pick' }}
                                     </span>

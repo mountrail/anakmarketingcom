@@ -49,7 +49,7 @@
 
                 @if ($showFeaturedIcon && $post->is_featured && $post->featured_type !== 'none')
                     <div class="flex items-center">
-                        <x-icons.lightbulb class="h-10 w-10 text-orange-500" />
+                        <x-icons.lamp class="h-10 w-10 text-orange-500" />
                     </div>
                 @endif
             </div>

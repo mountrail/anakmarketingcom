@@ -3,7 +3,7 @@
 
 <div class="mb-8">
     <h2
-        class="text-xl font-semibold text-branding-black dark:text-white text-center border-b border-gray-200 dark:border-gray-600 mb-4">
+        class="font-semibold text-branding-black dark:text-white text-center border-b border-gray-200 dark:border-gray-600 mb-4">
         Badges
     </h2>
 
@@ -20,10 +20,9 @@
 
     @if ($isOwner)
         <div class="text-center">
-            <button
-                class="bg-branding-primary text-white shadow-md px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-colors">
+            <x-primary-button size="xl" :disabled="true">
                 Simpan
-            </button>
+            </x-primary-button>
         </div>
     @endif
 </div>

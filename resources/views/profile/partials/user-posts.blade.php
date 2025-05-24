@@ -1,5 +1,5 @@
 {{-- resources/views/profile/partials/user-posts.blade.php --}}
-@props(['user', 'currentPostId' => null, 'limit' => 2, 'showToGuestOnly' => false])
+@props(['user', 'currentPostId' => null, 'limit' => 2, 'showToGuestOnly' => false, 'isOwner' => false])
 
 @php
     // Get user's posts excluding the current post if provided
@@ -19,7 +19,7 @@ if ($currentPostId) {
 @if ($shouldShow)
     <div class="bg-white dark:bg-gray-800 p-4">
         <h2
-            class="text-xl font-semibold text-branding-black dark:text-white text-center border-b border-gray-200 dark:border-gray-600 mb-4">
+            class="font-semibold text-branding-black dark:text-white text-center border-b border-gray-200 dark:border-gray-600 mb-4">
             Pertanyaan/Diskusi
         </h2>
 
@@ -34,12 +34,19 @@ if ($currentPostId) {
 
             @if ($totalPosts > $limit)
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
-                    <button id="load-more-posts" data-user-id="{{ $user->id }}" data-loaded="{{ $limit }}"
-                        data-total="{{ $totalPosts }}"
-                        @if ($currentPostId) data-current-post-id="{{ $currentPostId }}" @endif
-                        class="bg-branding-primary text-white shadow-md px-8 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-colors">
-                        Show All ({{ $totalPosts }} Posts)
-                    </button>
+                    @if ($currentPostId)
+                        <x-primary-button id="load-more-posts" data-user-id="{{ $user->id }}"
+                            data-loaded="{{ $limit }}" data-total="{{ $totalPosts }}"
+                            data-current-post-id="{{ $currentPostId }}" variant="primary" size="xl">
+                            Show All ({{ $totalPosts }} Posts)
+                        </x-primary-button>
+                    @else
+                        <x-primary-button id="load-more-posts" data-user-id="{{ $user->id }}"
+                            data-loaded="{{ $limit }}" data-total="{{ $totalPosts }}" variant="primary"
+                            size="xl">
+                            Show All ({{ $totalPosts }} Posts)
+                        </x-primary-button>
+                    @endif
                 </div>
             @endif
         @else

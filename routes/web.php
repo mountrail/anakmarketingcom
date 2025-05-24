@@ -55,6 +55,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Protected profile update route
     Route::patch('/profile/update-profile', [ProfileController::class, 'updateProfile'])->name('profile.update-profile');
+    Route::patch('/profile/update-basic-info', [ProfileController::class, 'updateBasicInfo'])->name('profile.update-basic-info');
+    Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
 });
 
 // Post route for viewing individual posts - accessible to all users

@@ -98,7 +98,67 @@ class ProfileController extends Controller
     }
 
     /**
+     * Update the user's basic profile information (name, job, company, profile picture).
+     */
+    public function updateBasicInfo(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'job_title' => ['nullable', 'string', 'max:255'],
+            'company' => ['nullable', 'string', 'max:255'],
+            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        ]);
+
+        $user = auth()->user();
+
+        // Handle profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            // Delete old profile picture if exists
+            if ($user->profile_picture) {
+                Storage::delete('public/' . $user->profile_picture);
+            }
+
+            // Store new profile picture
+            $file = $request->file('profile_picture');
+            $filename = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads/profile-pictures', $filename, 'public');
+
+            $user->profile_picture = $path;
+        }
+
+        // Update basic profile information
+        $user->update([
+            'name' => $request->name,
+            'job_title' => $request->job_title,
+            'company' => $request->company,
+            'profile_picture' => $user->profile_picture,
+        ]);
+
+        return redirect()->route('profile.show', $user)->with('success', 'Profil berhasil diperbarui!');
+    }
+
+    /**
+     * Update the user's bio/description.
+     */
+    public function updateBio(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'bio' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $user = auth()->user();
+
+        // Update bio
+        $user->update([
+            'bio' => $request->bio,
+        ]);
+
+        return redirect()->route('profile.show', $user)->with('success', 'Deskripsi berhasil diperbarui!');
+    }
+
+    /**
      * Update the user's profile information from public profile page.
+     * @deprecated Use updateBasicInfo() and updateBio() instead
      */
     public function updateProfile(Request $request)
     {
@@ -162,6 +222,4 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
-
-
 }

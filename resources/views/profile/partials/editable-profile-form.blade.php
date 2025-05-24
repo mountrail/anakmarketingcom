@@ -1,8 +1,9 @@
 {{-- resources/views/profile/partials/editable-profile-form.blade.php --}}
 @props(['user', 'errors'])
 
-<form method="POST" action="{{ route('profile.update-profile') }}" enctype="multipart/form-data" class="space-y-6"
-    id="profile-form">
+<!-- Profile Basic Info Form (Photo, Name, Job, Company) -->
+<form method="POST" action="{{ route('profile.update-basic-info') }}" enctype="multipart/form-data" class="space-y-6"
+    id="basic-info-form">
     @csrf
     @method('PATCH')
 
@@ -35,6 +36,19 @@
         <x-input-error class="mt-2" :messages="$errors->get('company')" />
     </div>
 
+    <!-- Save Basic Info Button -->
+    <div class="flex justify-center">
+        <x-primary-button type="submit" id="save-basic-info-button" size="xl" :disabled="true">
+            Simpan
+        </x-primary-button>
+    </div>
+</form>
+
+<!-- Bio/Description Form -->
+<form method="POST" action="{{ route('profile.update-bio') }}" class="space-y-6" id="bio-form">
+    @csrf
+    @method('PATCH')
+
     <!-- Bio/Description -->
     <div>
         <x-input-label for="bio" :value="__('Deskripsi')" />
@@ -44,12 +58,10 @@
         <x-input-error class="mt-2" :messages="$errors->get('bio')" />
     </div>
 
-    <!-- Save Button -->
+    <!-- Save Bio Button -->
     <div class="flex justify-center">
-        <button type="submit" id="save-button"
-            class="bg-branding-primary text-white shadow-md px-8 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-            disabled>
+        <x-primary-button type="submit" id="save-bio-button" size="xl" :disabled="true">
             Simpan
-        </button>
+        </x-primary-button>
     </div>
 </form>

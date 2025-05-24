@@ -15,7 +15,7 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-4 sm:ml-10 sm:flex">
                     <a href="{{ route('home') }}"
-                        class="bg-branding-primary text-branding-light px-4 py-2 rounded-md text-sm font-medium shadow-md">
+                        class="bg-branding-primary text-branding-light px-4 py-2 rounded-md text-sm font-medium shadow-md hover:bg-opacity-90 transition-colors">
                         {{ __('Home') }}
                     </a>
                     <a href="https://anakmarketing.com"
@@ -31,7 +31,7 @@
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <button
-                                class="inline-flex items-center px-3 py-2 bg-branding-primary text-branding-light rounded-md text-sm font-medium shadow-md">
+                                class="inline-flex items-center px-3 py-2 bg-branding-primary text-branding-light rounded-md text-sm font-medium shadow-md hover:bg-opacity-90 transition-colors">
                                 <div>Hai, {{ Str::words(Auth::user()->name, 1, '') }}!</div>
                                 <div class="ms-1">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
@@ -78,16 +78,14 @@
             @else
                 <!-- Login/Register Links (For Guests) -->
                 <div class="hidden sm:flex sm:items-center sm:space-x-4">
-                    <a href="#"
-                        @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'register'}))"
-                        class="px-4 py-2 bg-branding-dark text-branding-light rounded-md text-sm font-medium shadow-md">
+                    <x-primary-button variant="dark" size="md"
+                        @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'register'}))">
                         Sign Up
-                    </a>
-                    <a href="#"
-                        @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'login'}))"
-                        class="px-4 py-2 bg-branding-primary text-branding-light rounded-md text-sm font-medium shadow-md">
+                    </x-primary-button>
+                    <x-primary-button size="md"
+                        @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'login'}))">
                         Login
-                    </a>
+                    </x-primary-button>
                 </div>
             @endauth
 
@@ -162,24 +160,22 @@
     </div>
 
     @guest
-        <!-- Mobile Bottom Navigation - Optional, keep if needed -->
+        <!-- Mobile Bottom Navigation - Updated with primary buttons -->
         <div
             class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2 sm:hidden z-30">
 
             <div class="flex justify-between items-center space-x-4">
                 <!-- Sign Up Button (40%) -->
-                <a href="#"
-                    @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'register'}))"
-                    class="w-2/5 text-center px-4 py-2 bg-branding-dark text-branding-light rounded-md text-sm font-medium shadow-md">
+                <x-primary-button variant="dark" size="md" class="w-2/5"
+                    @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'register'}))">
                     Daftar
-                </a>
+                </x-primary-button>
 
                 <!-- Login Button (60%) -->
-                <a href="#"
-                    @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'login'}))"
-                    class="w-3/5 text-center px-4 py-2 bg-branding-primary text-branding-light rounded-md text-sm font-medium shadow-md">
+                <x-primary-button size="md" class="w-3/5"
+                    @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'login'}))">
                     Masuk
-                </a>
+                </x-primary-button>
             </div>
         </div>
     @endguest
