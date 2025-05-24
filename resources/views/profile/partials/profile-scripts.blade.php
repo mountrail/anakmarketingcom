@@ -99,14 +99,34 @@
                     })
                     .then(data => {
                         if (data.success && data.html) {
-                            // Find the posts container and append new posts
-                            const postsContainer = document.querySelector('.space-y-4.ml-6');
+                            // Find the posts container using the load more button as reference
+                            const loadMoreButton = document.getElementById('load-more-posts');
+                            let postsContainer = null;
+
+                            if (loadMoreButton) {
+                                // Navigate up to find the posts section, then find the container
+                                const userPostsSection = loadMoreButton.closest(
+                                    '.bg-white, .dark\\:bg-gray-800');
+                                if (userPostsSection) {
+                                    postsContainer = userPostsSection.querySelector('.space-y-4');
+                                }
+                            }
+
+                            // Fallback: try direct selector
+                            if (!postsContainer) {
+                                postsContainer = document.querySelector('.space-y-4');
+                            }
+
                             if (postsContainer) {
                                 postsContainer.insertAdjacentHTML('beforeend', data.html);
 
                                 // Hide the button since we've loaded all posts
                                 this.parentElement.style.display = 'none';
                             } else {
+                                console.error('Posts container not found. Available containers:',
+                                    Array.from(document.querySelectorAll('[class*="space"]'))
+                                    .map(el => el.className)
+                                );
                                 throw new Error('Posts container not found');
                             }
                         } else {
