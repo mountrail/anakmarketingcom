@@ -7,6 +7,10 @@
             @include('profile.partials.profile-header', [
                 'user' => $user,
                 'isOwner' => $isOwner,
+                'followers' => $followers,
+                'following' => $following,
+                'followersCount' => $followersCount,
+                'followingCount' => $followingCount,
             ])
 
             <div>

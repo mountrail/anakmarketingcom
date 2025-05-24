@@ -7,27 +7,21 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\TinyMCEUploadController;
 use App\Http\Controllers\AnswerController;
+use App\Http\Controllers\FollowController;
 
 // Main posts listing route - accessible to all users (replaces old home route)
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+// Post route for viewing individual posts - accessible to all users
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
 Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
-
-Route::get('/admin-test', function () {
-    return response()->json([
-        'message' => 'Laravel is working',
-        'user' => auth()->check() ? auth()->user()->email : 'Not logged in',
-        'timestamp' => now()
-    ]);
-});
 
 // Google login routes
 Route::controller(GoogleController::class)->group(function () {
     Route::get('auth/google', 'redirectToGoogle')->name('auth.google');
     Route::get('auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
-
 
 // Protected post routes (user must be authenticated and verified)
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -53,14 +47,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // TinyMCE upload route
     Route::post('/tinymce/upload', [TinyMCEUploadController::class, 'store'])->name('tinymce.upload');
 
-    // Protected profile update route
+    // Toggle follow/unfollow
+    Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle');
+    // Add these routes inside your authenticated middleware group
+    Route::get('/follow/{user}/followers', [FollowController::class, 'getFollowersModal'])->name('follow.followers');
+    Route::get('/follow/{user}/following', [FollowController::class, 'getFollowingModal'])->name('follow.following');
+    // Get follow suggestions (keep this if you use it elsewhere)
+    Route::get('/follow/suggestions', [FollowController::class, 'suggestions'])->name('follow.suggestions');
+
+    // Protected profile update routes
     Route::patch('/profile/update-profile', [ProfileController::class, 'updateProfile'])->name('profile.update-profile');
     Route::patch('/profile/update-basic-info', [ProfileController::class, 'updateBasicInfo'])->name('profile.update-basic-info');
     Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
 });
-
-// Post route for viewing individual posts - accessible to all users
-Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
 
 // User account routes
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -68,7 +67,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/account', [ProfileController::class, 'update'])->name('account.update');
     Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
 });
-
 
 // Include authentication routes
 require __DIR__ . '/auth.php';

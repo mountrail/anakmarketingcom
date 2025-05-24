@@ -91,10 +91,38 @@ class ProfileController extends Controller
             ->take(5)
             ->get();
 
+        // Get followers - get the user IDs first, then get the User models
+        $followerIds = $user->followers()->pluck('user_id');
+        $followers = User::whereIn('id', $followerIds)
+            ->select('id', 'name', 'profile_picture', 'avatar', 'job_title', 'company')
+            ->latest()
+            ->limit(50)
+            ->get();
+
+        // Get following - get the user IDs first, then get the User models
+        $followingIds = $user->followings()->pluck('followable_id');
+        $following = User::whereIn('id', $followingIds)
+            ->select('id', 'name', 'profile_picture', 'avatar', 'job_title', 'company')
+            ->latest()
+            ->limit(50)
+            ->get();
+
+        // Get counts for display
+        $followersCount = $user->followers()->count();
+        $followingCount = $user->followings()->count();
+
         // Share editorPicks for the sidebar
         view()->share('editorPicks', $editorPicks);
 
-        return view('profile.show', compact('user', 'isOwner', 'posts'));
+        return view('profile.show', compact(
+            'user',
+            'isOwner',
+            'posts',
+            'followers',
+            'following',
+            'followersCount',
+            'followingCount'
+        ));
     }
 
     /**

@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Overtrue\LaravelFollow\Traits\Followable;
+use Overtrue\LaravelFollow\Traits\Follower;
 
 class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, Followable, Follower;
 
     /**
      * The attributes that are mass assignable.
@@ -137,5 +139,44 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
             // Default avatar using UI Avatars
             return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
         }
+    }
+
+    /**
+     * Check if the current user is following this user.
+     *
+     * @param User|null $user
+     * @return bool
+     */
+    public function isFollowedBy($user = null)
+    {
+        if (!$user) {
+            $user = auth()->user();
+        }
+
+        if (!$user) {
+            return false;
+        }
+
+        return $user->isFollowing($this);
+    }
+
+    /**
+     * Get followers count.
+     *
+     * @return int
+     */
+    public function getFollowersCountAttribute()
+    {
+        return $this->followers()->count();
+    }
+
+    /**
+     * Get following count.
+     *
+     * @return int
+     */
+    public function getFollowingCountAttribute()
+    {
+        return $this->followings()->count();
     }
 }
