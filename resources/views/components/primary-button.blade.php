@@ -18,19 +18,19 @@
         'xl' => 'px-8 py-2 text-sm',
     ];
 
-    // Variant styles - Don't apply disabled styles here since they'll be handled dynamically
+    // Variant styles
     $variantClasses = [
         'primary' => 'bg-branding-primary text-white hover:bg-opacity-90 focus:ring-blue-500',
         'secondary' => 'bg-white text-branding-black border border-gray-300 hover:bg-gray-50 focus:ring-blue-500',
         'dark' => 'bg-branding-dark text-branding-light hover:bg-opacity-90 focus:ring-gray-500',
     ];
 
-    // Apply disabled styles if initially disabled
+    // Override with disabled styles if disabled
     if ($disabled) {
         $variantClasses = [
-            'primary' => 'bg-essentials-inactive text-white cursor-not-allowed',
-            'secondary' => 'bg-essentials-inactive text-white cursor-not-allowed',
-            'dark' => 'bg-essentials-inactive text-white cursor-not-allowed',
+            'primary' => 'bg-essentials-inactive text-white cursor-not-allowed focus:ring-blue-500',
+            'secondary' => 'bg-essentials-inactive text-white cursor-not-allowed focus:ring-blue-500',
+            'dark' => 'bg-essentials-inactive text-white cursor-not-allowed focus:ring-gray-500',
         ];
     }
 

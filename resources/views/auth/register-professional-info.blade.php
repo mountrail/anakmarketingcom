@@ -1,4 +1,4 @@
-<!-- resources/views/components/register-professional-info.blade.php -->
+{{-- resources\views\auth\register-professional-info.blade.php --}}
 {{-- Industry Field --}}
 <div class="mt-4">
     <x-input-label for="register_industry" :value="__('Industry')" />

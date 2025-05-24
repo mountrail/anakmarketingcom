@@ -1,3 +1,4 @@
+{{-- resources/views/components/auth-modal.blade.php --}}
 <div x-data="{
     activeTab: '{{ $activeTab ?? 'login' }}',
     showModal: {{ session('show_auth_modal') ? 'true' : 'false' }}
@@ -47,11 +48,11 @@
             <!-- Content Area -->
             <div class="py-6 px-8 max-h-[80vh] overflow-y-auto">
                 <div x-show="activeTab === 'register'">
-                    <x-register-form />
+                    @include('auth.register-form')
                 </div>
 
                 <div x-show="activeTab === 'login'">
-                    <x-login-form />
+                    @include('auth.login-form')
                 </div>
             </div>
         </div>

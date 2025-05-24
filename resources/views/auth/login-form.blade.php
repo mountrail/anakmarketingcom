@@ -1,4 +1,4 @@
-<!-- resources/views/components/login-form.blade.php -->
+{{-- resources\views\auth\login-form.blade.php --}}
 <div>
     <!-- Login Header -->
     <h2 class="text-4xl font-bold text-center text-orange-500 mb-6">

@@ -1,4 +1,4 @@
-<!-- resources/views/components/register-form-steps.blade.php -->
+{{-- resources\views\auth\register-form-steps.blade.php --}}
 <form method="POST" action="{{ route('register') }}" id="register-form"
     @submit.prevent="
     if (registrationStep === 1) {
@@ -135,12 +135,12 @@
 
     <!-- Step 1: Personal Information -->
     <div x-show="registrationStep === 1">
-        <x-register-personal-info />
+        @include('auth.register-personal-info')
     </div>
 
     <!-- Step 2: Professional Information -->
     <div x-show="registrationStep === 2">
-        <x-register-professional-info />
+        @include('auth.register-professional-info')
 
         <!-- Back Button - Return to Step 1 -->
         <div class="flex items-center justify-start mt-4">

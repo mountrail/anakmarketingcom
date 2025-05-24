@@ -1,4 +1,4 @@
-<!-- resources/views/components/register-form.blade.php -->
+{{-- resources\views\auth\register-form.blade.php --}}
 <div x-data="{
     showRegisterForm: false,
     registrationStep: 1,
@@ -53,7 +53,7 @@
 
             <div x-show="showRegisterForm || registrationStep === 2" class="mt-4">
                 <!-- Registration form with step control -->
-                <x-register-form-steps />
+                  @include('auth.register-form-steps')
             </div>
         </div>
     </div>

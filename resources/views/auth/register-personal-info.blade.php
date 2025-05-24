@@ -1,4 +1,4 @@
-<!-- resources/views/components/register-personal-info.blade.php -->
+{{-- resources\views\auth\register-personal-info.blade.php --}}
 <!-- Name -->
 <div>
     <x-input-label for="register_name" :value="__('Name')" />
