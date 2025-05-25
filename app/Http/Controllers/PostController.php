@@ -284,9 +284,17 @@ class PostController extends Controller
         $offset = $request->get('offset', 0);
         $limit = $request->get('limit', 2);
         $currentPostId = $request->get('current_post_id', null);
+        $postType = $request->get('post_type', 'own'); // 'own' or 'answered'
 
-        // Get user's posts excluding the current post if provided
-        $postsQuery = $user->posts()->withCount('answers')->latest();
+        if ($postType === 'answered') {
+            // Get posts that the user has answered but doesn't own
+            $postsQuery = Post::whereHas('answers', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->where('user_id', '!=', $user->id)->withCount('answers')->latest();
+        } else {
+            // Get user's own posts (default behavior)
+            $postsQuery = $user->posts()->withCount('answers')->latest();
+        }
 
         if ($currentPostId) {
             $postsQuery->where('id', '!=', $currentPostId);

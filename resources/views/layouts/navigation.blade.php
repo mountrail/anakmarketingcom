@@ -129,8 +129,8 @@
                                 {{ __('Mulai Pertanyaan / Diskusi') }}
                             </x-dropdown-link>
 
-                            <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
                             @if (Auth::user()->hasRole(['admin', 'editor']))
+                            <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
                                 <x-dropdown-link href="{{ url('/admin') }}" target="_blank">
                                     {{ __('Admin Panel') }}
                                 </x-dropdown-link>
