@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use App\Notifications\UserFollowedNotification;
 
 class FollowController extends Controller
 {
@@ -43,6 +44,9 @@ class FollowController extends Controller
             $action = 'followed';
             $buttonText = 'Following';
             $buttonClass = 'bg-gray-500 hover:bg-red-500 hover:text-white';
+
+            // Send notification to the user being followed
+            $user->notify(new UserFollowedNotification($currentUser));
         }
 
         if ($request->expectsJson()) {
