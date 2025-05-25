@@ -47,7 +47,50 @@ class NotificationController extends Controller
     }
 
     /**
-     * Mark a specific notification as read.
+     * Mark notification as read and redirect to action URL.
+     * This replaces the AJAX approach for better reliability.
+     */
+    public function read(Request $request, string $id)
+    {
+        $notification = auth()->user()
+            ->notifications()
+            ->where('id', $id)
+            ->first();
+
+        if ($notification && $notification->read_at === null) {
+            $notification->markAsRead();
+        }
+
+        // Get redirect URL from request parameter or notification data
+        $redirectUrl = $request->get('redirect');
+
+        if (!$redirectUrl && $notification) {
+            $redirectUrl = $notification->data['action_url'] ?? null;
+        }
+
+        // If no redirect URL, go back to notifications page
+        if (!$redirectUrl) {
+            return redirect()->route('notifications.index')
+                ->with('success', 'Notifikasi telah ditandai sebagai sudah dibaca.');
+        }
+
+        return redirect($redirectUrl);
+    }
+
+    /**
+     * Mark all notifications as read.
+     * Updated to use regular form submission instead of AJAX.
+     */
+    public function markAllAsRead(Request $request)
+    {
+        auth()->user()->unreadNotifications->markAsRead();
+
+        return redirect()->route('notifications.index')
+            ->with('success', 'Semua notifikasi telah ditandai sebagai sudah dibaca.');
+    }
+
+    /**
+     * Mark a specific notification as read (AJAX endpoint - kept for backward compatibility).
      */
     public function markAsRead(string $id): JsonResponse
     {
@@ -65,20 +108,6 @@ class NotificationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Notification marked as read'
-        ]);
-    }
-
-    /**
-     * Mark all notifications as read.
-     */
-    public function markAllAsRead(): JsonResponse
-    {
-        auth()->user()->unreadNotifications->markAsRead();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'All notifications marked as read',
-            'unread_count' => 0
         ]);
     }
 
