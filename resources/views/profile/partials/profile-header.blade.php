@@ -64,7 +64,7 @@
                 <span id="follow-btn-text">{{ $buttonText }}</span>
             </x-primary-button>
         @else
-            <x-primary-button onclick="window.location.href='{{ route('login') }}'" variant="primary" size="md">
+            <x-primary-button data-auth-action="login" variant="primary" size="md">
                 Follow
             </x-primary-button>
         @endauth
