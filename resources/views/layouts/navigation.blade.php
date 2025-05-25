@@ -7,7 +7,8 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('home') }}" class="flex items-center">
-                        <x-icons.application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
+                        <x-icons.application-logo
+                            class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
                         <span class="sr-only">Go to Anak Marketing homepage</span>
                     </a>
                 </div>
@@ -28,6 +29,30 @@
             @auth
                 <!-- Settings Dropdown (For Authenticated Users) -->
                 <div class="hidden sm:flex sm:items-center sm:ms-6 relative">
+                    <!-- Notification Button -->
+                    <div class="relative mr-4">
+                        <a href="{{ route('notifications.index') }}"
+                            class="inline-flex items-center justify-center p-2 rounded-md {{ request()->routeIs('notifications.*') ? 'text-branding-primary bg-branding-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100' }} dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
+                            title="Notifications">
+
+                            @php
+                                $hasUnread = auth()->user()->unreadNotifications->count() > 0;
+                                $isOnNotificationPage = request()->routeIs('notifications.*');
+                            @endphp
+
+                            @if ($isOnNotificationPage)
+                                <!-- Selected state when on notification page -->
+                                <x-icons.notification-selected class="h-5 w-5" />
+                            @elseif ($hasUnread)
+                                <!-- New notifications available -->
+                                <x-icons.notification-new class="h-5 w-5" />
+                            @else
+                                <!-- No unread notifications -->
+                                <x-icons.notification class="h-5 w-5" />
+                            @endif
+                        </a>
+                    </div>
+
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <button
@@ -89,8 +114,35 @@
                 </div>
             @endauth
 
-            <!-- Hamburger (with Dropdown) -->
-            <div class="flex items-center sm:hidden relative">
+            <!-- Mobile Navigation -->
+            <div class="flex items-center sm:hidden">
+                @auth
+                    <!-- Mobile Notification Button -->
+                    <div class="mr-2">
+                        <a href="{{ route('notifications.index') }}"
+                            class="inline-flex items-center justify-center p-2 rounded-md {{ request()->routeIs('notifications.*') ? 'text-branding-primary bg-branding-primary/10' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100' }} dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
+                            title="Notifications">
+
+                            @php
+                                $hasUnread = auth()->user()->unreadNotifications->count() > 0;
+                                $isOnNotificationPage = request()->routeIs('notifications.*');
+                            @endphp
+
+                            @if ($isOnNotificationPage)
+                                <!-- Selected state when on notification page -->
+                                <x-icons.notification-selected class="h-5 w-5" />
+                            @elseif ($hasUnread)
+                                <!-- New notifications available -->
+                                <x-icons.notification-new class="h-5 w-5" />
+                            @else
+                                <!-- No unread notifications -->
+                                <x-icons.notification class="h-5 w-5" />
+                            @endif
+                        </a>
+                    </div>
+                @endauth
+
+                <!-- Hamburger Menu -->
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button
@@ -113,9 +165,9 @@
                             {{ __('Insights') }}
                         </x-dropdown-link>
 
-                        <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
-
                         @auth
+                            <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+
                             <!-- User Menu Items -->
                             <x-dropdown-link :href="route('profile.show', Auth::user())">
                                 {{ __('Profil Saya') }}
@@ -130,7 +182,7 @@
                             </x-dropdown-link>
 
                             @if (Auth::user()->hasRole(['admin', 'editor']))
-                            <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+                                <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
                                 <x-dropdown-link href="{{ url('/admin') }}" target="_blank">
                                     {{ __('Admin Panel') }}
                                 </x-dropdown-link>
@@ -147,6 +199,7 @@
                                 </x-dropdown-link>
                             </form>
                         @else
+                            <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
                             <!-- Auth Actions for Mobile -->
                             <x-dropdown-link href="#"
                                 @click.prevent="window.dispatchEvent(new CustomEvent('open-auth-modal', {detail: 'login'}))">
@@ -203,4 +256,35 @@
             });
         });
     });
+
+    // Update notification icons dynamically (called from notification page)
+    function updateNotificationIcons() {
+        fetch('/notifications/unread-count', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update notification icons if not on notification page
+                if (!window.location.pathname.includes('/notifications')) {
+                    const notificationLinks = document.querySelectorAll('a[href*="/notifications"]');
+                    notificationLinks.forEach(link => {
+                        const iconContainer = link.querySelector('svg').parentElement;
+
+                        if (data.unread_count > 0) {
+                            // Replace with notification-new icon
+                            iconContainer.innerHTML = '<x-icons.notification-new class="h-5 w-5" />';
+                        } else {
+                            // Replace with regular notification icon
+                            iconContainer.innerHTML = '<x-icons.notification class="h-5 w-5" />';
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error updating notification icons:', error);
+            });
+    }
 </script>

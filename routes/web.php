@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\TinyMCEUploadController;
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\FollowController;
+use App\Http\Controllers\NotificationController;
 
 // Main posts listing route - accessible to all users (replaces old home route)
 Route::get('/', [PostController::class, 'index'])->name('home');
@@ -69,6 +70,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/account', [ProfileController::class, 'edit'])->name('account.edit');
     Route::patch('/account', [ProfileController::class, 'update'])->name('account.update');
     Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
+    // notification
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unreadCount');
 });
 
 // Include authentication routes

@@ -7,6 +7,7 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
+use App\Notifications\PostAnsweredNotification;
 
 class AnswerController extends Controller
 {
@@ -28,6 +29,11 @@ class AnswerController extends Controller
         ]);
 
         $post->answers()->save($answer);
+
+        // Send notification to the post author if it's not their own answer
+        if ($post->user_id !== Auth::id()) {
+            $post->user->notify(new PostAnsweredNotification($post, $answer, Auth::user()));
+        }
 
         return redirect()->route('posts.show', $post->id)
             ->with('success', 'Answer posted successfully.');

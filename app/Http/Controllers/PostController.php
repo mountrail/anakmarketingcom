@@ -90,6 +90,14 @@ class PostController extends Controller
             'type' => $validated['type'],
         ]);
 
+        // Send notification to followers when user posts
+        if (auth()->user()->followers()->exists()) {
+            $followers = auth()->user()->followers()->get();
+            foreach ($followers as $follower) {
+                $follower->notify(new \App\Notifications\FollowedUserPostedNotification($post, auth()->user()));
+            }
+        }
+
         // Handle the uploaded images if any
         if ($request->has('uploaded_images')) {
             $images = json_decode($request->uploaded_images, true);
@@ -325,5 +333,41 @@ class PostController extends Controller
         }
 
         return response()->json(['success' => false], 400);
+    }
+
+    /**
+     * Send admin announcement about a specific post
+     */
+    public function sendPostAnnouncement(Request $request, Post $post)
+    {
+        // Check if user has admin/editor role
+        if (!Auth::user()->hasRole(['editor', 'admin'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'message' => 'required|string|max:1000',
+            'is_pinned' => 'boolean'
+        ]);
+
+        // Get all users except the admin sending the notification
+        $users = \App\Models\User::where('id', '!=', Auth::id())->get();
+
+        // Send announcement notification
+        \Illuminate\Support\Facades\Notification::send(
+            $users,
+            new \App\Notifications\AnnouncementNotification(
+                'Recommended Discussion',
+                $request->message,
+                route('posts.show', $post->id),
+                $request->boolean('is_pinned'),
+                $post
+            )
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Announcement sent successfully!'
+        ]);
     }
 }
