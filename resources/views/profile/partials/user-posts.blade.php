@@ -17,7 +17,7 @@ if ($currentPostId) {
 @endphp
 
 @if ($shouldShow)
-    <div class="bg-white dark:bg-gray-800 p-4">
+    <div>
         <h2
             class="font-semibold text-branding-black dark:text-white text-center border-b border-gray-200 dark:border-gray-600 mb-4">
             Pertanyaan/Diskusi

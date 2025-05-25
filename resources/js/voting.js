@@ -1,3 +1,4 @@
+// resources\js\voting.js
 // optimized-voting.js - Hybrid voting system with optimistic UI updates
 document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');

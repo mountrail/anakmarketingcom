@@ -1,7 +1,7 @@
 {{-- resources/views/profile/partials/badges-section.blade.php --}}
 @props(['user', 'isOwner'])
 
-<div class="mb-8">
+<div class="mb-20">
     <h2
         class="font-semibold text-branding-black dark:text-white text-center border-b border-gray-200 dark:border-gray-600 mb-4">
         Badges
@@ -14,7 +14,7 @@
     @endif
 
     <!-- Empty badges container for now -->
-    <div class="text-center text-essentials-inactive dark:text-gray-400 py-8">
+    <div class="text-center text-essentials-inactive dark:text-gray-400">
         <p>Belum ada badge yang ditampilkan</p>
     </div>
 

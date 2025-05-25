@@ -57,7 +57,6 @@
             <div class="mt-20"></div>
         </main>
     </div>
-
     <!-- Stack for any additional scripts -->
     @stack('scripts')
     @push('scripts')
