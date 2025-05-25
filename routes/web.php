@@ -43,8 +43,15 @@ Route::middleware(['auth'])->group(function () {
     // TinyMCE upload route
     Route::post('/tinymce/upload', [TinyMCEUploadController::class, 'store'])->name('tinymce.upload');
 
-    // Toggle follow/unfollow
+    // Follow/Unfollow routes
     Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle');
+
+    // Follow modal routes (AJAX) - matching the JavaScript URLs
+    Route::get('/follow/{user}/followers', [FollowController::class, 'getFollowersModal'])->name('follow.followers-modal');
+    Route::get('/follow/{user}/following', [FollowController::class, 'getFollowingModal'])->name('follow.following-modal');
+
+    // Follow suggestions
+    Route::get('/follow/suggestions', [FollowController::class, 'suggestions'])->name('follow.suggestions');
 
     // Protected profile update routes
     Route::patch('/profile/update-profile', [ProfileController::class, 'updateProfile'])->name('profile.update-profile');
