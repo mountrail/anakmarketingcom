@@ -12,10 +12,6 @@ use App\Http\Controllers\FollowController;
 // Main posts listing route - accessible to all users (replaces old home route)
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
-// Post route for viewing individual posts - accessible to all users
-Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
-Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
-Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 
 // Google login routes
 Route::controller(GoogleController::class)->group(function () {
@@ -23,9 +19,9 @@ Route::controller(GoogleController::class)->group(function () {
     Route::get('auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
 
-// Protected post routes (user must be authenticated and verified)
-Route::middleware(['auth', 'verified'])->group(function () {
-    // Post CRUD operations
+// Protected post routes (user must be authenticated) - MOVED ABOVE show route
+Route::middleware(['auth'])->group(function () {
+    // Post CRUD operations - CREATE ROUTE FIRST
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
@@ -49,11 +45,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Toggle follow/unfollow
     Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle');
-    // Add these routes inside your authenticated middleware group
-    Route::get('/follow/{user}/followers', [FollowController::class, 'getFollowersModal'])->name('follow.followers');
-    Route::get('/follow/{user}/following', [FollowController::class, 'getFollowingModal'])->name('follow.following');
-    // Get follow suggestions (keep this if you use it elsewhere)
-    Route::get('/follow/suggestions', [FollowController::class, 'suggestions'])->name('follow.suggestions');
 
     // Protected profile update routes
     Route::patch('/profile/update-profile', [ProfileController::class, 'updateProfile'])->name('profile.update-profile');
@@ -61,8 +52,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
 });
 
+// Post route for viewing individual posts - MOVED AFTER protected routes
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
+Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
+
 // User account routes
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/account', [ProfileController::class, 'edit'])->name('account.edit');
     Route::patch('/account', [ProfileController::class, 'update'])->name('account.update');
     Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
