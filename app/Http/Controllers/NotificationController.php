@@ -29,15 +29,11 @@ class NotificationController extends Controller
                     $query->whereJsonContains('data->type', 'followed_user_posted');
                     break;
 
-                case 'Badges':
-                    // Badge earned notifications
-                    $query->whereJsonContains('data->type', 'badge_earned');
-                    break;
-
                 case 'Lainnya':
                     // Follow notifications, announcements, and other types
                     $query->where(function ($q) {
                         $q->whereJsonContains('data->type', 'user_followed')
+                        ->orWhereJsonContains('data->type', 'badge_earned')
                             ->orWhereJsonContains('data->type', 'announcement')
                             ->orWhereJsonContains('data->type', 'system')
                             ->orWhereNull('data->type'); // For backward compatibility
