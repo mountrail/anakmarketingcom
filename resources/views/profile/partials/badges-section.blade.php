@@ -44,21 +44,16 @@
                                     <div class="relative transition-transform duration-200 hover:scale-105">
                                         <x-icons.badge
                                             class="w-16 h-16 badge-icon {{ $isSelected ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-600' }} transition-colors duration-200" />
-                                        @if ($isSelected)
-                                            <div
-                                                class="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center check-indicator">
-                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                </svg>
-                                            </div>
-                                        @endif
+
+                                        {{-- Checkbox positioned at top right --}}
+                                        <div class="absolute -top-1 -right-1 w-5 h-5">
+                                            <input type="checkbox" id="badge_{{ $badge->id }}" name="badges[]"
+                                                value="{{ $badge->id }}"
+                                                class="w-5 h-5 text-branding-primary bg-white border-2 border-gray-300 rounded focus:ring-branding-primary focus:ring-2 badge-checkbox"
+                                                {{ $isSelected ? 'checked' : '' }}>
+                                        </div>
                                     </div>
                                 </label>
-                                <input type="checkbox" id="badge_{{ $badge->id }}" name="badges[]"
-                                    value="{{ $badge->id }}" class="hidden badge-checkbox"
-                                    {{ $isSelected ? 'checked' : '' }}>
                             </div>
                             <div class="text-center">
                                 <p class="text-sm font-semibold text-branding-black dark:text-white">{{ $badge->name }}
@@ -70,11 +65,9 @@
                 </div>
 
                 <div class="text-center">
-                    <button type="submit"
-                        class="bg-branding-blue hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200"
-                        id="save-badges-btn">
-                        Simpan Badge
-                    </button>
+                    <x-primary-button type="submit" size="xl" id="save-badges-btn">
+                        Simpan
+                    </x-primary-button>
                 </div>
             </form>
         @else
@@ -134,31 +127,15 @@
                 checkboxes.forEach(checkbox => {
                     const badgeContainer = checkbox.closest('.flex.flex-col');
                     const badgeIcon = badgeContainer.querySelector('.badge-icon');
-                    const checkIndicator = badgeContainer.querySelector('.check-indicator');
 
                     if (checkbox.checked) {
-                        // Selected state
+                        // Selected state - make badge golden
                         badgeIcon.classList.remove('text-gray-400', 'dark:text-gray-600');
                         badgeIcon.classList.add('text-yellow-500');
-
-                        // Show check indicator if it doesn't exist
-                        if (!checkIndicator) {
-                            const indicator = document.createElement('div');
-                            indicator.className =
-                                'absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center check-indicator';
-                            indicator.innerHTML =
-                                '<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
-                            badgeIcon.parentElement.appendChild(indicator);
-                        }
                     } else {
-                        // Unselected state
+                        // Unselected state - make badge gray
                         badgeIcon.classList.remove('text-yellow-500');
                         badgeIcon.classList.add('text-gray-400', 'dark:text-gray-600');
-
-                        // Remove check indicator
-                        if (checkIndicator) {
-                            checkIndicator.remove();
-                        }
                     }
                 });
             }

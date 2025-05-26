@@ -27,44 +27,8 @@
                         <h1 class="text-2xl font-bold mb-4">{{ $post->title }}</h1>
 
                         <!-- User Profile Section -->
-                        <div class="flex items-center">
-                            <div class="flex items-center">
-                                <a href="{{ route('profile.show', $post->user) }}" class="flex-shrink-0 mr-3">
-                                    <img src="{{ $post->user->getProfileImageUrl() }}" alt="{{ $post->user->name }}"
-                                        class="h-12 w-12 rounded-full object-cover shadow-sm hover:opacity-80 transition-opacity">
-                                </a>
-                                <div>
-                                    <a href="{{ route('profile.show', $post->user) }}"
-                                        class="font-medium hover:text-branding-primary dark:hover:text-branding-primary transition-colors">
-                                        {{ $post->user->name }}
-                                    </a>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                                        @if ($post->user->job_title && $post->user->company)
-                                            {{ $post->user->job_title }} at {{ $post->user->company }}
-                                        @elseif($post->user->job_title)
-                                            {{ $post->user->job_title }}
-                                        @elseif($post->user->company)
-                                            {{ $post->user->company }}
-                                        @else
-                                            Member
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- User Badges -->
-                            <div class="ml-auto flex items-center space-x-2">
-                                <span>
-                                    <x-icons.badge class="w-7 h-7" />
-                                </span>
-                                <span>
-                                    <x-icons.badge class="w-7 h-7" />
-                                </span>
-                                <span>
-                                    <x-icons.badge class="w-7 h-7" />
-                                </span>
-                            </div>
-                        </div>
+                        <x-user-profile-info :user="$post->user" :timestamp="null" badgeSize="w-7 h-7" profileSize="h-12 w-12"
+                            :showJobInfo="true" />
                     </div>
 
                     <!-- Post Content Section -->
@@ -202,3 +166,4 @@
             background: linear-gradient(to bottom, rgba(31, 41, 55, 0), rgba(31, 41, 55, 1));
         }
     </style>
+@endpush
