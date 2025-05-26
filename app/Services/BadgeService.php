@@ -129,34 +129,65 @@ class BadgeService
     }
 
     /**
-     * Get all user's badges for badge selection
+     * Get all user's badges for badge selection with proper ordering
+     * Selected badges appear first, then unselected badges ordered by newest earned first
      */
     public static function getAllUserBadges(User $user)
     {
         try {
-            // Get badge IDs that the user has earned
-            $earnedBadgeIds = $user->badges()->pluck('badges.id')->toArray();
+            // Get badge IDs that the user has earned with their earned_at timestamps
+            $earnedBadges = $user->badges()->withPivot('earned_at')->get();
 
-            if (empty($earnedBadgeIds)) {
+            if ($earnedBadges->isEmpty()) {
                 return collect();
             }
 
+            $earnedBadgeIds = $earnedBadges->pluck('id')->toArray();
+
             // Ensure all earned badges have corresponding UserProfileBadge entries
-            foreach ($earnedBadgeIds as $badgeId) {
+            foreach ($earnedBadges as $badge) {
                 UserProfileBadge::firstOrCreate([
                     'user_id' => $user->id,
-                    'badge_id' => $badgeId,
+                    'badge_id' => $badge->id,
                 ], [
                     'is_displayed' => false,
                     'display_order' => null,
                 ]);
             }
 
-            // Return UserProfileBadge entries for earned badges
-            return UserProfileBadge::where('user_id', $user->id)
+            // Get UserProfileBadge entries for earned badges
+            $userProfileBadges = UserProfileBadge::where('user_id', $user->id)
                 ->whereIn('badge_id', $earnedBadgeIds)
                 ->with('badge')
                 ->get();
+
+            // Create a mapping of badge_id to earned_at timestamp
+            $earnedAtMap = $earnedBadges->keyBy('id')->map(function ($badge) {
+                return $badge->pivot->earned_at;
+            });
+
+            // Sort badges: selected first (by display_order), then unselected by newest earned first
+            return $userProfileBadges->sort(function ($a, $b) use ($earnedAtMap) {
+                // If both are displayed, sort by display_order
+                if ($a->is_displayed && $b->is_displayed) {
+                    return $a->display_order <=> $b->display_order;
+                }
+
+                // If only one is displayed, displayed comes first
+                if ($a->is_displayed && !$b->is_displayed) {
+                    return -1;
+                }
+                if (!$a->is_displayed && $b->is_displayed) {
+                    return 1;
+                }
+
+                // If neither is displayed, sort by newest earned first
+                $aEarnedAt = $earnedAtMap[$a->badge_id];
+                $bEarnedAt = $earnedAtMap[$b->badge_id];
+
+                return $bEarnedAt <=> $aEarnedAt; // Descending order (newest first)
+            })->values();
+
         } catch (\Exception $e) {
             Log::error("Error getting user badges for user {$user->id}: " . $e->getMessage());
             return collect();
