@@ -17,6 +17,7 @@
         "mews/purifier": "^3.4",
         "overtrue/laravel-follow": "^5.3",
         "qcod/laravel-gamify": "^1.0",
+        "spatie/laravel-medialibrary": "*",
         "spatie/laravel-permission": "^6.18"
     },
     "require-dev": {

@@ -1,14 +1,10 @@
 {{-- resources/views/profile/partials/editable-profile-form.blade.php --}}
 @props(['user', 'errors'])
 
-<!-- Profile Basic Info Form (Photo, Name, Job, Company) -->
-<form method="POST" action="{{ route('profile.update-basic-info') }}" enctype="multipart/form-data" class="space-y-6"
-    id="basic-info-form">
+<!-- Profile Basic Info Form (Name, Job, Company) -->
+<form method="POST" action="{{ route('profile.update-basic-info') }}" class="space-y-6" id="basic-info-form">
     @csrf
     @method('PATCH')
-
-    <!-- Hidden file input for profile picture -->
-    <input type="file" name="profile_picture" id="hidden_profile_picture" accept="image/*" class="hidden">
 
     <!-- Name -->
     <div>
