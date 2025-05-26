@@ -1,5 +1,5 @@
 <?php
-
+// FollowedUserPostedNotification.php - Updated
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -16,41 +16,25 @@ class FollowedUserPostedNotification extends Notification
     protected $post;
     protected $poster;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(Post $post, User $poster)
     {
         $this->post = $post;
         $this->poster = $poster;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
         return ['database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
             ->line('Someone you follow posted a new question.')
-            ->action('View Post', url('/posts/' . $this->post->id))
+            ->action('View Post', route('posts.show', $this->post->id))
             ->line('Thank you for using our application!');
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(object $notifiable): array
     {
         $postType = $this->post->type === 'question' ? 'pertanyaan' : 'diskusi';
@@ -64,7 +48,7 @@ class FollowedUserPostedNotification extends Notification
             'poster_name' => $this->poster->name,
             'poster_avatar' => $this->poster->getProfileImageUrl(),
             'message' => $this->poster->name . ' yang Anda ikuti, memposting ' . $postType . ' baru. Klik untuk melihat!',
-            'action_url' => route('posts.show', $this->post->id),
+            'action_url' => '/posts/' . $this->post->id, // Store relative URL
             'created_at' => now(),
         ];
     }

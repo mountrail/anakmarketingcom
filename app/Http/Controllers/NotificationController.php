@@ -70,7 +70,12 @@ class NotificationController extends Controller
         $redirectUrl = $request->get('redirect');
 
         if (!$redirectUrl && $notification) {
-            $redirectUrl = $notification->data['action_url'] ?? null;
+            $actionUrl = $notification->data['action_url'] ?? null;
+
+            // Convert relative URL to absolute URL using url() helper
+            if ($actionUrl) {
+                $redirectUrl = $this->makeAbsoluteUrl($actionUrl);
+            }
         }
 
         // If no redirect URL, go back to notifications page
@@ -80,6 +85,29 @@ class NotificationController extends Controller
         }
 
         return redirect($redirectUrl);
+    }
+
+    /**
+     * Convert relative URL to absolute URL
+     */
+    private function makeAbsoluteUrl($url)
+    {
+        if (empty($url)) {
+            return null;
+        }
+
+        // If it's already an absolute URL, return as is
+        if (filter_var($url, FILTER_VALIDATE_URL)) {
+            return $url;
+        }
+
+        // If it starts with '/', it's a relative URL from root
+        if (strpos($url, '/') === 0) {
+            return url($url);
+        }
+
+        // Otherwise, treat it as a path relative to current domain
+        return url('/' . ltrim($url, '/'));
     }
 
     /**

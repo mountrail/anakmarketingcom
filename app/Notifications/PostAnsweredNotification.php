@@ -1,5 +1,6 @@
 <?php
 
+// PostAnsweredNotification.php - Updated
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -18,9 +19,6 @@ class PostAnsweredNotification extends Notification
     protected $answer;
     protected $answerer;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(Post $post, Answer $answer, User $answerer)
     {
         $this->post = $post;
@@ -28,32 +26,19 @@ class PostAnsweredNotification extends Notification
         $this->answerer = $answerer;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
         return ['database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
             ->line('Someone answered your question.')
-            ->action('View Answer', url('/posts/' . $this->post->id))
+            ->action('View Answer', route('posts.show', $this->post->id))
             ->line('Thank you for using our application!');
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(object $notifiable): array
     {
         $postType = $this->post->type === 'question' ? 'pertanyaan' : 'diskusi';
@@ -68,7 +53,7 @@ class PostAnsweredNotification extends Notification
             'answerer_name' => $this->answerer->name,
             'answerer_avatar' => $this->answerer->getProfileImageUrl(),
             'message' => $this->answerer->name . ' menjawab ' . $postType . ' Anda. Klik untuk melihat!',
-            'action_url' => route('posts.show', $this->post->id),
+            'action_url' => '/posts/' . $this->post->id, // Store relative URL
             'created_at' => now(),
         ];
     }

@@ -17,9 +17,17 @@
     }
 
     // Get action URL - this will mark as read and redirect
-    $actionUrl = isset($notification->data['action_url'])
-        ? route('notifications.read', ['id' => $notification->id, 'redirect' => $notification->data['action_url']])
-        : route('notifications.read', ['id' => $notification->id]);
+    $actionUrl = null;
+    if (isset($notification->data['action_url'])) {
+        $storedUrl = $notification->data['action_url'];
+
+        // Convert relative URL to absolute URL for the redirect parameter
+        $absoluteUrl = filter_var($storedUrl, FILTER_VALIDATE_URL) ? $storedUrl : url($storedUrl);
+
+        $actionUrl = route('notifications.read', ['id' => $notification->id, 'redirect' => $absoluteUrl]);
+    } else {
+        $actionUrl = route('notifications.read', ['id' => $notification->id]);
+    }
 @endphp
 
 <div class="notification-item {{ $isUnread ? 'unread' : 'read' }} group relative"
