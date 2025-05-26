@@ -17,17 +17,11 @@
         const formData = new FormData(form);
         originalBasicInfoData = {};
 
-        // Store text inputs
+        // Store text inputs only (no profile picture)
         for (let [key, value] of formData.entries()) {
-            if (key !== 'profile_picture' && key !== '_token' && key !== '_method') {
+            if (key !== '_token' && key !== '_method') {
                 originalBasicInfoData[key] = value;
             }
-        }
-
-        // Store current profile picture src
-        const profileImg = document.querySelector('img[alt*="{{ $user->name ?? '' }}"]');
-        if (profileImg) {
-            originalBasicInfoData['current_profile_picture'] = profileImg.src;
         }
     }
 
@@ -47,26 +41,14 @@
         const currentFormData = new FormData(form);
         let hasChanges = false;
 
-        // Check text inputs
+        // Check text inputs only
         for (let [key, value] of currentFormData.entries()) {
-            if (key !== 'profile_picture' && key !== '_token' && key !== '_method') {
+            if (key !== '_token' && key !== '_method') {
                 if (originalBasicInfoData[key] !== value) {
                     hasChanges = true;
                     break;
                 }
             }
-        }
-
-        // Check profile picture
-        const profileImg = document.querySelector('img[alt*="{{ $user->name ?? '' }}"]');
-        if (profileImg && originalBasicInfoData['current_profile_picture'] !== profileImg.src) {
-            hasChanges = true;
-        }
-
-        // Check if profile picture file is selected
-        const fileInput = document.getElementById('hidden_profile_picture');
-        if (fileInput && fileInput.files.length > 0) {
-            hasChanges = true;
         }
 
         hasUnsavedBasicInfoChanges = hasChanges;
@@ -137,34 +119,6 @@
             // Handle form submission
             bioForm.addEventListener('submit', function() {
                 isBioFormSubmitting = true;
-            });
-        }
-
-        // Handle profile picture upload
-        const profilePictureInput = document.getElementById('profile_picture_input');
-        const hiddenProfilePictureInput = document.getElementById('hidden_profile_picture');
-
-        if (profilePictureInput && hiddenProfilePictureInput) {
-            profilePictureInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    // Copy the file to the hidden input (for form submission)
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    hiddenProfilePictureInput.files = dataTransfer.files;
-
-                    // Preview the image
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const profileImg = document.querySelector(
-                            'img[alt*="{{ $user->name ?? '' }}"]');
-                        if (profileImg) {
-                            profileImg.src = e.target.result;
-                        }
-                        checkBasicInfoChanges();
-                    };
-                    reader.readAsDataURL(file);
-                }
             });
         }
     });

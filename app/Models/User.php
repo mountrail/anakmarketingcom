@@ -11,10 +11,14 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Overtrue\LaravelFollow\Traits\Followable;
 use Overtrue\LaravelFollow\Traits\Follower;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Image\Enums\Fit;
 
-class User extends Authenticatable implements MustVerifyEmail, FilamentUser
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser, HasMedia
 {
-    use HasFactory, Notifiable, HasRoles, Followable, Follower;
+    use HasFactory, Notifiable, HasRoles, Followable, Follower, InteractsWithMedia;
 
     protected $fillable = [
         'name',
@@ -144,15 +148,116 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         return $this->profileBadges()->where('is_displayed', true)->orderBy('display_order');
     }
 
-    public function getProfileImageUrl()
+    /**
+     * Register media collections
+     */
+    public function registerMediaCollections(): void
     {
+        $this->addMediaCollection('profile_pictures')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/jpg', 'image/png']);
+    }
+
+    /**
+     * Register media conversions
+     */
+    public function registerMediaConversions(Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(300)
+            ->height(300)
+            ->fit(Fit::Crop, 300, 300)  // Use Fit::Crop instead of 'crop'
+            ->optimize()
+            ->performOnCollections('profile_pictures');
+
+        $this->addMediaConversion('avatar')
+            ->width(150)
+            ->height(150)
+            ->fit(Fit::Crop, 150, 150)  // Use Fit::Crop instead of 'crop'
+            ->optimize()
+            ->performOnCollections('profile_pictures');
+    }
+
+    /**
+     * Get the profile image URL
+     */
+    public function getProfileImageUrl(): string
+    {
+        // First priority: Check for uploaded profile picture via media library
+        $media = $this->getFirstMedia('profile_pictures');
+
+        if ($media) {
+            // Return the avatar conversion, fallback to original if conversion doesn't exist
+            return $media->hasGeneratedConversion('avatar')
+                ? $media->getUrl('avatar')
+                : $media->getUrl();
+        }
+
+        // Second priority: Check for Google avatar from social login
+        if (!empty($this->avatar)) {
+            return $this->avatar;
+        }
+
+        // Third priority: Check for legacy profile_picture field (if you still use it)
         if (!empty($this->profile_picture)) {
             return asset('storage/' . $this->profile_picture);
-        } elseif (!empty($this->avatar)) {
-            return $this->avatar;
-        } else {
-            return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
         }
+
+        // Final fallback: Generate default avatar using UI Avatars
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
+
+    /**
+     * Get the profile image thumbnail URL
+     */
+    public function getProfileImageThumbUrl(): string
+    {
+        // First priority: Check for uploaded profile picture via media library
+        $media = $this->getFirstMedia('profile_pictures');
+
+        if ($media) {
+            return $media->hasGeneratedConversion('thumb')
+                ? $media->getUrl('thumb')
+                : $media->getUrl();
+        }
+
+        // Second priority: Check for Google avatar from social login
+        if (!empty($this->avatar)) {
+            return $this->avatar;
+        }
+
+        // Third priority: Check for legacy profile_picture field (if you still use it)
+        if (!empty($this->profile_picture)) {
+            return asset('storage/' . $this->profile_picture);
+        }
+
+        // Final fallback: Generate default avatar using UI Avatars
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
+
+    /**
+     * Check if user has any kind of profile picture (uploaded or Google avatar)
+     */
+    public function hasProfilePicture(): bool
+    {
+        return $this->hasMedia('profile_pictures') || !empty($this->avatar) || !empty($this->profile_picture);
+    }
+
+
+    /**
+     * Check if user has uploaded a custom profile picture
+     */
+    public function hasUploadedProfilePicture(): bool
+    {
+        return $this->hasMedia('profile_pictures');
+    }
+
+    /**
+     * Check if user is using Google avatar
+     */
+    public function hasGoogleAvatar(): bool
+    {
+        return !empty($this->avatar) && !$this->hasMedia('profile_pictures');
     }
 
     public function isFollowedBy($user = null)
@@ -177,4 +282,6 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     {
         return $this->followings()->count();
     }
+
+
 }

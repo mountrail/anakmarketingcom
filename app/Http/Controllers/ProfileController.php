@@ -127,7 +127,8 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's basic profile information (name, job, company, profile picture).
+     * Update the user's basic profile information (name, job, company).
+     * Profile picture updates are handled separately by updateProfilePicture()
      */
     public function updateBasicInfo(Request $request): RedirectResponse
     {
@@ -135,36 +136,20 @@ class ProfileController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'job_title' => ['nullable', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],
-            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);
 
         $user = auth()->user();
 
-        // Handle profile picture upload
-        if ($request->hasFile('profile_picture')) {
-            // Delete old profile picture if exists
-            if ($user->profile_picture) {
-                Storage::delete('public/' . $user->profile_picture);
-            }
-
-            // Store new profile picture
-            $file = $request->file('profile_picture');
-            $filename = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('uploads/profile-pictures', $filename, 'public');
-
-            $user->profile_picture = $path;
-        }
-
-        // Update basic profile information
+        // Update basic profile information only
         $user->update([
             'name' => $request->name,
             'job_title' => $request->job_title,
             'company' => $request->company,
-            'profile_picture' => $user->profile_picture,
         ]);
 
         return redirect()->route('profile.show', $user)->with('success', 'Profil berhasil diperbarui!');
     }
+
 
     /**
      * Update the user's bio/description.
@@ -185,47 +170,56 @@ class ProfileController extends Controller
         return redirect()->route('profile.show', $user)->with('success', 'Deskripsi berhasil diperbarui!');
     }
 
+
     /**
-     * Update the user's profile information from public profile page.
-     * @deprecated Use updateBasicInfo() and updateBio() instead
+     * Update the user's profile picture.
+     * This is the dedicated method for handling profile picture uploads
      */
-    public function updateProfile(Request $request)
+    public function updateProfilePicture(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'bio' => ['nullable', 'string', 'max:1000'],
-            'job_title' => ['nullable', 'string', 'max:255'],
-            'company' => ['nullable', 'string', 'max:255'],
-            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'profile_picture' => [
+                'required',
+                'image',
+                'mimes:jpeg,jpg,png',
+                'max:5120', // 5MB in kilobytes
+            ],
+        ], [
+            'profile_picture.required' => 'Foto profil harus dipilih',
+            'profile_picture.image' => 'File harus berupa gambar',
+            'profile_picture.mimes' => 'Format file harus JPG atau PNG',
+            'profile_picture.max' => 'Foto lebih dari 5 MB',
         ]);
 
-        $user = auth()->user();
+        try {
+            $user = Auth::user();
 
-        // Handle profile picture upload
-        if ($request->hasFile('profile_picture')) {
-            // Delete old profile picture if exists
-            if ($user->profile_picture) {
-                Storage::delete('public/' . $user->profile_picture);
-            }
+            // Remove old profile picture if exists
+            $user->clearMediaCollection('profile_pictures');
 
-            // Store new profile picture
-            $file = $request->file('profile_picture');
-            $filename = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('uploads/profile-pictures', $filename, 'public');
+            // Add new profile picture
+            $mediaItem = $user->addMediaFromRequest('profile_picture')
+                ->toMediaCollection('profile_pictures');
 
-            $user->profile_picture = $path;
+            // Get the new profile picture URL
+            $profileImageUrl = $user->getProfileImageUrl();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto berhasil diubah',
+                'profile_image_url' => $profileImageUrl,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Profile picture upload error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengupload foto',
+            ], 500);
         }
-
-        $user->update([
-            'name' => $request->name,
-            'bio' => $request->bio,
-            'job_title' => $request->job_title,
-            'company' => $request->company,
-            'profile_picture' => $user->profile_picture,
-        ]);
-
-        return redirect()->route('profile.show', $user)->with('success', 'Profile updated successfully!');
     }
+
 
     /**
      * Delete the user's account.
