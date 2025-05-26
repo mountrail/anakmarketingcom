@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\AnnouncementNotification;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -37,6 +38,8 @@ class GoogleController extends Controller
             // Check if user exists
             $user = User::where('email', $googleUser->email)->first();
 
+            $isNewUser = false;
+
             // If user doesn't exist, create a new one
             if (!$user) {
                 \Log::info('Creating new user from Google auth: ' . $googleUser->email);
@@ -56,6 +59,7 @@ class GoogleController extends Controller
                     \Log::info('User data for creation:', ['data' => array_keys($userData)]);
 
                     $user = User::create($userData);
+                    $isNewUser = true;
 
                     \Log::info('New user created successfully with ID: ' . $user->id . ' and auto-verified');
                 } catch (\Exception $createEx) {
@@ -85,6 +89,18 @@ class GoogleController extends Controller
                 $user->update($updateData);
 
                 \Log::info('Existing user updated with Google information');
+            }
+
+            // Send pinned onboarding notification for new users
+            if ($isNewUser) {
+                $user->notify(new AnnouncementNotification(
+                    'Selesaikan onboarding dan dapatkan badge baru!',
+                    'Selesaikan onboarding dan dapatkan badge baru! Klik notifikasi ini untuk melanjutkan checklist onboarding kamu',
+                    '/onboarding',
+                    true // isPinned = true
+                ));
+
+                \Log::info('Onboarding notification sent to new Google user ID: ' . $user->id);
             }
 
             // Log the user in

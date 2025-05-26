@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\AnnouncementNotification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -105,6 +106,16 @@ class RegisteredUserController extends Controller
             Log::info('User created successfully with ID: ' . $user->id);
 
             event(new Registered($user));
+
+            // Send pinned onboarding notification to the new user
+            $user->notify(new AnnouncementNotification(
+                'Selesaikan onboarding dan dapatkan badge baru!',
+                'Selesaikan onboarding dan dapatkan badge baru! Klik notifikasi ini untuk melanjutkan checklist onboarding kamu',
+                '/onboarding',
+                true // isPinned = true
+            ));
+
+            Log::info('Onboarding notification sent to user ID: ' . $user->id);
 
             // IMPORTANT CHANGE: Don't log the user in automatically
             // Auth::login($user); - This line is removed

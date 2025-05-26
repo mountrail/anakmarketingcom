@@ -58,15 +58,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile/update-profile', [ProfileController::class, 'updateProfile'])->name('profile.update-profile');
     Route::patch('/profile/update-basic-info', [ProfileController::class, 'updateBasicInfo'])->name('profile.update-basic-info');
     Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
-});
 
-// Post route for viewing individual posts - MOVED AFTER protected routes
-Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
-Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
-Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 
-// User account routes
-Route::middleware(['auth'])->group(function () {
     Route::get('/account', [ProfileController::class, 'edit'])->name('account.edit');
     Route::patch('/account', [ProfileController::class, 'update'])->name('account.update');
     Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
@@ -82,7 +75,17 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile/update-basic-info', [ProfileController::class, 'updateBasicInfo'])->name('profile.update-basic-info');
     Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
     Route::patch('/profile/badges', [ProfileController::class, 'updateBadges'])->name('profile.update-badges');
+
+    // Onboarding route - ADD THIS NEW ROUTE
+    Route::get('/onboarding', function () {
+        return view('onboarding.index');
+    })->name('onboarding.index');
 });
+
+// Post route for viewing individual posts - MOVED AFTER protected routes
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
+Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 
 // Include authentication routes
 require __DIR__ . '/auth.php';

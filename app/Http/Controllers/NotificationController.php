@@ -33,7 +33,7 @@ class NotificationController extends Controller
                     // Follow notifications, announcements, and other types
                     $query->where(function ($q) {
                         $q->whereJsonContains('data->type', 'user_followed')
-                        ->orWhereJsonContains('data->type', 'badge_earned')
+                            ->orWhereJsonContains('data->type', 'badge_earned')
                             ->orWhereJsonContains('data->type', 'announcement')
                             ->orWhereJsonContains('data->type', 'system')
                             ->orWhereNull('data->type'); // For backward compatibility
@@ -42,7 +42,14 @@ class NotificationController extends Controller
             }
         }
 
-        $notifications = $query->paginate(20);
+        // Order notifications: pinned first, then by created_at desc
+        $notifications = $query->orderByRaw("
+            CASE
+                WHEN JSON_EXTRACT(data, '$.is_pinned') = true THEN 0
+                ELSE 1
+            END,
+            created_at DESC
+        ")->paginate(20);
 
         return view('notifications.index', compact('notifications', 'category'));
     }
