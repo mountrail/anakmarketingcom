@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Answer;
 use App\Models\Post;
+use App\Services\BadgeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
@@ -30,6 +31,9 @@ class AnswerController extends Controller
 
         $post->answers()->save($answer);
 
+        // **CHECK FOR "IKUTAN NIMBRUNG" BADGE AFTER ANSWER CREATION**
+        BadgeService::checkIkutanNimbrung(Auth::user());
+
         // Send notification to the post author if it's not their own answer
         if ($post->user_id !== Auth::id()) {
             $post->user->notify(new PostAnsweredNotification($post, $answer, Auth::user()));
@@ -38,7 +42,6 @@ class AnswerController extends Controller
         return redirect()->route('posts.show', $post->id)
             ->with('success', 'Answer posted successfully.');
     }
-
     /**
      * Toggle the editor's pick status of an answer
      */

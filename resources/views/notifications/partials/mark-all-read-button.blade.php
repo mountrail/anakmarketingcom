@@ -3,12 +3,11 @@
     <form action="{{ route('notifications.mark-all-read') }}" method="POST" class="inline">
         @csrf
         @method('PATCH')
-        <button type="submit"
-            class="inline-flex items-center px-4 py-2 bg-branding-primary text-white rounded-md hover:bg-opacity-90 transition-colors text-sm font-medium">
+        <x-primary-button type="submit" variant="primary" size="md">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             Tandai Semua Sudah Dibaca
-        </button>
+        </x-primary-button>
     </form>
 </div>

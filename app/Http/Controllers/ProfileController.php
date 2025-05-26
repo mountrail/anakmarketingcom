@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
 use App\Models\Post;
+use App\Services\BadgeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -249,5 +250,28 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Update the user's displayed badges.
+     */
+    public function updateBadges(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'badges' => 'nullable|array|max:3',
+            'badges.*' => 'exists:badges,id'
+        ]);
+
+        try {
+            $badgeIds = $request->input('badges', []);
+            BadgeService::updateDisplayedBadges(auth()->user(), $badgeIds);
+
+            return redirect()->route('profile.show', auth()->user())
+                ->with('success', 'Badge berhasil diperbarui!');
+        } catch (\Exception $e) {
+            Log::error('Error updating badges: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat memperbarui badge.');
+        }
     }
 }

@@ -76,6 +76,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    // Protected profile update routes
+    Route::patch('/profile/update-profile', [ProfileController::class, 'updateProfile'])->name('profile.update-profile');
+    Route::patch('/profile/update-basic-info', [ProfileController::class, 'updateBasicInfo'])->name('profile.update-basic-info');
+    Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
+    Route::patch('/profile/badges', [ProfileController::class, 'updateBadges'])->name('profile.update-badges');
 });
 
 // Include authentication routes

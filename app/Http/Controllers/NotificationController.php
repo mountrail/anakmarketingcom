@@ -29,6 +29,11 @@ class NotificationController extends Controller
                     $query->whereJsonContains('data->type', 'followed_user_posted');
                     break;
 
+                case 'Badges':
+                    // Badge earned notifications
+                    $query->whereJsonContains('data->type', 'badge_earned');
+                    break;
+
                 case 'Lainnya':
                     // Follow notifications, announcements, and other types
                     $query->where(function ($q) {
@@ -135,6 +140,13 @@ class NotificationController extends Controller
 
         if (!$notification) {
             return response()->json(['error' => 'Notification not found'], 404);
+        }
+
+        // Check if notification is pinned (pinned notifications cannot be deleted)
+        $isPinned = isset($notification->data['is_pinned']) && $notification->data['is_pinned'];
+
+        if ($isPinned) {
+            return response()->json(['error' => 'Pinned notifications cannot be deleted'], 403);
         }
 
         $notification->delete();

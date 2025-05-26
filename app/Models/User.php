@@ -16,11 +16,6 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
     use HasFactory, Notifiable, HasRoles, Followable, Follower;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -39,96 +34,116 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'bio',
         'job_title',
         'company',
+        'reputation',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'reputation' => 'integer',
         ];
     }
 
-    /**
-     * Override the hasVerifiedEmail method to always return true for Google users
-     *
-     * @return bool
-     */
     public function hasVerifiedEmail()
     {
         return $this->provider === 'google' || $this->email_verified_at !== null;
     }
 
-    /**
-     * Determine if the user can access Filament admin panel.
-     */
     public function canAccessPanel(Panel $panel): bool
     {
-        // Option 1: Check if user has admin role
         if ($this->hasRole('admin')) {
             return true;
         }
-
-        // Option 2: Check specific email domains (if needed)
-        // if (str_ends_with($this->email, '@yourdomain.com') && $this->hasVerifiedEmail()) {
-        //     return true;
-        // }
-
-        // Option 3: Check specific user IDs (for development/testing)
-        // if (in_array($this->id, [1, 2, 3])) { // Replace with your admin user IDs
-        //     return true;
-        // }
-
         return false;
     }
 
-    /**
-     * Get the user's posts.
-     */
     public function posts()
     {
         return $this->hasMany(Post::class);
     }
 
-    /**
-     * Get the user's answers.
-     */
     public function answers()
     {
         return $this->hasMany(Answer::class);
     }
 
-    /**
-     * Get the user's votes.
-     */
     public function votes()
     {
         return $this->hasMany(Vote::class);
     }
 
     /**
-     * Get the user's profile picture URL with priority:
-     * 1. Custom uploaded profile picture
-     * 2. Google avatar
-     * 3. UI Avatars fallback
-     *
-     * @return string
+     * Badges earned by this user
      */
+    public function badges()
+    {
+        return $this->belongsToMany(Badge::class, 'user_badges')->withTimestamps()->withPivot('earned_at');
+    }
+
+    /**
+     * Check if user has a specific badge
+     */
+    public function hasBadge($badge)
+    {
+        if (is_string($badge)) {
+            return $this->badges()->where('name', $badge)->exists();
+        }
+
+        if (is_numeric($badge)) {
+            return $this->badges()->where('badge_id', $badge)->exists();
+        }
+
+        if ($badge instanceof Badge) {
+            return $this->badges()->where('badge_id', $badge->id)->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Give a badge to the user
+     */
+    public function giveBadge($badge)
+    {
+        if (is_string($badge)) {
+            $badge = Badge::where('name', $badge)->first();
+        }
+
+        if (!$badge instanceof Badge) {
+            return false;
+        }
+
+        if ($this->hasBadge($badge)) {
+            return false;
+        }
+
+        $this->badges()->attach($badge->id, ['earned_at' => now()]);
+        return true;
+    }
+
+    /**
+     * Get the user's profile badges.
+     */
+    public function profileBadges()
+    {
+        return $this->hasMany(UserProfileBadge::class);
+    }
+
+    /**
+     * Get the user's displayed badges.
+     */
+    public function displayedBadges()
+    {
+        return $this->profileBadges()->where('is_displayed', true)->orderBy('display_order');
+    }
+
     public function getProfileImageUrl()
     {
         if (!empty($this->profile_picture)) {
@@ -136,17 +151,10 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         } elseif (!empty($this->avatar)) {
             return $this->avatar;
         } else {
-            // Default avatar using UI Avatars
             return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
         }
     }
 
-    /**
-     * Check if the current user is following this user.
-     *
-     * @param User|null $user
-     * @return bool
-     */
     public function isFollowedBy($user = null)
     {
         if (!$user) {
@@ -160,21 +168,11 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         return $user->isFollowing($this);
     }
 
-    /**
-     * Get followers count.
-     *
-     * @return int
-     */
     public function getFollowersCountAttribute()
     {
         return $this->followers()->count();
     }
 
-    /**
-     * Get following count.
-     *
-     * @return int
-     */
     public function getFollowingCountAttribute()
     {
         return $this->followings()->count();

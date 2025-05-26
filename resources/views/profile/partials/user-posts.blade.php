@@ -43,7 +43,7 @@ $posts = $postsQuery->take($limit)->get();
             <div class="space-y-4" id="user-own-posts">
                 @foreach ($posts as $post)
                     <x-post-item :post="$post" :showMeta="false" :showVoteScore="false" :showCommentCount="true"
-                        :showShare="true" :showThreeDots="false" customClasses="text-xs"
+                        :showShare="true" :showThreeDots="true" customClasses="text-xs"
                         containerClasses="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 last:pb-0" />
                 @endforeach
             </div>

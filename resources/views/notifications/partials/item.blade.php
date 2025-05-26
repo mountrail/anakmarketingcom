@@ -22,13 +22,15 @@
         : route('notifications.read', ['id' => $notification->id]);
 @endphp
 
-<div class="notification-item {{ $isUnread ? 'unread' : 'read' }}">
-    <a href="{{ $actionUrl }}" class="block">
-        <div
-            class="flex items-start space-x-4 p-4 border-b border-gray-200 dark:border-gray-700
-            {{ $isPinned ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-white dark:bg-gray-800' }}
-            hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 cursor-pointer">
+<div class="notification-item {{ $isUnread ? 'unread' : 'read' }} group relative"
+    data-notification-id="{{ $notification->id }}">
+    <div
+        class="flex items-start space-x-4 p-4 border-b border-gray-200 dark:border-gray-700
+        {{ $isPinned ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-white dark:bg-gray-800' }}
+        hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 relative">
 
+        {{-- Main Content Area (Clickable) --}}
+        <a href="{{ $actionUrl }}" class="flex items-start space-x-4 flex-1 cursor-pointer">
             {{-- Avatar --}}
             <div class="flex-shrink-0">
                 @if ($avatarUrl)
@@ -62,6 +64,20 @@
                     @endif
                 </div>
             </div>
-        </div>
-    </a>
+        </a>
+
+        {{-- Delete Button (Only for non-pinned notifications) --}}
+        @if (!$isPinned)
+            <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <button type="button"
+                    class="delete-notification-btn p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200 focus:outline-none"
+                    data-notification-id="{{ $notification->id }}" title="Hapus notifikasi">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        @endif
+    </div>
 </div>

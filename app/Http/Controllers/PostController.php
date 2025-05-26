@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\User;
+use App\Services\BadgeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
@@ -89,6 +90,9 @@ class PostController extends Controller
             'content' => $purifiedContent,
             'type' => $validated['type'],
         ]);
+
+        // **CHECK FOR "BREAK THE ICE" BADGE AFTER POST CREATION**
+        BadgeService::checkBreakTheIce(Auth::user());
 
         // Send notification to followers when user posts
         if (auth()->user()->followers()->exists()) {
@@ -319,7 +323,7 @@ class PostController extends Controller
                     'showVoteScore' => false,
                     'showCommentCount' => true,
                     'showShare' => true,
-                    'showThreeDots' => false,
+                    'showThreeDots' => true,
                     'customClasses' => 'text-xs',
                     'containerClasses' => 'border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 last:pb-0'
                 ])->render();
