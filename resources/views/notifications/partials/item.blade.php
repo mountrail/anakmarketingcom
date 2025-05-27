@@ -1,7 +1,9 @@
 {{-- resources/views/notifications/partials/item.blade.php --}}
 @php
     $isUnread = is_null($notification->read_at);
-    $isPinned = isset($notification->data['is_pinned']) && $notification->data['is_pinned'];
+    $isPinned =
+        isset($notification->data['is_pinned']) &&
+        ($notification->data['is_pinned'] === true || $notification->data['is_pinned'] === 1);
     $isAnnouncement = isset($notification->data['type']) && $notification->data['type'] === 'announcement';
     $isSystemNotification =
         $isAnnouncement ||
@@ -31,25 +33,26 @@
     }
 @endphp
 
-<div class="notification-item {{ $isUnread ? 'unread' : 'read' }} group relative"
+<div class="notification-item {{ $isUnread ? 'unread' : 'read' }} {{ $isPinned ? 'pinned' : '' }}"
     data-notification-id="{{ $notification->id }}">
     <div
         class="flex items-start space-x-4 p-4 border-b border-gray-200 dark:border-gray-700
-        {{ $isPinned ? 'bg-branding-primary/20 hover:bg-branding-primary/50' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50' }}
-         transition-all duration-200 relative">
+        {{ $isPinned ? 'bg-branding-primary/10 hover:bg-branding-primary/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50' }}
+         transition-all duration-200">
+
         {{-- Main Content Area (Clickable) --}}
-        <a href="{{ $actionUrl }}"
-            class="flex items-start space-x-4 flex-1 cursor-pointer ">
+        <a href="{{ $actionUrl }}" class="flex items-start space-x-4 flex-1 cursor-pointer">
             {{-- Avatar --}}
             <div class="flex-shrink-0">
                 @if ($isSystemNotification || !$avatarUrl)
-                    {{-- Use AnakMarketing icon for system/admin notifications --}}
+                    {{-- Use AnakMarketing icon for system/admin notifications with ring --}}
                     <div
-                        class="w-12 h-12 bg-white dark:bg-gray-600 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                        class="w-12 h-12 bg-white dark:bg-gray-600 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ring-2 ring-branding-primary ring-opacity-50">
                         <x-icons.anakmarketing class="w-8 h-8" />
                     </div>
                 @else
-                    <img src="{{ $avatarUrl }}" alt="User Avatar" class="w-12 h-12 rounded-full object-cover">
+                    <img src="{{ $avatarUrl }}" alt="User Avatar"
+                        class="w-12 h-12 rounded-full object-cover {{ $isPinned ? 'ring-2 ring-branding-primary ring-opacity-50' : '' }}">
                 @endif
             </div>
 
@@ -74,18 +77,5 @@
             </div>
         </a>
 
-        {{-- Delete Button (Only for non-pinned notifications) --}}
-        @if (!$isPinned)
-            <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button type="button"
-                    class="delete-notification-btn p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200 focus:outline-none"
-                    data-notification-id="{{ $notification->id }}" title="Hapus notifikasi">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
-                    </svg>
-                </button>
-            </div>
-        @endif
     </div>
 </div>

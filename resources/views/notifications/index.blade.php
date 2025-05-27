@@ -5,8 +5,50 @@
             <div class="bg-white dark:bg-gray-800">
                 <div class="text-gray-900 dark:text-gray-100">
 
-                    {{-- Header Partial --}}
-                    @include('notifications.partials.header', ['category' => $category])
+                    {{-- Dynamic Header with JavaScript Filtering --}}
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                            Pusat Notifikasi
+                        </h1>
+
+                        {{-- Category Filter Dropdown --}}
+                        <div class="flex justify-center">
+                            <x-dropdown align="center" width="64">
+                                <x-slot name="trigger">
+                                    <button id="categoryTrigger"
+                                        class="flex items-center w-80 rounded-md font-medium px-5 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:border-secondary-pale focus:ring-secondary-pale shadow-md">
+                                        <span class="text-lg" id="selectedCategory">Semua</span>
+                                        <svg class="ms-auto h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </button>
+                                </x-slot>
+
+                                <x-slot name="content">
+                                    <div class="py-1 max-h-none overflow-visible">
+                                        <button data-category="Semua"
+                                            class="category-filter block w-full px-5 py-3 text-lg font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out bg-gray-100 dark:bg-gray-800">
+                                            Semua
+                                        </button>
+                                        <button data-category="Pertanyaan / Diskusi Saya"
+                                            class="category-filter block w-full px-5 py-3 text-lg font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out">
+                                            Pertanyaan / Diskusi Saya
+                                        </button>
+                                        <button data-category="Pertanyaan / Diskusi yang Diikuti"
+                                            class="category-filter block w-full px-5 py-3 text-lg font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out">
+                                            Pertanyaan / Diskusi yang Diikuti
+                                        </button>
+                                        <button data-category="Lainnya"
+                                            class="category-filter block w-full px-5 py-3 text-lg font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out">
+                                            Lainnya
+                                        </button>
+                                    </div>
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                    </div>
 
                     {{-- Action Buttons --}}
                     {{-- Mark All as Read Button --}}
@@ -14,13 +56,48 @@
                         @include('notifications.partials.mark-all-read-button')
                     @endif
 
-                    {{-- Notifications List Partial --}}
-                    @if ($notifications->count() > 0)
-                        @include('notifications.partials.list', ['notifications' => $notifications])
+                    {{-- Check if we have any notifications at all --}}
+                    @if ($pinnedNotifications->count() > 0 || $regularNotifications->count() > 0)
 
-                        {{-- Pagination --}}
-                        <div class="mt-8">
-                            {{ $notifications->links() }}
+                        {{-- Pinned Notifications List --}}
+                        @if ($pinnedNotifications->count() > 0)
+                            <div class="pinned-notifications mb-4">
+                                @foreach ($pinnedNotifications as $notification)
+                                    @include('notifications.partials.item', [
+                                        'notification' => $notification,
+                                    ])
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Regular Notifications List --}}
+                        @if ($regularNotifications->count() > 0)
+                            <div class="regular-notifications">
+                                @foreach ($regularNotifications as $notification)
+                                    @include('notifications.partials.item', [
+                                        'notification' => $notification,
+                                    ])
+                                @endforeach
+                            </div>
+
+                            {{-- Pagination (hidden during filtering) --}}
+                            <div class="mt-8" id="paginationContainer">
+                                {{ $regularNotifications->links() }}
+                            </div>
+                        @endif
+
+                        {{-- No Results Message (initially hidden) --}}
+                        <div id="noResultsMessage" class="text-center py-12 hidden">
+                            <div class="text-gray-500 dark:text-gray-400">
+                                <svg class="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2h12a2 2 0 002-2v-5zM8 9V6a2 2 0 012-2h4a2 2 0 012 2v3">
+                                    </path>
+                                </svg>
+                                <h3 class="text-lg font-medium mb-2">Tidak ada notifikasi</h3>
+                                <p>Tidak ada notifikasi yang sesuai dengan kategori yang dipilih.</p>
+                            </div>
                         </div>
                     @else
                         @include('notifications.partials.empty-state')
@@ -30,86 +107,146 @@
         </div>
     </div>
 
-    {{-- JavaScript for AJAX deletion --}}
+    {{-- JavaScript for Dynamic Filtering --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle individual notification deletion
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.delete-notification-btn')) {
-                    e.preventDefault();
-                    e.stopPropagation();
+            const categoryButtons = document.querySelectorAll('.category-filter');
+            const selectedCategoryElement = document.getElementById('selectedCategory');
+            const notificationItems = document.querySelectorAll('.notification-item');
+            const paginationContainer = document.getElementById('paginationContainer');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            const pinnedNotifications = document.querySelector('.pinned-notifications');
+            const regularNotifications = document.querySelector('.regular-notifications');
 
-                    const button = e.target.closest('.delete-notification-btn');
-                    const notificationId = button.getAttribute('data-notification-id');
-                    const notificationItem = button.closest('.notification-item');
-
-                    deleteNotification(notificationId, notificationItem);
-                }
+            // Add data attributes to notification items based on their type
+            notificationItems.forEach(item => {
+                const notificationData = getNotificationDataFromElement(item);
+                item.setAttribute('data-notification-type', notificationData.type || 'unknown');
             });
 
-            // Function to delete individual notification
-            function deleteNotification(notificationId, notificationElement) {
-                fetch(`/notifications/${notificationId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                                'content'),
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Animate removal
-                            notificationElement.style.opacity = '0';
-                            notificationElement.style.transform = 'translateX(100%)';
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const selectedCategory = this.getAttribute('data-category');
 
-                            setTimeout(() => {
-                                notificationElement.remove();
+                    // Update selected category display
+                    selectedCategoryElement.textContent = selectedCategory;
 
-                                // Check if there are no more notifications
-                                const remainingNotifications = document.querySelectorAll(
-                                    '.notification-item');
-                                if (remainingNotifications.length === 0) {
-                                    location.reload(); // Reload to show empty state
-                                }
-                            }, 300);
-                        } else {
-                            showNotification('Gagal menghapus notifikasi', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showNotification('Terjadi kesalahan saat menghapus notifikasi', 'error');
+                    // Update active state
+                    categoryButtons.forEach(btn => {
+                        btn.classList.remove('bg-gray-100', 'dark:bg-gray-800');
                     });
+                    this.classList.add('bg-gray-100', 'dark:bg-gray-800');
+
+                    // Filter notifications
+                    filterNotifications(selectedCategory);
+
+                    // Close dropdown (if using Tailwind's default behavior)
+                    document.body.click();
+                });
+            });
+
+            function getNotificationDataFromElement(element) {
+                // Try to extract notification type from the element's content or data attributes
+                // This is a simplified approach - in a real app you might embed JSON data
+                const messageText = element.querySelector('p')?.textContent?.toLowerCase() || '';
+
+                if (messageText.includes('menjawab pertanyaan') || messageText.includes('answered your post')) {
+                    return {
+                        type: 'post_answered'
+                    };
+                } else if (messageText.includes('mengikuti') || messageText.includes('followed you')) {
+                    return {
+                        type: 'user_followed'
+                    };
+                } else if (messageText.includes('memposting') || messageText.includes('posted')) {
+                    return {
+                        type: 'followed_user_posted'
+                    };
+                } else if (messageText.includes('badge') || messageText.includes('lencana')) {
+                    return {
+                        type: 'badge_earned'
+                    };
+                } else if (messageText.includes('pengumuman') || messageText.includes('announcement')) {
+                    return {
+                        type: 'announcement'
+                    };
+                } else if (element.querySelector('.ring-2')) {
+                    // System notifications have rings
+                    return {
+                        type: 'system'
+                    };
+                }
+
+                return {
+                    type: 'unknown'
+                };
             }
 
-            // Function to show notification messages
-            function showNotification(message, type = 'info') {
-                // Create notification element
-                const notification = document.createElement('div');
-                notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-x-full ${
-                    type === 'success' ? 'bg-green-500 text-white' :
-                    type === 'error' ? 'bg-red-500 text-white' :
-                    'bg-blue-500 text-white'
-                }`;
-                notification.textContent = message;
+            function filterNotifications(category) {
+                let visibleCount = 0;
+                let visiblePinnedCount = 0;
+                let visibleRegularCount = 0;
 
-                document.body.appendChild(notification);
+                notificationItems.forEach(item => {
+                    const notificationType = item.getAttribute('data-notification-type');
+                    let shouldShow = false;
 
-                // Animate in
-                setTimeout(() => {
-                    notification.style.transform = 'translateX(0)';
-                }, 100);
+                    switch (category) {
+                        case 'Semua':
+                            shouldShow = true;
+                            break;
+                        case 'Pertanyaan / Diskusi Saya':
+                            shouldShow = notificationType === 'post_answered';
+                            break;
+                        case 'Pertanyaan / Diskusi yang Diikuti':
+                            shouldShow = notificationType === 'followed_user_posted';
+                            break;
+                        case 'Lainnya':
+                            shouldShow = ['user_followed', 'badge_earned', 'announcement', 'system',
+                                'unknown'
+                            ].includes(notificationType);
+                            break;
+                    }
 
-                // Remove after 3 seconds
-                setTimeout(() => {
-                    notification.style.transform = 'translateX(full)';
-                    setTimeout(() => {
-                        document.body.removeChild(notification);
-                    }, 300);
-                }, 3000);
+                    if (shouldShow) {
+                        item.style.display = 'block';
+                        item.style.opacity = '1';
+                        visibleCount++;
+
+                        // Count visible items in each section
+                        if (item.closest('.pinned-notifications')) {
+                            visiblePinnedCount++;
+                        } else if (item.closest('.regular-notifications')) {
+                            visibleRegularCount++;
+                        }
+                    } else {
+                        item.style.display = 'none';
+                        item.style.opacity = '0';
+                    }
+                });
+
+                // Show/hide sections based on visible items
+                if (pinnedNotifications) {
+                    pinnedNotifications.style.display = visiblePinnedCount > 0 ? 'block' : 'none';
+                }
+
+                if (regularNotifications) {
+                    regularNotifications.style.display = visibleRegularCount > 0 ? 'block' : 'none';
+                }
+
+                // Show/hide pagination and no results message
+                if (category === 'Semua') {
+                    paginationContainer.style.display = 'block';
+                    noResultsMessage.classList.add('hidden');
+                } else {
+                    paginationContainer.style.display = 'none';
+
+                    if (visibleCount === 0) {
+                        noResultsMessage.classList.remove('hidden');
+                    } else {
+                        noResultsMessage.classList.add('hidden');
+                    }
+                }
             }
         });
     </script>
