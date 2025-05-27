@@ -15,7 +15,7 @@
 
 <div class="flex justify-between items-start">
     <!-- Left side: Profile Picture and User Info -->
-    <div class="flex items-start space-x-3">
+    <div class="flex items-center space-x-3">
         <!-- Profile Picture -->
         <a href="{{ route('profile.show', $user) }}" class="flex-shrink-0">
             <img src="{{ $user->getProfileImageUrl() }}" alt="{{ $user->name }}"

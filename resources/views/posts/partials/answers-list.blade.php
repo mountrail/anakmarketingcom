@@ -6,7 +6,7 @@
                 <!-- Answer Header - Profile, User Info, and Badges -->
                 <div class="mb-4">
                     <x-user-profile-info :user="$answer->user" :timestamp="$answer->created_at" badgeSize="w-5 h-5" profileSize="h-10 w-10"
-                        :showJobInfo="false">
+                        :showJobInfo="true">
 
                         <x-slot name="additionalBadges">
                             @if ($answer->is_editors_pick)
