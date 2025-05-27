@@ -39,9 +39,10 @@ class AnswerController extends Controller
             $post->user->notify(new PostAnsweredNotification($post, $answer, Auth::user()));
         }
 
-        return redirect()->route('posts.show', $post->id)
+        return redirect()->route('posts.show', $post->slug)
             ->with('success', 'Answer posted successfully.');
     }
+
     /**
      * Toggle the editor's pick status of an answer
      */
@@ -69,13 +70,13 @@ class AnswerController extends Controller
             abort(403, 'You do not have permission to delete this answer');
         }
 
-        // Get the post ID before deleting the answer
-        $postId = $answer->post_id;
+        // Get the post before deleting the answer
+        $post = $answer->post;
 
         // Delete the answer
         $answer->delete();
 
-        return redirect()->route('posts.show', $postId)
+        return redirect()->route('posts.show', $post->slug)
             ->with('success', 'Answer deleted successfully.');
     }
 }

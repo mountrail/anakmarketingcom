@@ -20,8 +20,8 @@ Route::controller(GoogleController::class)->group(function () {
     Route::get('auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
 
-// Protected post routes (user must be authenticated) - MOVED ABOVE show route
-Route::middleware(['auth'])->group(function () {
+// Protected post routes (user must be authenticated and verified) - MOVED ABOVE show route
+Route::middleware(['auth', 'verified'])->group(function () {
     // Post CRUD operations - CREATE ROUTE FIRST
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
@@ -32,12 +32,12 @@ Route::middleware(['auth'])->group(function () {
     // Editor's pick toggle for posts
     Route::post('/posts/{post}/toggle-featured', [PostController::class, 'toggleFeatured'])->name('posts.toggle-featured');
 
-    // Answer routes
+    // Answer routes - USING ID FOR FORM SUBMISSIONS
     Route::post('/posts/{post}/answers', [AnswerController::class, 'store'])->name('posts.answers.store');
     Route::patch('/answers/{answer}/toggle-editors-pick', [AnswerController::class, 'toggleEditorsPick'])->name('answers.toggle-editors-pick');
     Route::delete('/answers/{answer}', [AnswerController::class, 'destroy'])->name('answers.destroy');
 
-    // Voting routes
+    // Voting routes - USING ID FOR FORM SUBMISSIONS
     Route::post('/posts/{post}/vote', [VoteController::class, 'votePost'])->name('posts.vote');
     Route::post('/answers/{answer}/vote', [VoteController::class, 'voteAnswer'])->name('answers.vote');
 
@@ -78,8 +78,10 @@ Route::middleware(['auth'])->group(function () {
     })->name('onboarding.index');
 });
 
-// Post route for viewing individual posts - MOVED AFTER protected routes
-Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+// Post route for viewing individual posts - USING SLUG FOR DISPLAY
+// This should handle both slugs and old numeric IDs
+Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '.*');
+
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
 Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 

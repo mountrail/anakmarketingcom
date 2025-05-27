@@ -7,6 +7,8 @@
 
 @php
     $routeName = $modelType === 'post' ? 'posts.vote' : 'answers.vote';
+    // Use slug for posts, id for answers
+    $routeParam = $modelType === 'post' ? $model->slug : $model->id;
     $modelId = $model->id;
     $voteScore = $model->vote_score;
     $userVote = $model->user_vote;
@@ -33,7 +35,7 @@
 
 <div class="flex items-center space-x-1 sm:space-x-2 vote-container" {{ $dataAttr }}="{{ $modelId }}">
     @auth
-        <form action="{{ route($routeName, $modelId) }}" method="POST" class="inline vote-form">
+        <form action="{{ route($routeName, $routeParam) }}" method="POST" class="inline vote-form">
             @csrf
             <input type="hidden" name="value" value="1">
             <button type="button" class="vote-btn upvote-btn {{ $btnClass }} {{ $upvoteActiveClass }}" title="Upvote">
@@ -53,7 +55,7 @@
             <span class="hidden vote-score" {{ $dataAttr }}="{{ $modelId }}">{{ $voteScore }}</span>
         @endif
 
-        <form action="{{ route($routeName, $modelId) }}" method="POST" class="inline vote-form">
+        <form action="{{ route($routeName, $routeParam) }}" method="POST" class="inline vote-form">
             @csrf
             <input type="hidden" name="value" value="-1">
             <button type="button" class="vote-btn downvote-btn {{ $btnClass }} {{ $downvoteActiveClass }}"

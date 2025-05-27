@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notification;
 use App\Models\Post;
 use App\Models\User;
 
+// FollowedUserPostedNotification.php - Updated to use slug
 class FollowedUserPostedNotification extends Notification
 {
     use Queueable;
@@ -31,7 +32,7 @@ class FollowedUserPostedNotification extends Notification
     {
         return (new MailMessage)
             ->line('Someone you follow posted a new question.')
-            ->action('View Post', route('posts.show', $this->post->id))
+            ->action('View Post', route('posts.show', $this->post->slug))
             ->line('Thank you for using our application!');
     }
 
@@ -48,7 +49,7 @@ class FollowedUserPostedNotification extends Notification
             'poster_name' => $this->poster->name,
             'poster_avatar' => $this->poster->getProfileImageUrl(),
             'message' => $this->poster->name . ' yang Anda ikuti, memposting ' . $postType . ' baru. Klik untuk melihat!',
-            'action_url' => '/posts/' . $this->post->id, // Store relative URL
+            'action_url' => '/posts/' . $this->post->slug, // Use slug
             'created_at' => now(),
         ];
     }

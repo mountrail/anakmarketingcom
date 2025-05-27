@@ -13,8 +13,10 @@ class VoteController extends Controller
     /**
      * Vote on a post
      */
-    public function votePost(Request $request, Post $post)
+    public function votePost(Request $request, $slug)
     {
+        // Find post by slug
+        $post = Post::where('slug', $slug)->firstOrFail();
         return $this->handleVote($request, $request->user(), null, $post, $request->value);
     }
 

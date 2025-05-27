@@ -32,8 +32,7 @@
             <p class="text-gray-600 dark:text-gray-300">
                 Please <a data-auth-action="login" class="text-indigo-600 dark:text-indigo-400 hover:underline">log
                     in</a>
-                or <a  data-auth-action="register"
-                    class="text-indigo-600 dark:text-indigo-400 hover:underline">register</a>
+                or <a data-auth-action="register" class="text-indigo-600 dark:text-indigo-400 hover:underline">register</a>
                 to post an answer.
             </p>
         </div>

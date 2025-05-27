@@ -14,12 +14,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const url = form.getAttribute('action');
             const isPostVote = url.includes('/posts/') && !url.includes('/answers/');
 
-            // Extract the target ID from the URL
-            const match = url.match(isPostVote ? /\/posts\/(\d+)\/vote/ : /\/answers\/(\d+)\/vote/);
-            const targetId = match ? match[1] : null;
-            if (!targetId || activeVoteRequests[targetId]) return;
+            // Extract the target ID from the vote container data attribute instead of URL
+            const voteContainer = button.closest('.vote-container');
+            if (!voteContainer) return;
 
             const typeAttr = isPostVote ? 'post' : 'answer';
+            const targetId = voteContainer.getAttribute(`data-${typeAttr}-id`);
+
+            if (!targetId || activeVoteRequests[targetId]) return;
+
             const voteContainers = document.querySelectorAll(
                 `.vote-container[data-${typeAttr}-id="${targetId}"], ` +
                 `.vote-container:has(.vote-score[data-${typeAttr}-id="${targetId}"])`
