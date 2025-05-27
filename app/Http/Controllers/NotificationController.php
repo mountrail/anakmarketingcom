@@ -8,50 +8,33 @@ use Illuminate\Http\JsonResponse;
 class NotificationController extends Controller
 {
     /**
-     * Display a listing of the user's notifications with category filtering.
+     * Display a listing of the user's notifications.
+     * Filtering is now handled client-side with JavaScript.
      */
     public function index(Request $request)
     {
-        $category = $request->get('category', 'Semua');
+        $baseQuery = auth()->user()->notifications();
 
-        $query = auth()->user()->notifications();
+        // Get pinned notifications separately (not paginated)
+        $pinnedNotifications = (clone $baseQuery)
+            ->where(function ($q) {
+                $q->whereJsonContains('data->is_pinned', true)
+                    ->orWhereJsonContains('data->is_pinned', 1);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        // Apply category filtering
-        if ($category !== 'Semua') {
-            switch ($category) {
-                case 'Pertanyaan / Diskusi Saya':
-                    // Notifications about answers to user's posts
-                    $query->whereJsonContains('data->type', 'post_answered');
-                    break;
+        // Get regular notifications (paginated)
+        $regularNotifications = (clone $baseQuery)
+            ->where(function ($q) {
+                $q->whereJsonDoesntContain('data->is_pinned', true)
+                    ->whereJsonDoesntContain('data->is_pinned', 1)
+                    ->orWhereNull('data->is_pinned');
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
 
-                case 'Pertanyaan / Diskusi yang Diikuti':
-                    // Notifications about new posts from followed users
-                    $query->whereJsonContains('data->type', 'followed_user_posted');
-                    break;
-
-                case 'Lainnya':
-                    // Follow notifications, announcements, and other types
-                    $query->where(function ($q) {
-                        $q->whereJsonContains('data->type', 'user_followed')
-                            ->orWhereJsonContains('data->type', 'badge_earned')
-                            ->orWhereJsonContains('data->type', 'announcement')
-                            ->orWhereJsonContains('data->type', 'system')
-                            ->orWhereNull('data->type'); // For backward compatibility
-                    });
-                    break;
-            }
-        }
-
-        // Order notifications: pinned first, then by created_at desc
-        $notifications = $query->orderByRaw("
-            CASE
-                WHEN JSON_EXTRACT(data, '$.is_pinned') = true THEN 0
-                ELSE 1
-            END,
-            created_at DESC
-        ")->paginate(20);
-
-        return view('notifications.index', compact('notifications', 'category'));
+        return view('notifications.index', compact('pinnedNotifications', 'regularNotifications'));
     }
 
     /**
@@ -156,35 +139,6 @@ class NotificationController extends Controller
 
         return response()->json([
             'unread_count' => $count
-        ]);
-    }
-
-    /**
-     * Delete a notification.
-     */
-    public function destroy(string $id): JsonResponse
-    {
-        $notification = auth()->user()
-            ->notifications()
-            ->where('id', $id)
-            ->first();
-
-        if (!$notification) {
-            return response()->json(['error' => 'Notification not found'], 404);
-        }
-
-        // Check if notification is pinned (pinned notifications cannot be deleted)
-        $isPinned = isset($notification->data['is_pinned']) && $notification->data['is_pinned'];
-
-        if ($isPinned) {
-            return response()->json(['error' => 'Pinned notifications cannot be deleted'], 403);
-        }
-
-        $notification->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Notification deleted'
         ]);
     }
 }
