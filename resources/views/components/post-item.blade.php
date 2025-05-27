@@ -24,7 +24,7 @@
 
 <div class="{{ $containerClass }}">
     <div>
-        <a href="{{ route('posts.show', $post->id) }}">
+        <a href="{{ route('posts.show', $post->slug) }}">
             <div class="flex justify-between items-start">
                 <div class="flex-col">
                     @if ($showMeta)
