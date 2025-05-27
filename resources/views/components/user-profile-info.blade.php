@@ -2,7 +2,7 @@
 @props([
     'user',
     'timestamp',
-    'badgeSize' => 'w-5 h-5', // Default badge size, can be overridden
+    'badgeSize' => 'w-7 h-7', // Default badge size, can be overridden
     'profileSize' => 'h-10 w-10', // Default profile image size
     'showJobInfo' => true,
     'additionalBadges' => null, // For any special badges like Editor's Pick
@@ -15,7 +15,7 @@
 
 <div class="flex justify-between items-start">
     <!-- Left side: Profile Picture and User Info -->
-    <div class="flex items-start space-x-3">
+    <div class="flex items-center space-x-3">
         <!-- Profile Picture -->
         <a href="{{ route('profile.show', $user) }}" class="flex-shrink-0">
             <img src="{{ $user->getProfileImageUrl() }}" alt="{{ $user->name }}"

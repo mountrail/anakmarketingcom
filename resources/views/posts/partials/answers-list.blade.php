@@ -5,8 +5,8 @@
             <div class="border-b pb-6 last:border-b-0" id="answer-{{ $answer->id }}">
                 <!-- Answer Header - Profile, User Info, and Badges -->
                 <div class="mb-4">
-                    <x-user-profile-info :user="$answer->user" :timestamp="$answer->created_at" badgeSize="w-5 h-5" profileSize="h-10 w-10"
-                        :showJobInfo="false">
+                    <x-user-profile-info :user="$answer->user" :timestamp="$answer->created_at" badgeSize="w-7 h-7" profileSize="h-10 w-10"
+                        :showJobInfo="true">
 
                         <x-slot name="additionalBadges">
                             @if ($answer->is_editors_pick)
