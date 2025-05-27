@@ -1,6 +1,6 @@
 <?php
 
-// PostAnsweredNotification.php - Updated
+// PostAnsweredNotification.php - Updated to use slug
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -35,7 +35,7 @@ class PostAnsweredNotification extends Notification
     {
         return (new MailMessage)
             ->line('Someone answered your question.')
-            ->action('View Answer', route('posts.show', $this->post->id))
+            ->action('View Answer', route('posts.show', $this->post->slug))
             ->line('Thank you for using our application!');
     }
 
@@ -53,7 +53,7 @@ class PostAnsweredNotification extends Notification
             'answerer_name' => $this->answerer->name,
             'answerer_avatar' => $this->answerer->getProfileImageUrl(),
             'message' => $this->answerer->name . ' menjawab ' . $postType . ' Anda. Klik untuk melihat!',
-            'action_url' => '/posts/' . $this->post->id, // Store relative URL
+            'action_url' => '/posts/' . $this->post->slug, // Use slug
             'created_at' => now(),
         ];
     }

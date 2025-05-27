@@ -78,8 +78,10 @@ Route::middleware(['auth'])->group(function () {
     })->name('onboarding.index');
 });
 
-// Post route for viewing individual posts - MOVED AFTER protected routes
-Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+// Post route for viewing individual posts - UPDATED TO USE SLUG
+// This should handle both slugs and old numeric IDs
+Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '.*');
+
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
 Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 
