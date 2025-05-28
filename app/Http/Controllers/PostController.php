@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\PostImage;
 use App\Models\PostSlugRedirect;
 use App\Models\User;
 use App\Services\BadgeService;
@@ -25,7 +26,7 @@ class PostController extends Controller
         $typedEditorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
             ->where('type', $selectedType)
-            ->with(['user', 'answers', 'media'])
+            ->with(['user', 'answers', 'images'])
             ->latest()
             ->get();
 
@@ -35,14 +36,14 @@ class PostController extends Controller
         // Get regular posts filtered by type, excluding featured posts
         $posts = Post::where('type', $selectedType)
             ->whereNotIn('id', $featuredPostIds)
-            ->with(['user', 'answers', 'media'])
+            ->with(['user', 'answers', 'images'])
             ->latest()
             ->paginate(10);
 
         // Get editor's picks from both categories for the sidebar
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers', 'media'])
+            ->with(['user', 'answers', 'images'])
             ->latest()
             ->take(5)
             ->get();
@@ -59,7 +60,7 @@ class PostController extends Controller
     {
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers', 'media'])
+            ->with(['user', 'answers', 'images'])
             ->latest()
             ->take(5)
             ->get();
@@ -80,6 +81,7 @@ class PostController extends Controller
                 'content' => 'required|string',
                 'type' => 'required|in:question,discussion',
                 'images.*' => 'nullable|file|image|max:2048', // 2MB max per image
+                'uploaded_images' => 'nullable|string', // JSON string of uploaded images
             ]);
 
             $purifiedContent = Purifier::clean($validated['content']);
@@ -91,31 +93,51 @@ class PostController extends Controller
                 'type' => $validated['type'],
             ]);
 
-            // Handle uploaded images using Spatie Media Library
+            // Handle traditional file uploads (if any)
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $file) {
-                    $post->addMediaFromRequest('images')
-                        ->usingFileName($file->getClientOriginalName())
-                        ->toMediaCollection('images');
+                    // Store the file
+                    $path = $file->store('posts', 'public');
+                    $url = Storage::url($path);
+
+                    // Save to database
+                    PostImage::create([
+                        'post_id' => $post->id,
+                        'url' => $url,
+                        'name' => $file->getClientOriginalName(),
+                    ]);
                 }
             }
 
-            // Handle temporary images from editor (if using the temp upload system)
-            if ($request->has('uploaded_images')) {
-                $tempImages = json_decode($request->uploaded_images, true);
+            // Handle images uploaded via the drag-drop system
+            if ($request->has('uploaded_images') && !empty($request->uploaded_images)) {
+                try {
+                    $uploadedImages = json_decode($request->uploaded_images, true);
 
-                if (!empty($tempImages) && is_array($tempImages)) {
-                    foreach ($tempImages as $tempImage) {
-                        if (isset($tempImage['temp_path']) && Storage::disk('public')->exists($tempImage['temp_path'])) {
-                            // Move from temp storage to media library
-                            $post->addMediaFromDisk($tempImage['temp_path'], 'public')
-                                ->usingName($tempImage['name'] ?? 'Uploaded image')
-                                ->toMediaCollection('images');
+                    if (is_array($uploadedImages) && !empty($uploadedImages)) {
+                        foreach ($uploadedImages as $imageData) {
+                            // The image data should contain url, name, and id
+                            if (isset($imageData['url']) && !empty($imageData['url'])) {
+                                // Create PostImage record
+                                PostImage::create([
+                                    'post_id' => $post->id,
+                                    'url' => $imageData['url'],
+                                    'name' => $imageData['name'] ?? 'Uploaded image',
+                                ]);
 
-                            // Clean up temp file
-                            Storage::disk('public')->delete($tempImage['temp_path']);
+                                Log::info('Image saved to database', [
+                                    'post_id' => $post->id,
+                                    'url' => $imageData['url'],
+                                    'name' => $imageData['name'] ?? 'Uploaded image'
+                                ]);
+                            }
                         }
                     }
+                } catch (\Exception $e) {
+                    Log::error('Error processing uploaded images JSON', [
+                        'error' => $e->getMessage(),
+                        'uploaded_images' => $request->uploaded_images
+                    ]);
                 }
             }
 
@@ -154,6 +176,7 @@ class PostController extends Controller
         }
     }
 
+
     /**
      * Display the specified post with comprehensive redirect handling.
      */
@@ -188,20 +211,20 @@ class PostController extends Controller
         // Increment view count
         $post->increment('view_count');
 
-        // Load post relationships including media
+        // Load post relationships including images
         $post->load([
             'user',
             'answers' => function ($query) {
                 $query->latest();
             },
             'answers.user',
-            'media'
+            'images'
         ]);
 
         // Share editorPicks for the sidebar
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers', 'media'])
+            ->with(['user', 'answers', 'images'])
             ->latest()
             ->take(5)
             ->get();
@@ -220,11 +243,11 @@ class PostController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $post->load('media');
+        $post->load('images');
 
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers', 'media'])
+            ->with(['user', 'answers', 'images'])
             ->latest()
             ->take(5)
             ->get();
@@ -248,9 +271,10 @@ class PostController extends Controller
                 'title' => 'required|string|max:255',
                 'content' => 'required|string',
                 'type' => 'required|in:question,discussion',
-                'images.*' => 'nullable|file|image|max:2048', // New images
-                'keep_images' => 'nullable|array', // IDs of existing images to keep
-                'keep_images.*' => 'integer|exists:media,id',
+                'images.*' => 'nullable|file|image|max:2048', // New traditional file uploads
+                'uploaded_images' => 'nullable|string', // JSON string of uploaded images
+                'keep_images' => 'nullable|array', // IDs of existing images to keep (legacy support)
+                'keep_images.*' => 'integer|exists:post_images,id',
             ]);
 
             $purifiedContent = Purifier::clean($validated['content']);
@@ -264,24 +288,8 @@ class PostController extends Controller
                 'type' => $validated['type'],
             ]);
 
-            // Handle existing images - remove those not in keep_images array
-            $keepImageIds = $request->get('keep_images', []);
-            $existingMedia = $post->getMedia('images');
-
-            foreach ($existingMedia as $media) {
-                if (!in_array($media->id, $keepImageIds)) {
-                    $media->delete(); // Spatie will handle file deletion automatically
-                }
-            }
-
-            // Add new images if any
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $file) {
-                    $post->addMediaFromRequest('images')
-                        ->usingFileName($file->getClientOriginalName())
-                        ->toMediaCollection('images');
-                }
-            }
+            // Handle image management
+            $this->handleImageUpdates($request, $post);
 
             $successMessage = $validated['type'] === 'question' ? 'Pertanyaan berhasil diperbarui!' : 'Diskusi berhasil diperbarui!';
 
@@ -301,7 +309,7 @@ class PostController extends Controller
             Log::error('Error updating post: ' . $e->getMessage(), [
                 'post_id' => $post->id,
                 'user_id' => Auth::id(),
-                'request_data' => $request->except(['_token', 'images']),
+                'request_data' => $request->except(['_token', 'images', 'uploaded_images']),
                 'stack_trace' => $e->getTraceAsString()
             ]);
 
@@ -312,6 +320,147 @@ class PostController extends Controller
     }
 
     /**
+     * Handle image updates for post editing
+     */
+    private function handleImageUpdates(Request $request, Post $post)
+    {
+        // Get current uploaded images from the drag-drop system
+        $uploadedImages = [];
+        if ($request->has('uploaded_images') && !empty($request->uploaded_images)) {
+            try {
+                $decodedImages = json_decode($request->uploaded_images, true);
+                if (is_array($decodedImages)) {
+                    $uploadedImages = $decodedImages;
+                }
+            } catch (\Exception $e) {
+                Log::error('Error parsing uploaded images JSON', [
+                    'error' => $e->getMessage(),
+                    'uploaded_images' => $request->uploaded_images
+                ]);
+            }
+        }
+
+        // Get existing images from database
+        $existingImages = $post->images()->get();
+
+        // Create arrays to track which images to keep and which to delete
+        $imagesToKeep = [];
+        $imagesToDelete = [];
+
+        // Check each existing image
+        foreach ($existingImages as $existingImage) {
+            $shouldKeep = false;
+
+            // Check if this image is in the uploaded_images list (by URL or ID)
+            foreach ($uploadedImages as $uploadedImage) {
+                if (isset($uploadedImage['url']) && $uploadedImage['url'] === $existingImage->url) {
+                    $shouldKeep = true;
+                    $imagesToKeep[] = $existingImage->id;
+                    break;
+                }
+                // Also check by database ID if it exists in the uploaded image data
+                if (isset($uploadedImage['id']) && is_numeric($uploadedImage['id']) && $uploadedImage['id'] == $existingImage->id) {
+                    $shouldKeep = true;
+                    $imagesToKeep[] = $existingImage->id;
+                    break;
+                }
+            }
+
+            // If not found in uploaded images, mark for deletion
+            if (!$shouldKeep) {
+                $imagesToDelete[] = $existingImage;
+            }
+        }
+
+        // Delete images that are no longer needed
+        foreach ($imagesToDelete as $imageToDelete) {
+            try {
+                // Delete physical file
+                $path = str_replace('/storage/', '', $imageToDelete->url);
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+
+                // Delete database record
+                $imageToDelete->delete();
+
+                Log::info('Image deleted during post update', [
+                    'post_id' => $post->id,
+                    'image_id' => $imageToDelete->id,
+                    'image_url' => $imageToDelete->url
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error deleting image during post update', [
+                    'post_id' => $post->id,
+                    'image_id' => $imageToDelete->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        // Add new images from uploaded_images that don't exist in database yet
+        foreach ($uploadedImages as $uploadedImage) {
+            if (!isset($uploadedImage['url']) || empty($uploadedImage['url'])) {
+                continue;
+            }
+
+            // Check if this image already exists in database
+            $existsInDb = $post->images()->where('url', $uploadedImage['url'])->exists();
+
+            if (!$existsInDb) {
+                try {
+                    // Create new PostImage record
+                    PostImage::create([
+                        'post_id' => $post->id,
+                        'url' => $uploadedImage['url'],
+                        'name' => $uploadedImage['name'] ?? 'Uploaded image',
+                    ]);
+
+                    Log::info('New image added during post update', [
+                        'post_id' => $post->id,
+                        'image_url' => $uploadedImage['url'],
+                        'image_name' => $uploadedImage['name'] ?? 'Uploaded image'
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Error adding new image during post update', [
+                        'post_id' => $post->id,
+                        'image_url' => $uploadedImage['url'],
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
+
+        // Handle traditional file uploads (if any) - these would be completely new files
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                try {
+                    // Store the file
+                    $path = $file->store('posts', 'public');
+                    $url = Storage::url($path);
+
+                    // Save to database
+                    PostImage::create([
+                        'post_id' => $post->id,
+                        'url' => $url,
+                        'name' => $file->getClientOriginalName(),
+                    ]);
+
+                    Log::info('Traditional file upload added during post update', [
+                        'post_id' => $post->id,
+                        'image_url' => $url,
+                        'original_name' => $file->getClientOriginalName()
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Error processing traditional file upload during post update', [
+                        'post_id' => $post->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
+    }
+    /**
      * Remove the specified post from storage.
      */
     public function destroy(Post $post)
@@ -321,8 +470,17 @@ class PostController extends Controller
         }
 
         try {
-            // Delete associated media (Spatie will handle file cleanup automatically)
-            $post->clearMediaCollection('images');
+            // Delete associated images
+            foreach ($post->images as $image) {
+                // Delete physical file
+                $path = str_replace('/storage/', '', $image->url);
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+
+                // Delete database record
+                $image->delete();
+            }
 
             // Delete associated slug redirects
             $post->slugRedirects()->delete();
@@ -392,9 +550,9 @@ class PostController extends Controller
         if ($postType === 'answered') {
             $postsQuery = Post::whereHas('answers', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            })->where('user_id', '!=', $user->id)->withCount('answers')->with('media')->latest();
+            })->where('user_id', '!=', $user->id)->withCount('answers')->with('images')->latest();
         } else {
-            $postsQuery = $user->posts()->withCount('answers')->with('media')->latest();
+            $postsQuery = $user->posts()->withCount('answers')->with('images')->latest();
         }
 
         if ($currentPostId) {
@@ -464,17 +622,24 @@ class PostController extends Controller
     /**
      * Delete a specific image from a post
      */
-    public function deleteImage(Post $post, $mediaId)
+    public function deleteImage(Post $post, $imageId)
     {
         if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
             abort(403, 'Unauthorized action.');
         }
 
         try {
-            $media = $post->getMedia('images')->where('id', $mediaId)->first();
+            $image = $post->images()->where('id', $imageId)->first();
 
-            if ($media) {
-                $media->delete();
+            if ($image) {
+                // Delete physical file
+                $path = str_replace('/storage/', '', $image->url);
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+
+                // Delete database record
+                $image->delete();
 
                 if (request()->wantsJson()) {
                     return response()->json([

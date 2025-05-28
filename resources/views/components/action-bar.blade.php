@@ -38,11 +38,11 @@
     $showMenu = $isOwner || $isAdmin || $isEditor;
 
     // Determine edit/delete permissions
-    $canEdit = ($isOwner || $isAdmin) && $modelType === 'post'; // Only allow editing for posts, not answers
+    $canEdit = $isOwner || $isAdmin;
     $canDelete = $isOwner || $isAdmin;
 
-    // Feature/editors pick permissions
-    $canFeature = $isAdmin || $isEditor;
+    // Feature/editors pick permissions - only for posts, not for answers/comments
+    $canFeature = ($isAdmin || $isEditor) && $modelType === 'post';
 
     // Generate share data
     $shareUrl =
@@ -53,7 +53,9 @@
     $shareTitle = $modelType === 'post' ? $model->title : 'Answer to: ' . $model->post->title;
 
     $shareDescription =
-        $modelType === 'post' ? Str::limit(strip_tags($model->body), 150) : Str::limit(strip_tags($model->body), 150);
+        $modelType === 'post'
+            ? Str::limit(strip_tags($model->content), 150)
+            : Str::limit(strip_tags($model->content), 150);
 @endphp
 
 <div class="flex flex-wrap items-center justify-between {{ $customClasses }} w-full">
@@ -62,18 +64,16 @@
         <x-vote-buttons :model="$model" :modelType="$modelType" :showScore="$showVoteScore" />
 
         {{-- Comment/Answer count - More compact on mobile --}}
-        @if ($showCommentCount)
+        @if ($showCommentCount && $modelType === 'post')
             <span class="flex items-center text-xs py-1 rounded-md text-gray-600 dark:text-gray-400">
                 <x-icons.comment class="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                <span
-                    class="hidden sm:inline">{{ $modelType === 'post' ? $model->answers->count() : $model->comments->count() }}</span>
-                <span
-                    class="sm:hidden">{{ $modelType === 'post' ? $model->answers->count() : $model->comments->count() }}</span>
+                <span class="hidden sm:inline">{{ $model->answers->count() }}</span>
+                <span class="sm:hidden">{{ $model->answers->count() }}</span>
             </span>
         @endif
 
-        {{-- Share button - Simple inline component --}}
-        @if ($showShare)
+        {{-- Share button - Simple inline component - Only for posts --}}
+        @if ($showShare && $modelType === 'post')
             <div class="share-button-wrapper">
                 <x-simple-share-modal :shareUrl="$shareUrl" :shareTitle="$shareTitle" :shareDescription="$shareDescription" />
             </div>
@@ -98,19 +98,37 @@
 
                 <x-slot name="content">
                     @if ($canEdit)
-                        <x-dropdown-link :href="route($modelType . 's.edit', $model->id)">
-                            <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                                Edit Postingan
-                                @if ($isAdmin && !$isOwner)
-                                    (Admin)
-                                @endif
-                            </div>
-                        </x-dropdown-link>
+                        @if ($modelType === 'post')
+                            <x-dropdown-link :href="route('posts.edit', $model->id)">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Edit Postingan
+                                    @if ($isAdmin && !$isOwner)
+                                        (Admin)
+                                    @endif
+                                </div>
+                            </x-dropdown-link>
+                        @else
+                            {{-- For answers/comments, trigger inline edit --}}
+                            <x-dropdown-link href="#"
+                                onclick="window.dispatchEvent(new CustomEvent('edit-answer', { detail: { id: {{ $model->id }} } }))">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Edit Jawaban
+                                    @if ($isAdmin && !$isOwner)
+                                        (Admin)
+                                    @endif
+                                </div>
+                            </x-dropdown-link>
+                        @endif
                     @endif
 
                     @if ($canDelete)
@@ -119,14 +137,14 @@
                             @csrf
                             @method('DELETE')
                             <x-dropdown-link href="#"
-                                @click.prevent="if(confirm('Are you sure you want to delete this {{ $modelType }}?')) $el.closest('form').submit();">
+                                @click.prevent="if(confirm('Are you sure you want to delete this {{ $modelType === 'post' ? 'post' : 'answer' }}?')) $el.closest('form').submit();">
                                 <div class="flex items-center text-red-600 dark:text-red-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
-                                    Hapus Postingan
+                                    Hapus {{ $modelType === 'post' ? 'Postingan' : 'Jawaban' }}
                                     @if ($isAdmin && !$isOwner)
                                         (Admin)
                                     @endif
@@ -135,30 +153,18 @@
                         </form>
                     @endif
 
-                    @if ($canFeature)
-                        @if ($modelType === 'post')
-                            <form method="POST" action="{{ route('posts.toggle-featured', $model->id) }}" x-data
-                                class="w-full">
-                                @csrf
-                                <x-dropdown-link href="#" @click.prevent="$el.closest('form').submit();">
-                                    <div class="flex items-center">
-                                        <x-icons.lamp class="h-4 w-4 mr-2" />
-                                        {{ $model->featured_type === 'none' ? 'Mark as Editor\'s Pick' : 'Remove from Editor\'s Pick' }}
-                                    </div>
-                                </x-dropdown-link>
-                            </form>
-                        @elseif ($modelType === 'answer')
-                            <form method="POST" action="{{ route('answers.toggle-editors-pick', $model->id) }}" x-data
-                                class="w-full">
-                                @csrf
-                                <x-dropdown-link href="#" @click.prevent="$el.closest('form').submit();">
-                                    <div class="flex items-center">
-                                        <x-icons.lamp class="h-4 w-4 mr-2" />
-                                        {{ $model->is_editors_pick ? 'Remove from Editor\'s Pick' : 'Mark as Editor\'s Pick' }}
-                                    </div>
-                                </x-dropdown-link>
-                            </form>
-                        @endif
+                    {{-- Feature option only for posts --}}
+                    @if ($canFeature && $modelType === 'post')
+                        <form method="POST" action="{{ route('posts.toggle-featured', $model->id) }}" x-data
+                            class="w-full">
+                            @csrf
+                            <x-dropdown-link href="#" @click.prevent="$el.closest('form').submit();">
+                                <div class="flex items-center">
+                                    <x-icons.lamp class="h-4 w-4 mr-2" />
+                                    {{ $model->featured_type === 'none' ? 'Mark as Editor\'s Pick' : 'Remove from Editor\'s Pick' }}
+                                </div>
+                            </x-dropdown-link>
+                        </form>
                     @endif
                 </x-slot>
             </x-dropdown>
@@ -213,20 +219,38 @@
                 <div class="py-1 divide-y divide-gray-200 dark:divide-gray-700">
 
                     @if ($canEdit)
-                        <a href="{{ route($modelType . 's.edit', $model->id) }}"
-                            class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            <span class="text-center w-full">
-                                Edit Postingan
-                                @if ($isAdmin && !$isOwner)
-                                    (Admin)
-                                @endif
-                            </span>
-                        </a>
+                        @if ($modelType === 'post')
+                            <a href="{{ route('posts.edit', $model->id) }}"
+                                class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                <span class="text-center w-full">
+                                    Edit Postingan
+                                    @if ($isAdmin && !$isOwner)
+                                        (Admin)
+                                    @endif
+                                </span>
+                            </a>
+                        @else
+                            <button type="button"
+                                onclick="window.dispatchEvent(new CustomEvent('edit-answer', { detail: { id: {{ $model->id }} } })); this.closest('[x-data]').__x.$data.closeMenu()"
+                                class="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                <span class="text-center w-full">
+                                    Edit Jawaban
+                                    @if ($isAdmin && !$isOwner)
+                                        (Admin)
+                                    @endif
+                                </span>
+                            </button>
+                        @endif
                     @endif
 
                     @if ($canDelete)
@@ -234,7 +258,7 @@
                             @csrf
                             @method('DELETE')
                             <button type="button"
-                                @click.stop.prevent="if(confirm('Are you sure you want to delete this {{ $modelType }}?')) $el.closest('form').submit();"
+                                @click.stop.prevent="if(confirm('Are you sure you want to delete this {{ $modelType === 'post' ? 'post' : 'answer' }}?')) $el.closest('form').submit();"
                                 class="flex items-center w-full px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -242,7 +266,7 @@
                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                                 <span class="text-center w-full">
-                                    Hapus Postingan
+                                    Hapus {{ $modelType === 'post' ? 'Postingan' : 'Jawaban' }}
                                     @if ($isAdmin && !$isOwner)
                                         (Admin)
                                     @endif
@@ -251,31 +275,18 @@
                         </form>
                     @endif
 
-                    @if ($canFeature)
-                        @if ($modelType === 'post')
-                            <form method="POST" action="{{ route('posts.toggle-featured', $model->id) }}" x-data>
-                                @csrf
-                                <button type="button" @click.stop.prevent="$el.closest('form').submit();"
-                                    class="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <x-icons.lamp class="h-5 w-5 mr-2" />
-                                    <span class="text-center w-full">
-                                        {{ $model->featured_type === 'none' ? 'Mark as Editor\'s Pick' : 'Remove from Editor\'s Pick' }}
-                                    </span>
-                                </button>
-                            </form>
-                        @elseif ($modelType === 'answer')
-                            <form method="POST" action="{{ route('answers.toggle-editors-pick', $model->id) }}"
-                                x-data>
-                                @csrf
-                                <button type="button" @click.stop.prevent="$el.closest('form').submit();"
-                                    class="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <x-icons.lamp class="h-5 w-5 mr-2" />
-                                    <span class="text-center w-full">
-                                        {{ $model->is_editors_pick ? 'Remove from Editor\'s Pick' : 'Mark as Editor\'s Pick' }}
-                                    </span>
-                                </button>
-                            </form>
-                        @endif
+                    {{-- Feature option only for posts --}}
+                    @if ($canFeature && $modelType === 'post')
+                        <form method="POST" action="{{ route('posts.toggle-featured', $model->id) }}" x-data>
+                            @csrf
+                            <button type="button" @click.stop.prevent="$el.closest('form').submit();"
+                                class="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <x-icons.lamp class="h-5 w-5 mr-2" />
+                                <span class="text-center w-full">
+                                    {{ $model->featured_type === 'none' ? 'Mark as Editor\'s Pick' : 'Remove from Editor\'s Pick' }}
+                                </span>
+                            </button>
+                        </form>
                     @endif
 
                     <!-- Cancel button for mobile -->

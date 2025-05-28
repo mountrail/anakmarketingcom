@@ -5,7 +5,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\VoteController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
-use App\Http\Controllers\TinyMCEUploadController;
+use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NotificationController;
@@ -34,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Answer routes - USING ID FOR FORM SUBMISSIONS
     Route::post('/posts/{post}/answers', [AnswerController::class, 'store'])->name('posts.answers.store');
+    Route::patch('/answers/{answer}', [AnswerController::class, 'update'])->name('answers.update'); // ADD THIS LINE
     Route::patch('/answers/{answer}/toggle-editors-pick', [AnswerController::class, 'toggleEditorsPick'])->name('answers.toggle-editors-pick');
     Route::delete('/answers/{answer}', [AnswerController::class, 'destroy'])->name('answers.destroy');
 
@@ -41,8 +42,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/posts/{post}/vote', [VoteController::class, 'votePost'])->name('posts.vote');
     Route::post('/answers/{answer}/vote', [VoteController::class, 'voteAnswer'])->name('answers.vote');
 
-    // TinyMCE upload route
-    Route::post('/tinymce/upload', [TinyMCEUploadController::class, 'store'])->name('tinymce.upload');
+    // Main image upload route
+    Route::post('/image/upload', [ImageUploadController::class, 'upload'])->name('image.upload');
 
     // Follow/Unfollow routes
     Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle');

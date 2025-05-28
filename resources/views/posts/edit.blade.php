@@ -1,4 +1,4 @@
-{{-- resources\views\posts\edit.blade.php --}}
+{{-- resources/views/posts/edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
@@ -65,42 +65,54 @@
                         </div>
 
                         <div>
-                            <x-input-label for="content" :value="__('Deskripsi')" class="font-bold text-lg" />
-                            <x-text-editor id="content" name="content" :value="old('content', $post->content)"
-                                class="bg-essentials-inactive/20 border-essentials-inactive dark:bg-essentials-inactive/20 dark:border-essentials-inactive" />
+                            <x-input-label for="content" :value="__('Deskripsi')" />
+                            @include('posts.partials.tinymce-editor', [
+                                'name' => 'content',
+                                'id' => 'content',
+                                'value' => old('content', $post->content),
+                                'maxchars' => 3300,
+                            ])
                             @error('content')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Existing Images Display -->
-                        @if ($post->getMedia('images')->count() > 0)
-                            <div>
-                                <x-input-label :value="__('Gambar Saat Ini')" class="font-bold text-lg" />
-                                <div class="mt-2 flex flex-wrap gap-4" id="existing-images">
-                                    @foreach ($post->getMedia('images') as $media)
-                                        <div class="relative inline-block existing-image-container"
-                                            data-media-id="{{ $media->id }}">
-                                            <img src="{{ $media->getUrl() }}" alt="Post image"
-                                                class="max-h-32 rounded-md shadow-sm">
-                                            <button type="button"
-                                                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-600 delete-existing-image"
-                                                data-media-id="{{ $media->id }}" title="Hapus gambar">
-                                                &times;
-                                            </button>
-                                            <!-- Hidden input to track which images to keep -->
-                                            <input type="hidden" name="keep_images[]" value="{{ $media->id }}"
-                                                class="keep-image-input">
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
+                        <div class="relative">
+                            @php
+                                // Prepare existing images data for the image upload component
+                                // Make sure to include database IDs for proper tracking
+                                $existingImagesData = $post->images
+                                    ->map(function ($image) {
+                                        return [
+                                            'id' => $image->id, // Include database ID
+                                            'url' => $image->url,
+                                            'name' => $image->name ?: basename($image->url), // Fallback to filename if name is empty
+                                            'isExisting' => true, // Mark as existing image
+                                        ];
+                                    })
+                                    ->toArray();
+
+                                // Use old input if available (for validation errors), otherwise use database data
+                                $existingImagesJson = old('uploaded_images', json_encode($existingImagesData));
+
+                                // Debug: Log the image data being passed (remove in production)
+                                Log::debug('Image data being passed to edit form', [
+                                    'post_id' => $post->id,
+                                    'images_count' => count($existingImagesData),
+                                    'images_data' => $existingImagesData,
+                                ]);
+                            @endphp
+
+                            @include('posts.partials.image-upload', [
+                                'name' => 'uploaded_images',
+                                'existingImages' => $existingImagesJson,
+                            ])
+                        </div>
 
                         <div class="flex items-center justify-end mt-4 gap-3">
                             <x-primary-button type="button" variant="inactive" size="md"
                                 onclick="window.location.href='{{ route('posts.show', $post->slug) }}'">
-                                {{ __('Batal') }}
+                                {{ __('Kembali') }}
                             </x-primary-button>
 
                             <x-primary-button type="submit" id="submit-btn" variant="primary" size="md">
@@ -116,58 +128,6 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Handle dropdown selection
-                const dropdownOptions = document.querySelectorAll('.dropdown-option');
-                const selectedTypeText = document.getElementById('selected-type-text');
-                const hiddenTypeInput = document.getElementById('type');
-
-                dropdownOptions.forEach(option => {
-                    option.addEventListener('click', function() {
-                        const value = this.getAttribute('data-value');
-                        const text = this.textContent.trim();
-
-                        // Update hidden input
-                        hiddenTypeInput.value = value;
-
-                        // Update display text
-                        selectedTypeText.textContent = text;
-
-                        // Update active state
-                        dropdownOptions.forEach(opt => {
-                            opt.classList.remove('bg-gray-100', 'dark:bg-gray-800');
-                        });
-                        this.classList.add('bg-gray-100', 'dark:bg-gray-800');
-
-                        // Close dropdown (this will be handled by the dropdown component)
-                        const dropdown = this.closest('[data-dropdown]') || this.closest('.relative');
-                        if (dropdown) {
-                            const trigger = dropdown.querySelector('button[data-dropdown-toggle]');
-                            if (trigger) {
-                                trigger.click();
-                            }
-                        }
-                    });
-                });
-
-                // Handle existing image deletion
-                document.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('delete-existing-image')) {
-                        e.preventDefault();
-                        const mediaId = e.target.getAttribute('data-media-id');
-                        const container = e.target.closest('.existing-image-container');
-                        const keepInput = container.querySelector('.keep-image-input');
-
-                        // Remove the keep input so the image will be deleted
-                        if (keepInput) {
-                            keepInput.remove();
-                        }
-
-                        // Hide the image container
-                        container.style.display = 'none';
-                        container.classList.add('marked-for-deletion');
-                    }
-                });
-
                 // Simple form submission - no loading spinner
                 const form = document.getElementById('post-form');
                 const submitBtn = document.getElementById('submit-btn');

@@ -1,4 +1,4 @@
-{{-- resources\views\posts\create.blade.php --}}
+{{-- resources/views/posts/create.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
@@ -64,12 +64,23 @@
                         </div>
 
                         <div>
-                            <x-input-label for="content" :value="__('Deskripsi')" class="font-bold text-lg" />
-                            <x-text-editor id="content" name="content" :value="old('content')"
-                                class="bg-essentials-inactive/20 border-essentials-inactive dark:bg-essentials-inactive/20 dark:border-essentials-inactive" />
+                            <x-input-label for="content" :value="__('Deskripsi')" />
+                            @include('posts.partials.tinymce-editor', [
+                                'name' => 'content',
+                                'id' => 'content',
+                                'value' => old('content'),
+                                'maxchars' => 3300,
+                            ])
                             @error('content')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <div class="relative">
+                            @include('posts.partials.image-upload', [
+                                'name' => 'uploaded_images',
+                                'existingImages' => old('uploaded_images', ''),
+                            ])
                         </div>
 
                         <div class="flex items-center justify-end mt-4 gap-3">
@@ -91,35 +102,7 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Handle dropdown selection
-                const dropdownOptions = document.querySelectorAll('.dropdown-option');
-                const selectedTypeText = document.getElementById('selected-type-text');
-                const hiddenTypeInput = document.getElementById('type');
-
-                dropdownOptions.forEach(option => {
-                    option.addEventListener('click', function() {
-                        const value = this.getAttribute('data-value');
-                        const text = this.textContent.trim();
-
-                        hiddenTypeInput.value = value;
-                        selectedTypeText.textContent = text;
-
-                        dropdownOptions.forEach(opt => {
-                            opt.classList.remove('bg-gray-100', 'dark:bg-gray-800');
-                        });
-                        this.classList.add('bg-gray-100', 'dark:bg-gray-800');
-
-                        const dropdown = this.closest('[data-dropdown]') || this.closest('.relative');
-                        if (dropdown) {
-                            const trigger = dropdown.querySelector('button[data-dropdown-toggle]');
-                            if (trigger) {
-                                trigger.click();
-                            }
-                        }
-                    });
-                });
-
-                // Simple form submission
+                // Simple form submission - no loading spinner
                 const form = document.getElementById('post-form');
                 const submitBtn = document.getElementById('submit-btn');
 

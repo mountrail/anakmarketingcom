@@ -30,17 +30,19 @@
                         <div class="prose dark:prose-invert max-w-none">
                             {!! clean($post->content) !!}
 
-                            <!-- Image Gallery Display using the partial -->
-                            @if ($post->getMedia('images')->count() > 0)
+                            <!-- Image Gallery Display using the PostImage relationship -->
+                            @if ($post->images->count() > 0)
                                 @php
-                                    $images = $post->getMedia('images')->map(function ($media) {
+                                    // Keep as collection instead of converting to array
+                                    $images = $post->images->map(function ($image) {
                                         return (object) [
-                                            'id' => $media->id,
-                                            'url' => $media->getUrl(),
-                                            'name' => $media->name ?: $media->file_name,
-                                            'file_name' => $media->file_name,
+                                            'id' => $image->id,
+                                            'url' => $image->url,
+                                            'name' => $image->name ?: basename($image->url),
+                                            'file_name' => basename($image->url),
                                         ];
                                     });
+                                    // Don't call toArray() here - keep it as a collection
                                 @endphp
                                 @include('posts.partials.image-gallery', ['images' => $images])
                             @endif
@@ -118,7 +120,7 @@
             left: 0;
             width: 100%;
             height: 350px;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%,rgba(255, 255, 255, 0.5) 10%, rgba(255, 255, 255, 1) 20%);
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 10%, rgba(255, 255, 255, 1) 20%);
             pointer-events: none;
             z-index: 10;
         }
