@@ -6,13 +6,6 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    @if (session('success'))
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
-                            role="alert">
-                            <span class="block sm:inline">{{ session('success') }}</span>
-                        </div>
-                    @endif
-
                     <!-- Post Header Section -->
                     <div class="mb-6">
                         <!-- Category and post time info -->
@@ -115,8 +108,6 @@
                         <!-- Include answers list partial -->
                         @include('posts.partials.answers-list', ['post' => $post])
                     @endauth
-
-
                 </div>
             </div>
         </div>
@@ -167,3 +158,5 @@
         }
     </style>
 @endpush
+
+{{-- NO toast scripts here - all flash messages are handled globally in app.blade.php --}}

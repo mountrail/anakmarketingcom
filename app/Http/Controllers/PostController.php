@@ -9,6 +9,7 @@ use App\Services\BadgeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
+use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
@@ -72,50 +73,71 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'type' => 'required|in:question,discussion',
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string',
+                'type' => 'required|in:question,discussion',
+            ]);
 
-        $purifiedContent = Purifier::clean($validated['content']);
+            $purifiedContent = Purifier::clean($validated['content']);
 
-        $post = Post::create([
-            'user_id' => Auth::id(),
-            'title' => $validated['title'],
-            'content' => $purifiedContent,
-            'type' => $validated['type'],
-        ]);
+            $post = Post::create([
+                'user_id' => Auth::id(),
+                'title' => $validated['title'],
+                'content' => $purifiedContent,
+                'type' => $validated['type'],
+            ]);
 
-        // The slug is automatically updated in the model's boot method
+            // The slug is automatically updated in the model's boot method
 
-        // Check for badge
-        BadgeService::checkBreakTheIce(Auth::user());
+            // Check for badge
+            BadgeService::checkBreakTheIce(Auth::user());
 
-        // Send notification to followers
-        if (auth()->user()->followers()->exists()) {
-            $followers = auth()->user()->followers()->get();
-            foreach ($followers as $follower) {
-                $follower->notify(new \App\Notifications\FollowedUserPostedNotification($post, auth()->user()));
-            }
-        }
-
-        // Handle uploaded images
-        if ($request->has('uploaded_images')) {
-            $images = json_decode($request->uploaded_images, true);
-
-            if (!empty($images) && is_array($images)) {
-                foreach ($images as $image) {
-                    $post->images()->create([
-                        'url' => $image['url'],
-                        'name' => $image['name'] ?? 'Uploaded image',
-                    ]);
+            // Send notification to followers
+            if (auth()->user()->followers()->exists()) {
+                $followers = auth()->user()->followers()->get();
+                foreach ($followers as $follower) {
+                    $follower->notify(new \App\Notifications\FollowedUserPostedNotification($post, auth()->user()));
                 }
             }
-        }
 
-        return redirect()->route('posts.show', $post->slug)
-            ->with('success', 'Post created successfully.');
+            // Handle uploaded images
+            if ($request->has('uploaded_images')) {
+                $images = json_decode($request->uploaded_images, true);
+
+                if (!empty($images) && is_array($images)) {
+                    foreach ($images as $image) {
+                        $post->images()->create([
+                            'url' => $image['url'],
+                            'name' => $image['name'] ?? 'Uploaded image',
+                        ]);
+                    }
+                }
+            }
+
+            $successMessage = $validated['type'] === 'question' ? 'Pertanyaan berhasil dibuat!' : 'Diskusi berhasil dibuat!';
+
+            return redirect()->route('posts.show', $post->slug)
+                ->with('success', $successMessage);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', 'Terdapat kesalahan dalam form. Silakan periksa kembali.');
+
+        } catch (\Exception $e) {
+            Log::error('Error creating post: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'request_data' => $request->except(['_token', 'uploaded_images']),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat membuat post. Silakan coba lagi.');
+        }
     }
 
     /**
@@ -207,55 +229,72 @@ class PostController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'type' => 'required|in:question,discussion',
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string',
+                'type' => 'required|in:question,discussion',
+            ]);
 
-        $purifiedContent = Purifier::clean($validated['content']);
+            $purifiedContent = Purifier::clean($validated['content']);
 
-        // Store old slug before update
-        $oldSlug = $post->slug;
+            // Store old slug before update
+            $oldSlug = $post->slug;
 
-        $post->update([
-            'title' => $validated['title'],
-            'content' => $purifiedContent,
-            'type' => $validated['type'],
-        ]);
+            $post->update([
+                'title' => $validated['title'],
+                'content' => $purifiedContent,
+                'type' => $validated['type'],
+            ]);
 
-        // The slug update and redirect creation is handled in the model
+            // The slug update and redirect creation is handled in the model
 
-        // Handle uploaded images
-        if ($request->has('uploaded_images')) {
-            $newImages = json_decode($request->uploaded_images, true);
-            $existingImageIds = $post->images->pluck('id')->toArray();
-            $newImageIds = [];
+            // Handle uploaded images
+            if ($request->has('uploaded_images')) {
+                $newImages = json_decode($request->uploaded_images, true);
+                $existingImageIds = $post->images->pluck('id')->toArray();
+                $newImageIds = [];
 
-            if (!empty($newImages) && is_array($newImages)) {
-                foreach ($newImages as $image) {
-                    if (isset($image['id']) && strpos($image['id'], 'img-') === 0) {
-                        $post->images()->create([
-                            'url' => $image['url'],
-                            'name' => $image['name'] ?? 'Uploaded image',
-                        ]);
-                    } else if (isset($image['id'])) {
-                        $newImageIds[] = $image['id'];
+                if (!empty($newImages) && is_array($newImages)) {
+                    foreach ($newImages as $image) {
+                        if (isset($image['id']) && strpos($image['id'], 'img-') === 0) {
+                            $post->images()->create([
+                                'url' => $image['url'],
+                                'name' => $image['name'] ?? 'Uploaded image',
+                            ]);
+                        } else if (isset($image['id'])) {
+                            $newImageIds[] = $image['id'];
+                        }
                     }
                 }
+
+                $imagesToDelete = array_diff($existingImageIds, $newImageIds);
+                if (!empty($imagesToDelete)) {
+                    $post->images()->whereIn('id', $imagesToDelete)->delete();
+                }
+            } else {
+                $post->images()->delete();
             }
 
-            $imagesToDelete = array_diff($existingImageIds, $newImageIds);
-            if (!empty($imagesToDelete)) {
-                $post->images()->whereIn('id', $imagesToDelete)->delete();
-            }
-        } else {
-            $post->images()->delete();
+            $successMessage = $validated['type'] === 'question' ? 'Pertanyaan berhasil diperbarui!' : 'Diskusi berhasil diperbarui!';
+
+            // Always use the current slug for redirect (it might have changed)
+            return redirect()->route('posts.show', $post->fresh()->slug)
+                ->with('success', $successMessage);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', 'Terdapat kesalahan dalam form. Silakan periksa kembali.');
+
+        } catch (\Exception $e) {
+            Log::error('Error updating post: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat memperbarui post. Silakan coba lagi.');
         }
-
-        // Always use the current slug for redirect (it might have changed)
-        return redirect()->route('posts.show', $post->fresh()->slug)
-            ->with('success', 'Post updated successfully.');
     }
 
     /**
@@ -267,27 +306,40 @@ class PostController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Delete associated images
-        $post->images()->delete();
+        try {
+            // Delete associated images
+            $post->images()->delete();
 
-        // Delete associated slug redirects
-        $post->slugRedirects()->delete();
+            // Delete associated slug redirects
+            $post->slugRedirects()->delete();
 
-        // Delete the post
-        $post->delete();
+            // Delete the post
+            $post->delete();
 
-        return redirect()->route('home')
-            ->with('success', 'Post deleted successfully.');
+            return redirect()->route('home')
+                ->with('success', 'Post berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting post: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menghapus post. Silakan coba lagi.');
+        }
     }
 
     /**
-     * Toggle the featured status of a post (Editor's Pick)
+     * Toggle the featured status of a post (Editor's Pick) - Enhanced for AJAX
      */
     public function toggleFeatured(Post $post)
     {
         if (!Auth::user()->hasRole(['editor', 'admin'])) {
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
+            }
             abort(403, 'Unauthorized action.');
         }
+
+        $wasFeatured = $post->is_featured;
 
         if ($post->featured_type === 'none') {
             $post->is_featured = true;
@@ -299,9 +351,20 @@ class PostController extends Controller
 
         $post->save();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'is_featured' => $post->is_featured,
+                'message' => $post->is_featured
+                    ? 'Post added to Editor\'s Picks successfully'
+                    : 'Post removed from Editor\'s Picks successfully'
+            ]);
+        }
+
         return redirect()->back()
             ->with('success', 'Editor\'s pick status updated successfully.');
     }
+
 
     /**
      * Load more posts for a specific user (AJAX)

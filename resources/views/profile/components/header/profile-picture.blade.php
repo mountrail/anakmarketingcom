@@ -7,55 +7,30 @@
         style="aspect-ratio: 1/1;" id="profile-image-preview">
 
     @if ($isOwner)
-        <form id="profile-picture-form" enctype="multipart/form-data" class="mb-4">
+        <form id="profile-picture-form" enctype="multipart/form-data" method="POST"
+            action="{{ route('profile.update-profile-picture') }}" class="mb-4">
             @csrf
-            <x-primary-button onclick="document.getElementById('profile_picture_input').click()" variant="primary"
-                size="sm" type="button" class="mb-2">
-                Upload Foto
-            </x-primary-button>
+
+            <!-- Upload Button with Loading State -->
+            <div class="relative">
+                <x-primary-button id="upload-photo-btn"
+                    onclick="document.getElementById('profile_picture_input').click()" variant="primary" size="sm"
+                    type="button"
+                    class="mb-2 disabled:bg-essentials-inactive disabled:opacity-100 disabled:cursor-not-allowed">
+                    <span id="upload-btn-text">Upload Foto</span>
+                    <span id="upload-btn-loading" class="hidden">
+                        <span class="inline-flex items-center">
+                            <x-loading-spinner size="sm" color="white" />
+                            <span class="ml-2">Uploading...</span>
+                        </span>
+                    </span>
+                </x-primary-button>
+            </div>
+
             <input type="file" id="profile_picture_input" name="profile_picture"
                 accept="image/jpeg,image/jpg,image/png" class="hidden">
             <div class="text-xs text-gray-500 text-center">JPG / PNG max. 5 MB</div>
         </form>
-
-        <!-- Loading indicator -->
-        <div id="upload-loading" class="hidden text-center mb-2">
-            <div class="inline-flex items-center px-3 py-1 text-sm text-blue-600 bg-blue-100 rounded-full">
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg"
-                    fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                        stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                    </path>
-                </svg>
-                Mengupload...
-            </div>
-        </div>
-
-        <!-- Success message -->
-        <div id="upload-success" class="hidden text-center mb-2">
-            <div class="inline-flex items-center px-3 py-1 text-sm text-green-600 bg-green-100 rounded-full">
-                <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clip-rule="evenodd"></path>
-                </svg>
-                Foto berhasil diubah
-            </div>
-        </div>
-
-        <!-- Error message -->
-        <div id="upload-error" class="hidden text-center mb-2">
-            <div class="inline-flex items-center px-3 py-1 text-sm text-red-600 bg-red-100 rounded-full">
-                <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"></path>
-                </svg>
-                <span id="upload-error-message">Foto lebih dari 5 MB</span>
-            </div>
-        </div>
     @endif
 </div>
 
@@ -64,26 +39,23 @@
         document.addEventListener('DOMContentLoaded', function() {
             const profilePictureInput = document.getElementById('profile_picture_input');
             const profileImagePreview = document.getElementById('profile-image-preview');
-            const uploadLoading = document.getElementById('upload-loading');
-            const uploadSuccess = document.getElementById('upload-success');
-            const uploadError = document.getElementById('upload-error');
-            const uploadErrorMessage = document.getElementById('upload-error-message');
+            const uploadBtn = document.getElementById('upload-photo-btn');
+            const uploadBtnText = document.getElementById('upload-btn-text');
+            const uploadBtnLoading = document.getElementById('upload-btn-loading');
+            const form = document.getElementById('profile-picture-form');
 
-            function hideAllMessages() {
-                uploadLoading.classList.add('hidden');
-                uploadSuccess.classList.add('hidden');
-                uploadError.classList.add('hidden');
+            function showUploadLoading() {
+                uploadBtn.disabled = true;
+                uploadBtnText.classList.add('hidden');
+                uploadBtnLoading.classList.remove('hidden');
+                uploadBtnLoading.classList.add('inline-flex', 'items-center');
             }
 
-            function showMessage(messageElement, duration = 3000) {
-                hideAllMessages();
-                messageElement.classList.remove('hidden');
-
-                if (duration > 0) {
-                    setTimeout(() => {
-                        messageElement.classList.add('hidden');
-                    }, duration);
-                }
+            function hideUploadLoading() {
+                uploadBtn.disabled = false;
+                uploadBtnText.classList.remove('hidden');
+                uploadBtnLoading.classList.add('hidden');
+                uploadBtnLoading.classList.remove('inline-flex', 'items-center');
             }
 
             function validateFile(file) {
@@ -109,14 +81,16 @@
                 // Validate file
                 const validationError = validateFile(file);
                 if (validationError) {
-                    uploadErrorMessage.textContent = validationError;
-                    showMessage(uploadError);
+                    toast(validationError, 'error', {
+                        duration: 6000,
+                        position: 'top-right'
+                    });
                     profilePictureInput.value = ''; // Clear the input
-                    return;
+                    return false;
                 }
 
-                // Show loading
-                showMessage(uploadLoading, 0);
+                // Show loading state
+                showUploadLoading();
 
                 // Preview the image immediately
                 const reader = new FileReader();
@@ -125,49 +99,13 @@
                 };
                 reader.readAsDataURL(file);
 
-                // Upload the file
-                const formData = new FormData();
-                formData.append('profile_picture', file);
-                formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute(
-                    'content'));
+                // Submit form
+                form.submit();
+            });
 
-                fetch('{{ route('profile.update-profile-picture') }}', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        hideAllMessages();
-
-                        if (data.success) {
-                            // Update the image source with the new URL
-                            if (data.profile_image_url) {
-                                profileImagePreview.src = data.profile_image_url;
-                            }
-                            showMessage(uploadSuccess);
-                        } else {
-                            uploadErrorMessage.textContent = data.message ||
-                                'Terjadi kesalahan saat mengupload foto';
-                            showMessage(uploadError);
-                            // Revert the preview if upload failed
-                            profileImagePreview.src = '{{ $user->getProfileImageUrl() }}';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Upload error:', error);
-                        hideAllMessages();
-                        uploadErrorMessage.textContent = 'Terjadi kesalahan saat mengupload foto';
-                        showMessage(uploadError);
-                        // Revert the preview if upload failed
-                        profileImagePreview.src = '{{ $user->getProfileImageUrl() }}';
-                    })
-                    .finally(() => {
-                        // Clear the input so the same file can be selected again if needed
-                        profilePictureInput.value = '';
-                    });
+            // Handle form submission errors (if page reloads due to validation errors)
+            window.addEventListener('load', function() {
+                hideUploadLoading();
             });
         });
     </script>

@@ -44,20 +44,13 @@
             <div>
                 @foreach ($typedEditorPicks as $pick)
                     <x-post-item :post="$pick" :isHighlighted="true" :showVoteScore="false" :showCommentCount="true"
-                        :showShare="true"  />
+                        :showShare="true" />
                 @endforeach
             </div>
         @endif
 
         <!-- Latest Posts -->
         <div>
-            @if (session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
-                    role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
-
             @if ($posts->isEmpty())
                 <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
@@ -69,7 +62,7 @@
             @else
                 <div>
                     @foreach ($posts as $post)
-                        <x-post-item :post="$post" :showVoteScore="false" :showCommentCount="true" :showShare="true"  />
+                        <x-post-item :post="$post" :showVoteScore="false" :showCommentCount="true" :showShare="true" />
                     @endforeach
                 </div>
 
@@ -80,3 +73,109 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Only show flash messages as toasts on the home/index page
+            // This prevents toasts from showing during navigation/redirects
+            if (window.location.pathname === '/' || window.location.pathname.includes('/posts') && !window.location
+                .pathname.includes('/posts/')) {
+                @if (session('success'))
+                    toast('{{ session('success') }}', 'success');
+                @endif
+
+                @if (session('error'))
+                    toast('{{ session('error') }}', 'error');
+                @endif
+
+                @if (session('info'))
+                    toast('{{ session('info') }}', 'info');
+                @endif
+            }
+
+            // Handle AJAX responses for editor's pick actions
+            document.addEventListener('click', function(e) {
+                if (e.target.matches('[data-action="toggle-featured"]')) {
+                    e.preventDefault();
+
+                    const button = e.target;
+                    const form = button.closest('form');
+                    const postId = button.dataset.postId;
+                    const postTitle = button.dataset.postTitle;
+
+                    fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const isFeatured = data.is_featured;
+                                const message = isFeatured ?
+                                    `"${postTitle}" has been added to Editor's Picks` :
+                                    `"${postTitle}" has been removed from Editor's Picks`;
+
+                                toast(message, 'success');
+
+                                // Update button text/icon if needed
+                                button.innerHTML = isFeatured ?
+                                    '<i class="fas fa-star"></i> Remove from Editor\'s Pick' :
+                                    '<i class="far fa-star"></i> Add to Editor\'s Pick';
+                            } else {
+                                toast(data.message || 'An error occurred', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            toast('An error occurred while updating the post', 'error');
+                        });
+                }
+
+                // Handle post deletion
+                if (e.target.matches('[data-action="delete-post"]')) {
+                    e.preventDefault();
+
+                    const button = e.target;
+                    const form = button.closest('form');
+                    const postTitle = button.dataset.postTitle;
+
+                    if (confirm(`Are you sure you want to delete "${postTitle}"?`)) {
+                        fetch(form.action, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                        .getAttribute('content'),
+                                    'Accept': 'application/json'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    toast(`"${postTitle}" has been deleted successfully`, 'success');
+
+                                    // Remove the post item from DOM
+                                    const postItem = button.closest('[data-post-item]');
+                                    if (postItem) {
+                                        postItem.style.transition = 'opacity 0.3s ease';
+                                        postItem.style.opacity = '0';
+                                        setTimeout(() => postItem.remove(), 300);
+                                    }
+                                } else {
+                                    toast(data.message || 'Failed to delete post', 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                toast('An error occurred while deleting the post', 'error');
+                            });
+                    }
+                }
+            });
+        });
+    </script>
+@endpush

@@ -65,8 +65,15 @@
                 </div>
 
                 <div class="text-center">
-                    <x-primary-button type="submit" size="xl" id="save-badges-btn">
-                        Simpan
+                    <x-primary-button type="submit" size="xl" id="save-badges-btn"
+                        class="disabled:bg-essentials-inactive disabled:opacity-100 disabled:cursor-not-allowed transition-all duration-200">
+                        <span class="button-text">Simpan</span>
+                        <span class="loading-spinner hidden">
+                            <span class="inline-flex items-center">
+                                <x-loading-spinner size="sm" color="white" />
+                                <span class="ml-2">Menyimpan...</span>
+                            </span>
+                        </span>
                     </x-primary-button>
                 </div>
             </form>
@@ -105,7 +112,44 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const checkboxes = document.querySelectorAll('.badge-checkbox');
+            const saveButton = document.getElementById('save-badges-btn');
+            const badgeForm = document.getElementById('badge-form');
             const maxSelection = 3;
+
+            // Store original selected badges
+            const originalSelectedBadges = Array.from(checkboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value)
+                .sort();
+
+            // Track changes to enable/disable button
+            let badgesChanged = false;
+
+            // Function to update button state and color
+            function updateButtonState(button, hasChanges) {
+                if (hasChanges) {
+                    button.disabled = false;
+                    // Remove disabled styles and add active brand-primary color
+                    button.classList.remove('opacity-50', 'cursor-not-allowed');
+                    button.classList.add('bg-branding-primary', 'hover:bg-opacity-90', 'focus:bg-opacity-90');
+                } else {
+                    button.disabled = true;
+                    // Add disabled styles and remove active colors
+                    button.classList.add('opacity-50', 'cursor-not-allowed');
+                    button.classList.remove('bg-branding-primary', 'hover:bg-opacity-90', 'focus:bg-opacity-90');
+                }
+            }
+
+            // Check for changes in badge selection
+            function checkBadgeChanges() {
+                const currentSelectedBadges = Array.from(checkboxes)
+                    .filter(checkbox => checkbox.checked)
+                    .map(checkbox => checkbox.value)
+                    .sort();
+
+                badgesChanged = JSON.stringify(currentSelectedBadges) !== JSON.stringify(originalSelectedBadges);
+                updateButtonState(saveButton, badgesChanged);
+            }
 
             checkboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
@@ -119,7 +163,11 @@
                         this.checked = false;
                         updateBadgeVisuals();
                         alert('Anda hanya dapat memilih maksimal 3 badge.');
+                        return;
                     }
+
+                    // Check for changes to enable/disable button
+                    checkBadgeChanges();
                 });
             });
 
@@ -139,6 +187,34 @@
                     }
                 });
             }
+
+            // Show loading state on form submission
+            function showLoadingState(button) {
+                const buttonText = button.querySelector('.button-text');
+                const loadingSpinner = button.querySelector('.loading-spinner');
+
+                if (buttonText) buttonText.classList.add('hidden');
+                if (loadingSpinner) {
+                    loadingSpinner.classList.remove('hidden');
+                    loadingSpinner.classList.add('inline-flex', 'items-center');
+                }
+
+                button.disabled = true;
+            }
+
+            // Add form submission handler for loading state
+            if (badgeForm) {
+                badgeForm.addEventListener('submit', function(e) {
+                    if (badgesChanged) {
+                        showLoadingState(saveButton);
+                    } else {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            // Initial state check
+            checkBadgeChanges();
         });
     </script>
 @endif

@@ -10,8 +10,8 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <form method="POST" action="{{ route('posts.store') }}" class="space-y-6"
-                        enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('posts.store') }}" class="space-y-6" enctype="multipart/form-data"
+                        id="post-form">
                         @csrf
 
                         <div>
@@ -50,15 +50,15 @@
                         <input type="hidden" name="uploaded_images" id="uploaded-images-data"
                             value="{{ old('uploaded_images') }}">
 
-                        <div class="flex items-center justify-end mt-4">
-                            <a href="{{ route('home') }}"
-                                class="px-4 py-2 bg-gray-300 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-gray-800 dark:text-gray-200 uppercase tracking-widest hover:bg-gray-400 dark:hover:bg-gray-500 focus:bg-gray-400 dark:focus:bg-gray-500 active:bg-gray-500 dark:active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                        <div class="flex items-center justify-end mt-4 gap-3">
+                            <x-primary-button type="button" variant="inactive" size="md"
+                                onclick="window.location.href='{{ route('home') }}'">
                                 {{ __('Kembali') }}
-                            </a>
-                            <button type="submit"
-                                class="ml-4 inline-flex items-center px-4 py-2 bg-branding-primary dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                            </x-primary-button>
+
+                            <x-primary-button type="submit" id="submit-btn" variant="primary" size="md">
                                 {{ __('Post') }}
-                            </button>
+                            </x-primary-button>
                         </div>
                     </form>
                 </div>
@@ -68,8 +68,8 @@
 
     @push('scripts')
         <script>
-            // Initialize any existing uploaded images on page load
             document.addEventListener('DOMContentLoaded', function() {
+                // Initialize any existing uploaded images on page load
                 const uploadedImagesData = document.getElementById('uploaded-images-data').value;
                 if (uploadedImagesData) {
                     try {
@@ -81,6 +81,33 @@
                         console.error('Error loading saved images:', e);
                     }
                 }
+
+                // Simple form submission - no loading spinner
+                const form = document.getElementById('post-form');
+                const submitBtn = document.getElementById('submit-btn');
+
+                form.addEventListener('submit', function(e) {
+                    // Just disable the button to prevent double submission
+                    if (form.checkValidity()) {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                    }
+                });
+
+                // Reset button state if there are validation errors and page reloads
+                @if ($errors->any())
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                @endif
+
+                // Handle back/forward navigation
+                window.addEventListener('pageshow', function(e) {
+                    if (e.persisted) {
+                        // Reset button state when page comes from cache
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    }
+                });
             });
         </script>
     @endpush

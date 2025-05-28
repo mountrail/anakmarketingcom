@@ -57,16 +57,94 @@
             <div class="mt-20"></div>
         </main>
     </div>
+
+    {{-- Enhanced Toast Component - Single source of truth --}}
+    <x-toast id="app-toast" />
+
     <!-- Stack for any additional scripts -->
     @stack('scripts')
-    @push('scripts')
-        <!-- Add this to your layouts/app.blade.php file before </body> tag -->
-        <script>
-            // Set the login URL for guest users
-            const loginUrl = "{{ route('login') }}";
-        </script>
-        {{-- <script src="{{ asset('js/voting.js') }}"></script> --}}
-    @endpush
+
+    {{-- Global JavaScript Configuration --}}
+    <script>
+        // Global configuration
+        window.AppConfig = {
+            loginUrl: "{{ route('login') }}",
+            csrfToken: "{{ csrf_token() }}",
+            locale: "{{ app()->getLocale() }}"
+        };
+
+        // Enhanced global error handler for AJAX requests
+        window.handleAjaxError = function(xhr, status, error) {
+            console.error('AJAX Error:', {
+                xhr,
+                status,
+                error
+            });
+
+            let message = 'Terjadi kesalahan. Silakan coba lagi.';
+
+            if (xhr.status === 422) {
+                const errors = xhr.responseJSON?.errors;
+                if (errors) {
+                    message = Object.values(errors).flat().join(', ');
+                }
+            } else if (xhr.status === 419) {
+                message = 'Sesi telah berakhir. Silakan refresh halaman.';
+            } else if (xhr.status === 403) {
+                message = 'Anda tidak memiliki izin untuk melakukan aksi ini.';
+            } else if (xhr.status === 404) {
+                message = 'Data tidak ditemukan.';
+            } else if (xhr.status >= 500) {
+                message = 'Terjadi kesalahan server. Silakan coba lagi nanti.';
+            }
+
+            ToastManager.create(message, 'error', {
+                duration: 5000
+            });
+        };
+
+        // Enhanced global success handler
+        window.handleAjaxSuccess = function(response, defaultMessage = 'Berhasil!') {
+            const message = response.message || defaultMessage;
+            ToastManager.create(message, 'success', {
+                duration: 4000
+            });
+        };
+    </script>
+
+    {{-- Auto-handle Laravel flash messages - Enhanced with ToastManager --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle Laravel flash messages with enhanced ToastManager
+            @if (session('success'))
+                ToastManager.create('{{ session('success') }}', 'success', {
+                    duration: 4000,
+                    position: 'top-right'
+                });
+            @endif
+
+            @if (session('error'))
+                ToastManager.create('{{ session('error') }}', 'error', {
+                    duration: 5000,
+                    position: 'top-right'
+                });
+            @endif
+
+            @if (session('info'))
+                ToastManager.create('{{ session('info') }}', 'info', {
+                    duration: 4000,
+                    position: 'top-right'
+                });
+            @endif
+
+            @if (session('warning'))
+                ToastManager.create('{{ session('warning') }}', 'error', {
+                    duration: 4500,
+                    position: 'top-right'
+                });
+            @endif
+        });
+    </script>
 </body>
 
 </html>

@@ -1,6 +1,6 @@
 {{-- resources/views/components/primary-button.blade.php --}}
 @props([
-    'variant' => 'primary', // primary, secondary, dark
+    'variant' => 'primary', // primary, secondary, dark, inactive
     'size' => 'md', // sm, md, lg
     'disabled' => false,
     'type' => 'button',
@@ -23,6 +23,7 @@
         'primary' => 'bg-branding-primary text-white hover:bg-opacity-90 focus:ring-blue-500',
         'secondary' => 'bg-white text-branding-black border border-gray-300 hover:bg-gray-50 focus:ring-blue-500',
         'dark' => 'bg-branding-dark text-branding-light hover:bg-opacity-90 focus:ring-gray-500',
+        'inactive' => 'bg-essentials-inactive text-white hover:bg-opacity-90 focus:ring-gray-500',
     ];
 
     // Override with disabled styles if disabled
@@ -31,6 +32,7 @@
             'primary' => 'bg-essentials-inactive text-white cursor-not-allowed focus:ring-blue-500',
             'secondary' => 'bg-essentials-inactive text-white cursor-not-allowed focus:ring-blue-500',
             'dark' => 'bg-essentials-inactive text-white cursor-not-allowed focus:ring-gray-500',
+            'inactive' => 'bg-essentials-inactive text-white cursor-not-allowed focus:ring-gray-500',
         ];
     }
 

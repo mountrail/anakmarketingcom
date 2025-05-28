@@ -58,7 +58,7 @@ class ProfileController extends Controller
             // If both fields are empty, set phone to null
             $request->user()->phone = null;
         } else {
-            // If only one field is filled, keep the existing value
+            // If only one phone field is filled, keep the existing value
             \Log::info('Only one phone field filled, keeping existing value: ' . $request->user()->phone);
         }
 
@@ -127,10 +127,9 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's basic profile information (name, job, company).
-     * Profile picture updates are handled separately by updateProfilePicture()
+     * Update basic profile information (Name, Job Title, Company).
      */
-    public function updateBasicInfo(Request $request): RedirectResponse
+    public function updateBasicInfo(Request $request)
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -138,38 +137,56 @@ class ProfileController extends Controller
             'company' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $user = auth()->user();
+        try {
+            $user = auth()->user();
 
-        // Update basic profile information only
-        $user->update([
-            'name' => $request->name,
-            'job_title' => $request->job_title,
-            'company' => $request->company,
-        ]);
+            // Update basic profile information only
+            $user->update([
+                'name' => $request->name,
+                'job_title' => $request->job_title,
+                'company' => $request->company,
+            ]);
 
-        return redirect()->route('profile.show', $user)->with('success', 'Profil berhasil diperbarui!');
+            return redirect()->route('profile.show', $user)
+                ->with('success', 'Informasi dasar berhasil diperbarui!');
+
+        } catch (\Exception $e) {
+            \Log::error('Profile basic info update failed: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat menyimpan. Silakan coba lagi.');
+        }
     }
-
 
     /**
-     * Update the user's bio/description.
+     * Update profile bio/description.
      */
-    public function updateBio(Request $request): RedirectResponse
+    public function updateBio(Request $request)
     {
         $request->validate([
-            'bio' => ['nullable', 'string', 'max:1000'],
+            'bio' => ['nullable', 'string', 'max:1000'], // Adjust max length as needed
         ]);
 
-        $user = auth()->user();
+        try {
+            $user = auth()->user();
 
-        // Update bio
-        $user->update([
-            'bio' => $request->bio,
-        ]);
+            // Update bio
+            $user->update([
+                'bio' => $request->bio,
+            ]);
 
-        return redirect()->route('profile.show', $user)->with('success', 'Deskripsi berhasil diperbarui!');
+            return redirect()->route('profile.show', $user)
+                ->with('success', 'Deskripsi berhasil diperbarui!');
+
+        } catch (\Exception $e) {
+            \Log::error('Profile bio update failed: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat menyimpan. Silakan coba lagi.');
+        }
     }
-
 
     /**
      * Update the user's profile picture.
@@ -201,25 +218,13 @@ class ProfileController extends Controller
             $mediaItem = $user->addMediaFromRequest('profile_picture')
                 ->toMediaCollection('profile_pictures');
 
-            // Get the new profile picture URL
-            $profileImageUrl = $user->getProfileImageUrl();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Foto berhasil diubah',
-                'profile_image_url' => $profileImageUrl,
-            ]);
+            return redirect()->route('profile.show', $user)->with('success', 'Foto berhasil diubah!');
 
         } catch (\Exception $e) {
             \Log::error('Profile picture upload error: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat mengupload foto',
-            ], 500);
+            return redirect()->route('profile.show', $user)->with('error', 'Terjadi kesalahan saat mengupload foto');
         }
     }
-
 
     /**
      * Delete the user's account.
