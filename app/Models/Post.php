@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Post extends Model
+class Post extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'user_id',
@@ -34,6 +37,34 @@ class Post extends Model
         'vote_score',
         'user_vote',
     ];
+
+    /**
+     * Define media collections and conversions
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('images')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+            ->singleFile(false);
+    }
+
+    /**
+     * Define media conversions for different sizes
+     */
+    public function registerMediaConversions(Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(300)
+            ->height(200)
+            ->sharpen(10)
+            ->performOnCollections('images');
+
+        $this->addMediaConversion('medium')
+            ->width(800)
+            ->height(600)
+            ->quality(85)
+            ->performOnCollections('images');
+    }
 
     /**
      * Boot the model and set up event listeners
@@ -240,13 +271,28 @@ class Post extends Model
         return null;
     }
 
-    // ... rest of your existing methods remain the same ...
-
+    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    public function answers()
+    {
+        return $this->hasMany(Answer::class);
+    }
+
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
+    }
+
+    public function slugRedirects()
+    {
+        return $this->hasMany(PostSlugRedirect::class);
+    }
+
+    // Scopes
     public function scopeQuestions($query)
     {
         return $query->where('type', 'question');
@@ -262,21 +308,7 @@ class Post extends Model
         return $query->where('is_featured', true);
     }
 
-    public function images()
-    {
-        return $this->hasMany(PostImage::class);
-    }
-
-    public function answers()
-    {
-        return $this->hasMany(Answer::class);
-    }
-
-    public function votes()
-    {
-        return $this->hasMany(Vote::class);
-    }
-
+    // Accessors
     public function getVoteScoreAttribute()
     {
         $upvotes = $this->votes()->where('value', 1)->sum('weight');
@@ -304,10 +336,38 @@ class Post extends Model
     }
 
     /**
-     * Redirect relationships for old slugs
+     * Get post images formatted for display
      */
-    public function slugRedirects()
+    public function getImagesAttribute()
     {
-        return $this->hasMany(PostSlugRedirect::class);
+        return $this->getMedia('images')->map(function ($media) {
+            return (object) [
+                'id' => $media->id,
+                'url' => $media->getUrl(),
+                'name' => $media->name ?: $media->file_name,
+                'file_name' => $media->file_name,
+                'mime_type' => $media->mime_type,
+                'size' => $media->size,
+            ];
+        });
+    }
+
+    /**
+     * Get image thumbnails
+     */
+    public function getImageThumbnailsAttribute()
+    {
+        return $this->getMedia('images')->map(function ($media) {
+            return [
+                'id' => $media->id,
+                'url' => $media->getUrl(),
+                'thumb_url' => $media->getUrl('thumb'),
+                'medium_url' => $media->getUrl('medium'),
+                'name' => $media->name,
+                'file_name' => $media->file_name,
+                'mime_type' => $media->mime_type,
+                'size' => $media->size,
+            ];
+        });
     }
 }

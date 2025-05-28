@@ -81,32 +81,38 @@
 
     {{-- Lightbox Modal --}}
     <div id="lightbox-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center">
+        <!-- Close button positioned at top-right corner of the viewport -->
+        <button type="button"
+            class="fixed top-4 right-4 text-white z-50 p-2 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 transition-all duration-200"
+            onclick="closeLightbox()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
         <div class="max-w-4xl w-full p-4">
             <div class="relative">
-                <button type="button" class="absolute top-4 right-4 text-white z-10" onclick="closeLightbox()">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-
                 <div id="lightbox-content" class="flex flex-col items-center">
                     <img id="lightbox-image" src="" alt="" class="max-h-[80vh] max-w-full">
                     <div class="flex justify-between w-full mt-4">
-                        <button type="button" class="text-white p-2" onclick="prevImage()">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                        <button type="button"
+                            class="text-white p-2 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 transition-all duration-200"
+                            onclick="prevImage()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <div class="text-white text-center">
+                        <div class="text-white text-center self-center">
                             <span id="current-image-index">1</span> / <span
                                 id="total-images">{{ $count }}</span>
                         </div>
-                        <button type="button" class="text-white p-2" onclick="nextImage()">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                        <button type="button"
+                            class="text-white p-2 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 transition-all duration-200"
+                            onclick="nextImage()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5l7 7-7 7" />

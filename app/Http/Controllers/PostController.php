@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -24,7 +25,7 @@ class PostController extends Controller
         $typedEditorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
             ->where('type', $selectedType)
-            ->with(['user', 'answers'])
+            ->with(['user', 'answers', 'media'])
             ->latest()
             ->get();
 
@@ -34,14 +35,14 @@ class PostController extends Controller
         // Get regular posts filtered by type, excluding featured posts
         $posts = Post::where('type', $selectedType)
             ->whereNotIn('id', $featuredPostIds)
-            ->with(['user', 'answers'])
+            ->with(['user', 'answers', 'media'])
             ->latest()
             ->paginate(10);
 
         // Get editor's picks from both categories for the sidebar
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers'])
+            ->with(['user', 'answers', 'media'])
             ->latest()
             ->take(5)
             ->get();
@@ -58,7 +59,7 @@ class PostController extends Controller
     {
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers'])
+            ->with(['user', 'answers', 'media'])
             ->latest()
             ->take(5)
             ->get();
@@ -78,6 +79,7 @@ class PostController extends Controller
                 'title' => 'required|string|max:255',
                 'content' => 'required|string',
                 'type' => 'required|in:question,discussion',
+                'images.*' => 'nullable|file|image|max:2048', // 2MB max per image
             ]);
 
             $purifiedContent = Purifier::clean($validated['content']);
@@ -89,7 +91,33 @@ class PostController extends Controller
                 'type' => $validated['type'],
             ]);
 
-            // The slug is automatically updated in the model's boot method
+            // Handle uploaded images using Spatie Media Library
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+                    $post->addMediaFromRequest('images')
+                        ->usingFileName($file->getClientOriginalName())
+                        ->toMediaCollection('images');
+                }
+            }
+
+            // Handle temporary images from editor (if using the temp upload system)
+            if ($request->has('uploaded_images')) {
+                $tempImages = json_decode($request->uploaded_images, true);
+
+                if (!empty($tempImages) && is_array($tempImages)) {
+                    foreach ($tempImages as $tempImage) {
+                        if (isset($tempImage['temp_path']) && Storage::disk('public')->exists($tempImage['temp_path'])) {
+                            // Move from temp storage to media library
+                            $post->addMediaFromDisk($tempImage['temp_path'], 'public')
+                                ->usingName($tempImage['name'] ?? 'Uploaded image')
+                                ->toMediaCollection('images');
+
+                            // Clean up temp file
+                            Storage::disk('public')->delete($tempImage['temp_path']);
+                        }
+                    }
+                }
+            }
 
             // Check for badge
             BadgeService::checkBreakTheIce(Auth::user());
@@ -99,20 +127,6 @@ class PostController extends Controller
                 $followers = auth()->user()->followers()->get();
                 foreach ($followers as $follower) {
                     $follower->notify(new \App\Notifications\FollowedUserPostedNotification($post, auth()->user()));
-                }
-            }
-
-            // Handle uploaded images
-            if ($request->has('uploaded_images')) {
-                $images = json_decode($request->uploaded_images, true);
-
-                if (!empty($images) && is_array($images)) {
-                    foreach ($images as $image) {
-                        $post->images()->create([
-                            'url' => $image['url'],
-                            'name' => $image['name'] ?? 'Uploaded image',
-                        ]);
-                    }
                 }
             }
 
@@ -130,7 +144,7 @@ class PostController extends Controller
         } catch (\Exception $e) {
             Log::error('Error creating post: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
-                'request_data' => $request->except(['_token', 'uploaded_images']),
+                'request_data' => $request->except(['_token', 'uploaded_images', 'images']),
                 'stack_trace' => $e->getTraceAsString()
             ]);
 
@@ -174,20 +188,20 @@ class PostController extends Controller
         // Increment view count
         $post->increment('view_count');
 
-        // Load post relationships
+        // Load post relationships including media
         $post->load([
             'user',
             'answers' => function ($query) {
                 $query->latest();
             },
             'answers.user',
-            'images'
+            'media'
         ]);
 
         // Share editorPicks for the sidebar
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers'])
+            ->with(['user', 'answers', 'media'])
             ->latest()
             ->take(5)
             ->get();
@@ -206,11 +220,11 @@ class PostController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $post->load('images');
+        $post->load('media');
 
         $editorPicks = Post::featured()
             ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers'])
+            ->with(['user', 'answers', 'media'])
             ->latest()
             ->take(5)
             ->get();
@@ -234,12 +248,15 @@ class PostController extends Controller
                 'title' => 'required|string|max:255',
                 'content' => 'required|string',
                 'type' => 'required|in:question,discussion',
+                'images.*' => 'nullable|file|image|max:2048', // New images
+                'keep_images' => 'nullable|array', // IDs of existing images to keep
+                'keep_images.*' => 'integer|exists:media,id',
             ]);
 
             $purifiedContent = Purifier::clean($validated['content']);
 
-            // Store old slug before update
-            $oldSlug = $post->slug;
+            // Store original slug for redirect comparison
+            $originalSlug = $post->slug;
 
             $post->update([
                 'title' => $validated['title'],
@@ -247,39 +264,31 @@ class PostController extends Controller
                 'type' => $validated['type'],
             ]);
 
-            // The slug update and redirect creation is handled in the model
+            // Handle existing images - remove those not in keep_images array
+            $keepImageIds = $request->get('keep_images', []);
+            $existingMedia = $post->getMedia('images');
 
-            // Handle uploaded images
-            if ($request->has('uploaded_images')) {
-                $newImages = json_decode($request->uploaded_images, true);
-                $existingImageIds = $post->images->pluck('id')->toArray();
-                $newImageIds = [];
-
-                if (!empty($newImages) && is_array($newImages)) {
-                    foreach ($newImages as $image) {
-                        if (isset($image['id']) && strpos($image['id'], 'img-') === 0) {
-                            $post->images()->create([
-                                'url' => $image['url'],
-                                'name' => $image['name'] ?? 'Uploaded image',
-                            ]);
-                        } else if (isset($image['id'])) {
-                            $newImageIds[] = $image['id'];
-                        }
-                    }
+            foreach ($existingMedia as $media) {
+                if (!in_array($media->id, $keepImageIds)) {
+                    $media->delete(); // Spatie will handle file deletion automatically
                 }
+            }
 
-                $imagesToDelete = array_diff($existingImageIds, $newImageIds);
-                if (!empty($imagesToDelete)) {
-                    $post->images()->whereIn('id', $imagesToDelete)->delete();
+            // Add new images if any
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+                    $post->addMediaFromRequest('images')
+                        ->usingFileName($file->getClientOriginalName())
+                        ->toMediaCollection('images');
                 }
-            } else {
-                $post->images()->delete();
             }
 
             $successMessage = $validated['type'] === 'question' ? 'Pertanyaan berhasil diperbarui!' : 'Diskusi berhasil diperbarui!';
 
-            // Always use the current slug for redirect (it might have changed)
-            return redirect()->route('posts.show', $post->fresh()->slug)
+            // Use fresh() to get updated model data including potentially new slug
+            $updatedPost = $post->fresh();
+
+            return redirect()->route('posts.show', $updatedPost->slug)
                 ->with('success', $successMessage);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -289,7 +298,12 @@ class PostController extends Controller
                 ->with('error', 'Terdapat kesalahan dalam form. Silakan periksa kembali.');
 
         } catch (\Exception $e) {
-            Log::error('Error updating post: ' . $e->getMessage());
+            Log::error('Error updating post: ' . $e->getMessage(), [
+                'post_id' => $post->id,
+                'user_id' => Auth::id(),
+                'request_data' => $request->except(['_token', 'images']),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
 
             return redirect()->back()
                 ->withInput()
@@ -307,8 +321,8 @@ class PostController extends Controller
         }
 
         try {
-            // Delete associated images
-            $post->images()->delete();
+            // Delete associated media (Spatie will handle file cleanup automatically)
+            $post->clearMediaCollection('images');
 
             // Delete associated slug redirects
             $post->slugRedirects()->delete();
@@ -365,7 +379,6 @@ class PostController extends Controller
             ->with('success', 'Editor\'s pick status updated successfully.');
     }
 
-
     /**
      * Load more posts for a specific user (AJAX)
      */
@@ -379,9 +392,9 @@ class PostController extends Controller
         if ($postType === 'answered') {
             $postsQuery = Post::whereHas('answers', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            })->where('user_id', '!=', $user->id)->withCount('answers')->latest();
+            })->where('user_id', '!=', $user->id)->withCount('answers')->with('media')->latest();
         } else {
-            $postsQuery = $user->posts()->withCount('answers')->latest();
+            $postsQuery = $user->posts()->withCount('answers')->with('media')->latest();
         }
 
         if ($currentPostId) {
@@ -436,7 +449,7 @@ class PostController extends Controller
             new \App\Notifications\AnnouncementNotification(
                 'Recommended Discussion',
                 $request->message,
-                route('posts.show', $post->slug), // Use slug instead of ID
+                route('posts.show', $post->slug),
                 $request->boolean('is_pinned'),
                 $post
             )
@@ -446,5 +459,46 @@ class PostController extends Controller
             'success' => true,
             'message' => 'Announcement sent successfully!'
         ]);
+    }
+
+    /**
+     * Delete a specific image from a post
+     */
+    public function deleteImage(Post $post, $mediaId)
+    {
+        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $media = $post->getMedia('images')->where('id', $mediaId)->first();
+
+            if ($media) {
+                $media->delete();
+
+                if (request()->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Image deleted successfully'
+                    ]);
+                }
+
+                return redirect()->back()->with('success', 'Image deleted successfully');
+            }
+
+            return response()->json(['success' => false, 'message' => 'Image not found'], 404);
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting image: ' . $e->getMessage());
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error deleting image'
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Error deleting image');
+        }
     }
 }
