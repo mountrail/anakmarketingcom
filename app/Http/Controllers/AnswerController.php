@@ -44,6 +44,44 @@ class AnswerController extends Controller
     }
 
     /**
+     * Update the specified answer in storage.
+     */
+    public function update(Request $request, Answer $answer)
+    {
+        // Check if user is authorized to edit the answer
+        if (Auth::id() !== $answer->user_id && !Auth::user()->hasRole(['admin'])) {
+            return response()->json([
+                'error' => 'You do not have permission to edit this answer.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'content' => 'required|string|min:5',
+        ]);
+
+        // Purify the content before storing to prevent XSS
+        $purifiedContent = Purifier::clean($validated['content']);
+
+        // Update the answer
+        $answer->update([
+            'content' => $purifiedContent,
+        ]);
+
+        // Return JSON response for AJAX requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Answer updated successfully.',
+                'content' => $answer->content, // Return the purified content
+            ]);
+        }
+
+        // Fallback for non-AJAX requests
+        return redirect()->route('posts.show', $answer->post->slug)
+            ->with('success', 'Answer updated successfully.');
+    }
+
+    /**
      * Toggle the editor's pick status of an answer
      */
     public function toggleEditorsPick(Answer $answer)
