@@ -4,8 +4,8 @@
         @foreach ($post->answers->sortByDesc('is_editors_pick')->sortByDesc('created_at') as $answer)
             <div class="border-b pb-6 last:border-b-0" id="answer-{{ $answer->id }}" x-data="{
                 editing: false,
-                content: @js($answer->content),
-                originalContent: @js($answer->content),
+                content: @js(strip_tags($answer->content)),
+                originalContent: @js(strip_tags($answer->content)),
                 saving: false,
 
                 startEdit() {
@@ -48,10 +48,11 @@
                             this.originalContent = this.content;
                             this.editing = false;
 
-                            // Update the content display
-                            document.querySelector('#answer-content-{{ $answer->id }}').innerHTML = data.content;
+                            // Update the content display with line breaks
+                            const displayContent = this.content.replace(/\n/g, '<br>');
+                            document.querySelector('#answer-content-{{ $answer->id }}').innerHTML = displayContent;
 
-                            // Show success message (you can customize this)
+                            // Show success message
                             this.showMessage('Answer updated successfully!', 'success');
                         } else {
                             throw new Error('Failed to update answer');
@@ -65,7 +66,7 @@
                 },
 
                 showMessage(message, type) {
-                    // Simple toast notification - you can replace with your toast system
+                    // Simple toast notification
                     const toast = document.createElement('div');
                     toast.className = `fixed top-4 right-4 p-4 rounded-md z-50 ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`;
                     toast.textContent = message;
@@ -100,9 +101,9 @@
                 </div>
 
                 <!-- Answer Content - Display Mode -->
-                <div x-show="!editing" class="mt-3 prose dark:prose-invert max-w-none"
+                <div x-show="!editing" class="mt-3 text-gray-900 dark:text-gray-100"
                     id="answer-content-{{ $answer->id }}">
-                    {!! $answer->content !!}
+                    {!! nl2br(e(strip_tags($answer->content))) !!}
                 </div>
 
                 <!-- Answer Content - Edit Mode -->
@@ -113,18 +114,18 @@
                             Edit your answer
                         </label>
                         <textarea x-ref="editTextarea" x-model="content" id="edit-content-{{ $answer->id }}" rows="6"
-                            class="block w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100 sm:text-sm"
+                            class="block w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100 sm:text-sm resize-none"
                             placeholder="Edit your answer..." required></textarea>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Minimum 5 characters required
+                            Minimum 5 characters required. Use Enter for line breaks.
                         </p>
                     </div>
 
                     <!-- Edit Action Buttons -->
                     <div class="flex items-center space-x-3">
                         <x-primary-button @click="saveEdit()" :disabled="false"
-                            x-bind:disabled="saving || content.trim().length < 5" class="flex items-center">
-                            <span x-show="!saving">Simpan</span>
+                            x-bind:disabled="saving || content.trim().length < 5" variant="primary" size="md">
+                            <span x-show="!saving">Save</span>
                             <span x-show="saving" class="flex items-center">
                                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -134,12 +135,12 @@
                                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                     </path>
                                 </svg>
-                                Menyimpan...
+                                Saving...
                             </span>
                         </x-primary-button>
 
-                        <x-primary-button variant="secondary" @click="cancelEdit()" type="button">
-                            Batal
+                        <x-primary-button @click="cancelEdit()" variant="inactive" size="md">
+                            Cancel
                         </x-primary-button>
                     </div>
                 </div>
@@ -176,6 +177,11 @@
         textarea:focus {
             outline: none;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Disable textarea resize */
+        textarea {
+            resize: none;
         }
     </style>
 @endpush

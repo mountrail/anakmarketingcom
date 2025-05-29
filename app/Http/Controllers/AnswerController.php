@@ -7,7 +7,6 @@ use App\Models\Post;
 use App\Services\BadgeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Mews\Purifier\Facades\Purifier;
 use App\Notifications\PostAnsweredNotification;
 
 class AnswerController extends Controller
@@ -21,12 +20,12 @@ class AnswerController extends Controller
             'content' => 'required|string|min:5',
         ]);
 
-        // Purify the content before storing to prevent XSS
-        $purifiedContent = Purifier::clean($validated['content']);
+        // Store content as plain text (no HTML purification needed)
+        $content = trim($validated['content']);
 
         $answer = new Answer([
             'user_id' => Auth::id(),
-            'content' => $purifiedContent,
+            'content' => $content,
         ]);
 
         $post->answers()->save($answer);
@@ -59,12 +58,12 @@ class AnswerController extends Controller
             'content' => 'required|string|min:5',
         ]);
 
-        // Purify the content before storing to prevent XSS
-        $purifiedContent = Purifier::clean($validated['content']);
+        // Store content as plain text (no HTML purification needed)
+        $content = trim($validated['content']);
 
         // Update the answer
         $answer->update([
-            'content' => $purifiedContent,
+            'content' => $content,
         ]);
 
         // Return JSON response for AJAX requests
@@ -72,7 +71,7 @@ class AnswerController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Answer updated successfully.',
-                'content' => $answer->content, // Return the purified content
+                'content' => $answer->content, // Return the plain text content
             ]);
         }
 
