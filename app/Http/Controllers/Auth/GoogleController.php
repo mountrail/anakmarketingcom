@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\OnboardingController;
 use App\Models\User;
 use App\Notifications\AnnouncementNotification;
 use Exception;
@@ -39,6 +40,7 @@ class GoogleController extends Controller
             $user = User::where('email', $googleUser->email)->first();
 
             $isNewUser = false;
+            $isFirstTimeLogin = false;
 
             // If user doesn't exist, create a new one
             if (!$user) {
@@ -60,6 +62,7 @@ class GoogleController extends Controller
 
                     $user = User::create($userData);
                     $isNewUser = true;
+                    $isFirstTimeLogin = true; // New users are definitely first-time login
 
                     \Log::info('New user created successfully with ID: ' . $user->id . ' and auto-verified');
                 } catch (\Exception $createEx) {
@@ -71,6 +74,9 @@ class GoogleController extends Controller
                 }
             } else {
                 \Log::info('Existing user found: ' . $user->id);
+
+                // Check if this is their first time logging in
+                $isFirstTimeLogin = OnboardingController::shouldShowOnboarding($user);
 
                 // Update existing user with Google information and auto-verify
                 $updateData = [
@@ -96,7 +102,7 @@ class GoogleController extends Controller
                 $user->notify(new AnnouncementNotification(
                     'Selesaikan onboarding dan dapatkan badge baru!',
                     'Selesaikan onboarding dan dapatkan badge baru! Klik notifikasi ini untuk melanjutkan checklist onboarding kamu',
-                    '/onboarding',
+                    '/onboarding/checklist',
                     true // isPinned = true
                 ));
 
@@ -106,6 +112,11 @@ class GoogleController extends Controller
             // Log the user in
             Auth::login($user);
             \Log::info('User logged in successfully: ' . $user->id);
+
+            // Redirect to onboarding if this is their first-time login
+            if ($isFirstTimeLogin) {
+                return redirect()->route('onboarding.welcome');
+            }
 
             return redirect()->intended(route('home'));
 

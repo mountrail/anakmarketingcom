@@ -9,6 +9,7 @@ use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OnboardingController; // Add this import
 
 // Main posts listing route - accessible to all users (replaces old home route)
 Route::get('/', [PostController::class, 'index'])->name('home');
@@ -73,10 +74,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
     Route::patch('/profile/badges', [ProfileController::class, 'updateBadges'])->name('profile.update-badges');
 
-    // Onboarding route - ADD THIS NEW ROUTE
-    Route::get('/onboarding', function () {
-        return view('onboarding.index');
-    })->name('onboarding.index');
+    // Onboarding routes - Updated to use separate views
+    Route::get('/onboarding/welcome', [OnboardingController::class, 'welcome'])->name('onboarding.welcome');
+    Route::get('/onboarding/checklist', [OnboardingController::class, 'checklist'])->name('onboarding.checklist');
+    Route::get('/onboarding/basic-profile', [OnboardingController::class, 'basicProfile'])->name('onboarding.basic-profile');
+    Route::post('/onboarding/basic-profile', [OnboardingController::class, 'updateBasicProfile'])->name('onboarding.update-basic-profile');
 });
 
 // Post route for viewing individual posts - USING SLUG FOR DISPLAY

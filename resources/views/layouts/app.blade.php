@@ -42,7 +42,7 @@
             <div class="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8">
                 <div class="flex flex-col lg:flex-row">
                     <!-- Main Content Area -->
-                    <div class="w-full lg:w-3/4">
+                    <div class="w-full {{ !isset($showSidebar) || $showSidebar ? 'lg:w-3/4' : '' }}">
                         @hasSection('content')
                             @yield('content')
                         @else
@@ -50,8 +50,10 @@
                         @endif
                     </div>
 
-                    <!-- Sidebar - Only visible on lg screens and up -->
-                    @include('layouts.sidebar')
+                    <!-- Sidebar - Only visible on lg screens and up, and when showSidebar is true -->
+                    @if (!isset($showSidebar) || $showSidebar)
+                        @include('layouts.sidebar')
+                    @endif
                 </div>
             </div>
             <div class="mt-20"></div>

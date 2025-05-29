@@ -111,7 +111,7 @@ class RegisteredUserController extends Controller
             $user->notify(new AnnouncementNotification(
                 'Selesaikan onboarding dan dapatkan badge baru!',
                 'Selesaikan onboarding dan dapatkan badge baru! Klik notifikasi ini untuk melanjutkan checklist onboarding kamu',
-                '/onboarding',
+                '/onboarding/checklist',
                 true // isPinned = true
             ));
 

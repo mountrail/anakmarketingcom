@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\OnboardingController;
 use Illuminate\Auth\Events\Verified;
 use App\Http\Requests\Auth\CustomEmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,12 @@ class VerifyEmailController extends Controller
             if (!Auth::check()) {
                 Auth::login($request->user());
             }
+
+            // Check if user should see onboarding (first-time login)
+            if (OnboardingController::shouldShowOnboarding($request->user())) {
+                return redirect()->route('onboarding.welcome');
+            }
+
             return redirect()->intended(route('home', absolute: false) . '?verified=1');
         }
 
@@ -32,6 +39,7 @@ class VerifyEmailController extends Controller
         // Log the user in after verification
         Auth::login($request->user());
 
-        return redirect()->intended(route('home', absolute: false) . '?verified=1');
+        // This is their first-time login, so redirect to onboarding
+        return redirect()->route('onboarding.welcome');
     }
 }

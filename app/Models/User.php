@@ -39,6 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
         'job_title',
         'company',
         'reputation',
+        'onboarding_steps', // Add this line
     ];
 
     protected $hidden = [
@@ -52,6 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'reputation' => 'integer',
+            'onboarding_steps' => 'array', // Add this line to cast JSON to array
         ];
     }
 
@@ -243,7 +245,6 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
         return $this->hasMedia('profile_pictures') || !empty($this->avatar) || !empty($this->profile_picture);
     }
 
-
     /**
      * Check if user has uploaded a custom profile picture
      */
@@ -282,6 +283,4 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
     {
         return $this->followings()->count();
     }
-
-
 }
