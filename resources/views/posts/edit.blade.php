@@ -131,19 +131,50 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Simple form submission - no loading spinner
+                // Category dropdown functionality
+                const dropdownOptions = document.querySelectorAll('.dropdown-option');
+                const selectedTypeText = document.getElementById('selected-type-text');
+                const typeInput = document.getElementById('type');
+
+                dropdownOptions.forEach(option => {
+                    option.addEventListener('click', function(e) {
+                        e.preventDefault();
+
+                        const value = this.getAttribute('data-value');
+                        const text = this.textContent.trim();
+
+                        // Update hidden input
+                        typeInput.value = value;
+
+                        // Update display text
+                        selectedTypeText.textContent = text;
+
+                        // Update active state styling
+                        dropdownOptions.forEach(opt => {
+                            opt.classList.remove('bg-gray-100', 'dark:bg-gray-800');
+                        });
+                        this.classList.add('bg-gray-100', 'dark:bg-gray-800');
+
+                        // Close dropdown by clicking elsewhere or implement your dropdown close logic
+                        const dropdown = this.closest('[x-data]');
+                        if (dropdown && dropdown.__x) {
+                            dropdown.__x.$data.open = false;
+                        }
+                    });
+                });
+
+                // Existing form submission code
                 const form = document.getElementById('post-form');
                 const submitBtn = document.getElementById('submit-btn');
 
                 form.addEventListener('submit', function(e) {
-                    // Just disable the button to prevent double submission
                     if (form.checkValidity()) {
                         submitBtn.disabled = true;
                         submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
                     }
                 });
 
-                // Reset button state if there are validation errors and page reloads
+                // Reset button state if there are validation errors
                 @if ($errors->any())
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
@@ -152,7 +183,6 @@
                 // Handle back/forward navigation
                 window.addEventListener('pageshow', function(e) {
                     if (e.persisted) {
-                        // Reset button state when page comes from cache
                         submitBtn.disabled = false;
                         submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                     }
