@@ -7,6 +7,7 @@ use App\Models\PostSlugRedirect;
 use App\Models\User;
 use App\Services\BadgeService;
 use App\Services\PostImageService;
+use App\Services\PostLoadingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
@@ -15,10 +16,12 @@ use Illuminate\Support\Facades\Log;
 class PostController extends Controller
 {
     protected PostImageService $imageService;
+    protected PostLoadingService $loadingService;
 
-    public function __construct(PostImageService $imageService)
+    public function __construct(PostImageService $imageService, PostLoadingService $loadingService)
     {
         $this->imageService = $imageService;
+        $this->loadingService = $loadingService;
     }
 
     /**
@@ -28,35 +31,15 @@ class PostController extends Controller
     {
         $selectedType = $request->query('type', 'question');
 
-        // Get featured posts (editor's picks) filtered by the selected type for the main content
-        $typedEditorPicks = Post::featured()
-            ->where('featured_type', '!=', 'none')
-            ->where('type', $selectedType)
-            ->with(['user', 'answers', 'images'])
-            ->latest()
-            ->get();
+        $data = $this->loadingService->getPostsForIndex($selectedType, 10);
 
-        // Get the IDs of featured posts to exclude them from regular posts
-        $featuredPostIds = $typedEditorPicks->pluck('id')->toArray();
+        view()->share('editorPicks', $data['editorPicks']);
 
-        // Get regular posts filtered by type, excluding featured posts
-        $posts = Post::where('type', $selectedType)
-            ->whereNotIn('id', $featuredPostIds)
-            ->with(['user', 'answers', 'images'])
-            ->latest()
-            ->paginate(10);
-
-        // Get editor's picks from both categories for the sidebar
-        $editorPicks = Post::featured()
-            ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers', 'images'])
-            ->latest()
-            ->take(5)
-            ->get();
-
-        view()->share('editorPicks', $editorPicks);
-
-        return view('home.index', compact('selectedType', 'posts', 'typedEditorPicks'));
+        return view('home.index', [
+            'selectedType' => $selectedType,
+            'posts' => $data['posts'],
+            'typedEditorPicks' => $data['typedEditorPicks']
+        ]);
     }
 
     /**
@@ -311,33 +294,20 @@ class PostController extends Controller
      */
     public function toggleFeatured(Post $post)
     {
-        if (!Auth::user()->hasRole(['editor', 'admin'])) {
+        $result = $this->loadingService->toggleFeatured($post);
+
+        if (!$result['success'] && isset($result['status_code'])) {
             if (request()->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message']
+                ], $result['status_code']);
             }
-            abort(403, 'Unauthorized action.');
+            abort($result['status_code'], $result['message']);
         }
-
-        $wasFeatured = $post->is_featured;
-
-        if ($post->featured_type === 'none') {
-            $post->is_featured = true;
-            $post->featured_type = 'editors_pick';
-        } else {
-            $post->is_featured = false;
-            $post->featured_type = 'none';
-        }
-
-        $post->save();
 
         if (request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'is_featured' => $post->is_featured,
-                'message' => $post->is_featured
-                    ? 'Post added to Editor\'s Picks successfully'
-                    : 'Post removed from Editor\'s Picks successfully'
-            ]);
+            return response()->json($result);
         }
 
         return redirect()->back()
@@ -349,28 +319,11 @@ class PostController extends Controller
      */
     public function loadUserPosts(Request $request, User $user)
     {
-        $offset = $request->get('offset', 0);
-        $limit = $request->get('limit', 2);
-        $currentPostId = $request->get('current_post_id', null);
-        $postType = $request->get('post_type', 'own');
-
-        if ($postType === 'answered') {
-            $postsQuery = Post::whereHas('answers', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->where('user_id', '!=', $user->id)->withCount('answers')->with('images')->latest();
-        } else {
-            $postsQuery = $user->posts()->withCount('answers')->with('images')->latest();
-        }
-
-        if ($currentPostId) {
-            $postsQuery->where('id', '!=', $currentPostId);
-        }
-
-        $posts = $postsQuery->skip($offset)->take($limit)->get();
+        $result = $this->loadingService->loadUserPosts($request, $user);
 
         if ($request->wantsJson()) {
             $html = '';
-            foreach ($posts as $post) {
+            foreach ($result['posts'] as $post) {
                 $html .= view('components.post-item', [
                     'post' => $post,
                     'showMeta' => false,
@@ -386,7 +339,7 @@ class PostController extends Controller
             return response()->json([
                 'success' => true,
                 'html' => $html,
-                'count' => $posts->count()
+                'count' => $result['count']
             ]);
         }
 
