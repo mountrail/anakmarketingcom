@@ -1,4 +1,5 @@
 {{-- resources/views/posts/edit.blade.php --}}
+{{-- resources/views/posts/edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
@@ -72,6 +73,13 @@
                                 'value' => old('content', $post->content),
                                 'maxchars' => 3300,
                             ])
+                            <x-input-label for="content" :value="__('Deskripsi')" />
+                            @include('posts.partials.tinymce-editor', [
+                                'name' => 'content',
+                                'id' => 'content',
+                                'value' => old('content', $post->content),
+                                'maxchars' => 3300,
+                            ])
                             @error('content')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -112,6 +120,7 @@
                         <div class="flex items-center justify-end mt-4 gap-3">
                             <x-primary-button type="button" variant="inactive" size="md"
                                 onclick="window.location.href='{{ route('posts.show', $post->slug) }}'">
+                                {{ __('Kembali') }}
                                 {{ __('Kembali') }}
                             </x-primary-button>
 

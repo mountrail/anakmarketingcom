@@ -3,18 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use App\Models\PostImage;
 use App\Models\PostSlugRedirect;
 use App\Models\User;
 use App\Services\BadgeService;
+use App\Services\PostImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
+    protected PostImageService $imageService;
+
+    public function __construct(PostImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     /**
      * Display a listing of posts based on type filter.
      */
@@ -93,53 +99,8 @@ class PostController extends Controller
                 'type' => $validated['type'],
             ]);
 
-            // Handle traditional file uploads (if any)
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $file) {
-                    // Store the file
-                    $path = $file->store('posts', 'public');
-                    $url = Storage::url($path);
-
-                    // Save to database
-                    PostImage::create([
-                        'post_id' => $post->id,
-                        'url' => $url,
-                        'name' => $file->getClientOriginalName(),
-                    ]);
-                }
-            }
-
-            // Handle images uploaded via the drag-drop system
-            if ($request->has('uploaded_images') && !empty($request->uploaded_images)) {
-                try {
-                    $uploadedImages = json_decode($request->uploaded_images, true);
-
-                    if (is_array($uploadedImages) && !empty($uploadedImages)) {
-                        foreach ($uploadedImages as $imageData) {
-                            // The image data should contain url, name, and id
-                            if (isset($imageData['url']) && !empty($imageData['url'])) {
-                                // Create PostImage record
-                                PostImage::create([
-                                    'post_id' => $post->id,
-                                    'url' => $imageData['url'],
-                                    'name' => $imageData['name'] ?? 'Uploaded image',
-                                ]);
-
-                                Log::info('Image saved to database', [
-                                    'post_id' => $post->id,
-                                    'url' => $imageData['url'],
-                                    'name' => $imageData['name'] ?? 'Uploaded image'
-                                ]);
-                            }
-                        }
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Error processing uploaded images JSON', [
-                        'error' => $e->getMessage(),
-                        'uploaded_images' => $request->uploaded_images
-                    ]);
-                }
-            }
+            // Handle image uploads using the service
+            $this->imageService->handlePostImages($request, $post);
 
             // Check for badge
             BadgeService::checkBreakTheIce(Auth::user());
@@ -175,7 +136,6 @@ class PostController extends Controller
                 ->with('error', 'Terjadi kesalahan saat membuat post. Silakan coba lagi.');
         }
     }
-
 
     /**
      * Display the specified post with comprehensive redirect handling.
@@ -279,17 +239,14 @@ class PostController extends Controller
 
             $purifiedContent = Purifier::clean($validated['content']);
 
-            // Store original slug for redirect comparison
-            $originalSlug = $post->slug;
-
             $post->update([
                 'title' => $validated['title'],
                 'content' => $purifiedContent,
                 'type' => $validated['type'],
             ]);
 
-            // Handle image management
-            $this->handleImageUpdates($request, $post);
+            // Handle image updates using the service
+            $this->imageService->handleImageUpdates($request, $post);
 
             $successMessage = $validated['type'] === 'question' ? 'Pertanyaan berhasil diperbarui!' : 'Diskusi berhasil diperbarui!';
 
@@ -320,147 +277,6 @@ class PostController extends Controller
     }
 
     /**
-     * Handle image updates for post editing
-     */
-    private function handleImageUpdates(Request $request, Post $post)
-    {
-        // Get current uploaded images from the drag-drop system
-        $uploadedImages = [];
-        if ($request->has('uploaded_images') && !empty($request->uploaded_images)) {
-            try {
-                $decodedImages = json_decode($request->uploaded_images, true);
-                if (is_array($decodedImages)) {
-                    $uploadedImages = $decodedImages;
-                }
-            } catch (\Exception $e) {
-                Log::error('Error parsing uploaded images JSON', [
-                    'error' => $e->getMessage(),
-                    'uploaded_images' => $request->uploaded_images
-                ]);
-            }
-        }
-
-        // Get existing images from database
-        $existingImages = $post->images()->get();
-
-        // Create arrays to track which images to keep and which to delete
-        $imagesToKeep = [];
-        $imagesToDelete = [];
-
-        // Check each existing image
-        foreach ($existingImages as $existingImage) {
-            $shouldKeep = false;
-
-            // Check if this image is in the uploaded_images list (by URL or ID)
-            foreach ($uploadedImages as $uploadedImage) {
-                if (isset($uploadedImage['url']) && $uploadedImage['url'] === $existingImage->url) {
-                    $shouldKeep = true;
-                    $imagesToKeep[] = $existingImage->id;
-                    break;
-                }
-                // Also check by database ID if it exists in the uploaded image data
-                if (isset($uploadedImage['id']) && is_numeric($uploadedImage['id']) && $uploadedImage['id'] == $existingImage->id) {
-                    $shouldKeep = true;
-                    $imagesToKeep[] = $existingImage->id;
-                    break;
-                }
-            }
-
-            // If not found in uploaded images, mark for deletion
-            if (!$shouldKeep) {
-                $imagesToDelete[] = $existingImage;
-            }
-        }
-
-        // Delete images that are no longer needed
-        foreach ($imagesToDelete as $imageToDelete) {
-            try {
-                // Delete physical file
-                $path = str_replace('/storage/', '', $imageToDelete->url);
-                if (Storage::disk('public')->exists($path)) {
-                    Storage::disk('public')->delete($path);
-                }
-
-                // Delete database record
-                $imageToDelete->delete();
-
-                Log::info('Image deleted during post update', [
-                    'post_id' => $post->id,
-                    'image_id' => $imageToDelete->id,
-                    'image_url' => $imageToDelete->url
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Error deleting image during post update', [
-                    'post_id' => $post->id,
-                    'image_id' => $imageToDelete->id,
-                    'error' => $e->getMessage()
-                ]);
-            }
-        }
-
-        // Add new images from uploaded_images that don't exist in database yet
-        foreach ($uploadedImages as $uploadedImage) {
-            if (!isset($uploadedImage['url']) || empty($uploadedImage['url'])) {
-                continue;
-            }
-
-            // Check if this image already exists in database
-            $existsInDb = $post->images()->where('url', $uploadedImage['url'])->exists();
-
-            if (!$existsInDb) {
-                try {
-                    // Create new PostImage record
-                    PostImage::create([
-                        'post_id' => $post->id,
-                        'url' => $uploadedImage['url'],
-                        'name' => $uploadedImage['name'] ?? 'Uploaded image',
-                    ]);
-
-                    Log::info('New image added during post update', [
-                        'post_id' => $post->id,
-                        'image_url' => $uploadedImage['url'],
-                        'image_name' => $uploadedImage['name'] ?? 'Uploaded image'
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('Error adding new image during post update', [
-                        'post_id' => $post->id,
-                        'image_url' => $uploadedImage['url'],
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
-        }
-
-        // Handle traditional file uploads (if any) - these would be completely new files
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
-                try {
-                    // Store the file
-                    $path = $file->store('posts', 'public');
-                    $url = Storage::url($path);
-
-                    // Save to database
-                    PostImage::create([
-                        'post_id' => $post->id,
-                        'url' => $url,
-                        'name' => $file->getClientOriginalName(),
-                    ]);
-
-                    Log::info('Traditional file upload added during post update', [
-                        'post_id' => $post->id,
-                        'image_url' => $url,
-                        'original_name' => $file->getClientOriginalName()
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('Error processing traditional file upload during post update', [
-                        'post_id' => $post->id,
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
-        }
-    }
-    /**
      * Remove the specified post from storage.
      */
     public function destroy(Post $post)
@@ -470,17 +286,8 @@ class PostController extends Controller
         }
 
         try {
-            // Delete associated images
-            foreach ($post->images as $image) {
-                // Delete physical file
-                $path = str_replace('/storage/', '', $image->url);
-                if (Storage::disk('public')->exists($path)) {
-                    Storage::disk('public')->delete($path);
-                }
-
-                // Delete database record
-                $image->delete();
-            }
+            // Delete associated images using the service
+            $this->imageService->deleteAllPostImages($post);
 
             // Delete associated slug redirects
             $post->slugRedirects()->delete();
@@ -628,42 +435,18 @@ class PostController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        try {
-            $image = $post->images()->where('id', $imageId)->first();
+        $success = $this->imageService->deletePostImage($post, (int) $imageId);
 
-            if ($image) {
-                // Delete physical file
-                $path = str_replace('/storage/', '', $image->url);
-                if (Storage::disk('public')->exists($path)) {
-                    Storage::disk('public')->delete($path);
-                }
-
-                // Delete database record
-                $image->delete();
-
-                if (request()->wantsJson()) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Image deleted successfully'
-                    ]);
-                }
-
-                return redirect()->back()->with('success', 'Image deleted successfully');
-            }
-
-            return response()->json(['success' => false, 'message' => 'Image not found'], 404);
-
-        } catch (\Exception $e) {
-            Log::error('Error deleting image: ' . $e->getMessage());
-
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error deleting image'
-                ], 500);
-            }
-
-            return redirect()->back()->with('error', 'Error deleting image');
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $success ? 'Image deleted successfully' : 'Image not found'
+            ], $success ? 200 : 404);
         }
+
+        return redirect()->back()->with(
+            $success ? 'success' : 'error',
+            $success ? 'Image deleted successfully' : 'Error deleting image'
+        );
     }
 }
