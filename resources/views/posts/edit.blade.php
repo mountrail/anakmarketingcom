@@ -73,13 +73,7 @@
                                 'value' => old('content', $post->content),
                                 'maxchars' => 3300,
                             ])
-                            <x-input-label for="content" :value="__('Deskripsi')" />
-                            @include('posts.partials.tinymce-editor', [
-                                'name' => 'content',
-                                'id' => 'content',
-                                'value' => old('content', $post->content),
-                                'maxchars' => 3300,
-                            ])
+
                             @error('content')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
