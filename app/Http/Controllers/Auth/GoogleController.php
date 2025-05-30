@@ -41,6 +41,7 @@ class GoogleController extends Controller
 
             $isNewUser = false;
             $needsOnboarding = false;
+            $needsOnboarding = false;
 
             // If user doesn't exist, create a new one
             if (!$user) {
@@ -63,6 +64,7 @@ class GoogleController extends Controller
                     $user = User::create($userData);
                     $isNewUser = true;
                     $needsOnboarding = true; // New users always need onboarding
+                    $needsOnboarding = true; // New users always need onboarding
 
                     \Log::info('New user created successfully with ID: ' . $user->id . ' and auto-verified');
                 } catch (\Exception $createEx) {
@@ -75,6 +77,8 @@ class GoogleController extends Controller
             } else {
                 \Log::info('Existing user found: ' . $user->id);
 
+                // Check if existing user needs to complete onboarding
+                $needsOnboarding = OnboardingController::shouldShowOnboarding($user);
                 // Check if existing user needs to complete onboarding
                 $needsOnboarding = OnboardingController::shouldShowOnboarding($user);
 
