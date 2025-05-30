@@ -11,6 +11,7 @@ use App\Services\BadgeService;
 use App\Models\Badge;
 use App\Models\Post;
 use App\Models\User;
+
 class OnboardingController extends Controller
 {
     /**
@@ -106,6 +107,9 @@ class OnboardingController extends Controller
             $badgeAwarded = BadgeService::checkMarketersOnboard($user);
 
             if ($badgeAwarded) {
+                // Delete onboarding notifications for this user
+                $this->deleteOnboardingNotifications($user);
+
                 // Redirect to badge-earned page with the specific badge
                 return redirect()->route('onboarding.badge-earned', ['badge' => 'Marketers Onboard!'])
                     ->with('success', 'Selamat! Kamu berhasil mendapatkan badge "Marketers Onboard!"');
@@ -120,6 +124,37 @@ class OnboardingController extends Controller
 
             return redirect()->route('onboarding.checklist')
                 ->with('error', 'Terjadi kesalahan saat mengklaim badge. Silakan coba lagi.');
+        }
+    }
+
+    /**
+     * Delete onboarding notifications for the user
+     */
+    private function deleteOnboardingNotifications($user): void
+    {
+        try {
+            // Delete notifications that match the onboarding criteria
+            $deletedCount = $user->notifications()
+                ->where(function ($query) {
+                    $query->whereJsonContains('data->type', 'announcement')
+                        ->whereJsonContains('data->action_url', '/onboarding/checklist')
+                        ->whereJsonContains('data->is_pinned', true);
+                })
+                ->orWhere(function ($query) {
+                    // Alternative check for different JSON boolean formats
+                    $query->whereJsonContains('data->type', 'announcement')
+                        ->whereJsonContains('data->action_url', '/onboarding/checklist')
+                        ->whereJsonContains('data->is_pinned', 1);
+                })
+                ->delete();
+
+            if ($deletedCount > 0) {
+                Log::info("Deleted {$deletedCount} onboarding notification(s) for user {$user->id} after completing onboarding");
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting onboarding notifications for user ' . $user->id . ': ' . $e->getMessage());
+            // Don't throw the exception as this is a cleanup operation and shouldn't break the main flow
         }
     }
 
@@ -204,6 +239,7 @@ class OnboardingController extends Controller
 
         return view('onboarding.first-post');
     }
+
     /**
      * Show follow users page for onboarding
      */
