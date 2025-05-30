@@ -42,6 +42,11 @@ class AnswerController extends Controller
             OnboardingController::markDiscussionParticipation(Auth::user());
         }
 
+        // **MARK DISCUSSION PARTICIPATION FOR ONBOARDING**
+        if ($isFirstAnswerEver) {
+            OnboardingController::markDiscussionParticipation(Auth::user());
+        }
+
         // Send notification to the post author if it's not their own answer
         if ($post->user_id !== Auth::id()) {
             $post->user->notify(new PostAnsweredNotification($post, $answer, Auth::user()));
