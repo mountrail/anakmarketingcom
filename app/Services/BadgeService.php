@@ -156,11 +156,16 @@ class BadgeService
             $hasBasicProfile = !empty($user->name) && !empty($user->job_title);
             $hasAccessedNotifications = self::hasAccessedNotificationCenter($user);
             $hasFirstPost = $user->posts()->count() > 0;
+
+            // UPDATED: Check if user has participated in discussions (answered OR voted)
             $hasFirstAnswer = $user->answers()->count() > 0;
+            $hasFirstVote = $user->votes()->count() > 0;
+            $hasParticipatedInDiscussion = $hasFirstAnswer || $hasFirstVote;
+
             $hasFollowedUser = $user->followings()->count() > 0;
 
             // All missions must be completed
-            if ($hasBasicProfile && $hasAccessedNotifications && $hasFirstPost && $hasFirstAnswer && $hasFollowedUser) {
+            if ($hasBasicProfile && $hasAccessedNotifications && $hasFirstPost && $hasParticipatedInDiscussion && $hasFollowedUser) {
                 $badge = Badge::where('name', 'Marketers Onboard!')->first();
                 if ($badge) {
                     // Award the badge

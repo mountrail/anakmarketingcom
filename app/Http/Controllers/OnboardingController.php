@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Services\BadgeService;
 use App\Models\Badge;
 use App\Models\Post;
-
+use App\Models\User;
 class OnboardingController extends Controller
 {
     /**
@@ -203,6 +203,51 @@ class OnboardingController extends Controller
         }
 
         return view('onboarding.first-post');
+    }
+    /**
+     * Show follow users page for onboarding
+     */
+    public function followUsers()
+    {
+        // First, get users with posts, excluding current user
+        $usersWithPosts = User::where('id', '!=', auth()->id())
+            ->select('id', 'name', 'profile_picture', 'avatar', 'job_title', 'company')
+            ->with([
+                'badges' => function ($query) {
+                    $query->select('badges.id', 'badges.name', 'badges.icon');
+                }
+            ])
+            ->withCount('posts')
+            ->having('posts_count', '>', 0) // Only users who have at least 1 post
+            ->orderBy('posts_count', 'desc')
+            ->get();
+
+        // If we have fewer than 5 users with posts, fill with random users without posts
+        if ($usersWithPosts->count() < 5) {
+            $remainingCount = 5 - $usersWithPosts->count();
+
+            // Get random users without posts (or with 0 posts)
+            $usersWithoutPosts = User::where('id', '!=', auth()->id())
+                ->whereNotIn('id', $usersWithPosts->pluck('id'))
+                ->select('id', 'name', 'profile_picture', 'avatar', 'job_title', 'company')
+                ->with([
+                    'badges' => function ($query) {
+                        $query->select('badges.id', 'badges.name', 'badges.icon');
+                    }
+                ])
+                ->withCount('posts')
+                ->inRandomOrder()
+                ->take($remainingCount)
+                ->get();
+
+            // Combine both collections
+            $recommendedUsers = $usersWithPosts->concat($usersWithoutPosts);
+        } else {
+            // Take only first 5 users with posts
+            $recommendedUsers = $usersWithPosts->take(5);
+        }
+
+        return view('onboarding.follow-users', compact('recommendedUsers'));
     }
 
     /**

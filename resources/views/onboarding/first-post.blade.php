@@ -97,7 +97,7 @@
 
                 <!-- Buttons -->
                 <div class="flex items-center justify-end mt-4 gap-3">
-                    <x-primary-button type="button" variant="inactive" size="md"
+                    <x-primary-button type="button" variant="dark" size="md"
                         onclick="window.location.href='{{ route('onboarding.checklist') }}'">
                         {{ __('Kembali') }}
                     </x-primary-button>
