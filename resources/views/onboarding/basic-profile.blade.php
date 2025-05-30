@@ -100,13 +100,6 @@
                 </x-primary-button>
             </div>
         </form>
-
-        <!-- Skip/Exit Link -->
-        <div class="text-center mt-6">
-            <a href="{{ route('home') }}" class="text-gray-500 hover:text-branding-primary transition-colors text-sm">
-                Lewati untuk sekarang
-            </a>
-        </div>
     </div>
 
     <script>
@@ -118,6 +111,8 @@
             const uploadBtnLoading = document.getElementById('upload-btn-loading');
             const form = document.querySelector('form');
             const saveButton = document.getElementById('save-profile-button');
+            const nameInput = document.getElementById('name');
+            const jobTitleInput = document.getElementById('job_title');
 
             function showUploadLoading() {
                 uploadBtn.disabled = true;
@@ -162,6 +157,26 @@
                 return null;
             }
 
+            function validateRequiredFields() {
+                const name = nameInput.value.trim();
+                const jobTitle = jobTitleInput.value.trim();
+
+                return name !== '' && jobTitle !== '';
+            }
+
+            function updateSubmitButton() {
+                const isValid = validateRequiredFields();
+                saveButton.disabled = !isValid;
+
+                if (isValid) {
+                    saveButton.classList.remove('disabled:bg-essentials-inactive', 'disabled:opacity-100',
+                        'disabled:cursor-not-allowed');
+                } else {
+                    saveButton.classList.add('disabled:bg-essentials-inactive', 'disabled:opacity-100',
+                        'disabled:cursor-not-allowed');
+                }
+            }
+
             // Handle profile picture selection
             profilePictureInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
@@ -184,15 +199,28 @@
                 reader.readAsDataURL(file);
             });
 
+            // Add event listeners for required field validation
+            nameInput.addEventListener('input', updateSubmitButton);
+            jobTitleInput.addEventListener('input', updateSubmitButton);
+
             // Handle form submission
             form.addEventListener('submit', function(e) {
+                if (!validateRequiredFields()) {
+                    e.preventDefault();
+                    alert('Nama dan Pekerjaan harus diisi untuk melanjutkan.');
+                    return false;
+                }
                 showSaveLoading();
             });
 
             // Handle page load (in case of validation errors)
             window.addEventListener('load', function() {
                 hideUploadLoading();
+                updateSubmitButton(); // Check initial state
             });
+
+            // Initial validation check
+            updateSubmitButton();
         });
     </script>
 @endsection

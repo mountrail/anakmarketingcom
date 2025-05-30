@@ -13,9 +13,29 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\OnboardingController;
 
 class ProfileController extends Controller
 {
+    /**
+     * Check if authenticated user needs onboarding and redirect if necessary
+     */
+    private function checkOnboardingRequired()
+    {
+        if (auth()->check() && OnboardingController::shouldShowOnboarding(auth()->user())) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'redirect' => route('onboarding.basic-profile'),
+                    'message' => 'Silakan lengkapi profil dasar Anda terlebih dahulu.'
+                ], 302);
+            }
+
+            return redirect()->route('onboarding.basic-profile')
+                ->with('info', 'Silakan lengkapi profil dasar Anda terlebih dahulu.');
+        }
+        return null;
+    }
+
     /**
      * Display the user's profile form.
      */
@@ -76,6 +96,12 @@ class ProfileController extends Controller
      */
     public function show(User $user)
     {
+        // Check onboarding for authenticated users
+        $onboardingCheck = $this->checkOnboardingRequired();
+        if ($onboardingCheck) {
+            return $onboardingCheck;
+        }
+
         $isOwner = auth()->check() && auth()->id() === $user->id;
 
         // Get user's posts with pagination

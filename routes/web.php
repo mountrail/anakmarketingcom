@@ -9,11 +9,14 @@ use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\OnboardingController; // Add this import
+use App\Http\Controllers\OnboardingController;
 
-// Main posts listing route - accessible to all users (replaces old home route)
+// Routes accessible to everyone (with conditional middleware applied in controllers)
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '.*');
+Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
+Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 
 // Google login routes
 Route::controller(GoogleController::class)->group(function () {
@@ -21,8 +24,16 @@ Route::controller(GoogleController::class)->group(function () {
     Route::get('auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
 
-// Protected post routes (user must be authenticated and verified) - MOVED ABOVE show route
+// Onboarding routes - Only require auth and verified, NOT onboarding.complete
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/onboarding/welcome', [OnboardingController::class, 'welcome'])->name('onboarding.welcome');
+    Route::get('/onboarding/checklist', [OnboardingController::class, 'checklist'])->name('onboarding.checklist');
+    Route::get('/onboarding/basic-profile', [OnboardingController::class, 'basicProfile'])->name('onboarding.basic-profile');
+    Route::post('/onboarding/basic-profile', [OnboardingController::class, 'updateBasicProfile'])->name('onboarding.update-basic-profile');
+});
+
+// Protected routes that require completed onboarding
+Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComplete::class])->group(function () {
     // Post CRUD operations - CREATE ROUTE FIRST
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
@@ -35,7 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Answer routes - USING ID FOR FORM SUBMISSIONS
     Route::post('/posts/{post}/answers', [AnswerController::class, 'store'])->name('posts.answers.store');
-    Route::patch('/answers/{answer}', [AnswerController::class, 'update'])->name('answers.update'); // ADD THIS LINE
+    Route::patch('/answers/{answer}', [AnswerController::class, 'update'])->name('answers.update');
     Route::patch('/answers/{answer}/toggle-editors-pick', [AnswerController::class, 'toggleEditorsPick'])->name('answers.toggle-editors-pick');
     Route::delete('/answers/{answer}', [AnswerController::class, 'destroy'])->name('answers.destroy');
 
@@ -73,20 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile/update-basic-info', [ProfileController::class, 'updateBasicInfo'])->name('profile.update-basic-info');
     Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
     Route::patch('/profile/badges', [ProfileController::class, 'updateBadges'])->name('profile.update-badges');
-
-    // Onboarding routes - Updated to use separate views
-    Route::get('/onboarding/welcome', [OnboardingController::class, 'welcome'])->name('onboarding.welcome');
-    Route::get('/onboarding/checklist', [OnboardingController::class, 'checklist'])->name('onboarding.checklist');
-    Route::get('/onboarding/basic-profile', [OnboardingController::class, 'basicProfile'])->name('onboarding.basic-profile');
-    Route::post('/onboarding/basic-profile', [OnboardingController::class, 'updateBasicProfile'])->name('onboarding.update-basic-profile');
 });
-
-// Post route for viewing individual posts - USING SLUG FOR DISPLAY
-// This should handle both slugs and old numeric IDs
-Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '.*');
-
-Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
-Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 
 // Include authentication routes
 require __DIR__ . '/auth.php';
