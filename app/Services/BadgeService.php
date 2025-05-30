@@ -18,7 +18,7 @@ class BadgeService
         try {
             // Check if user already has this badge
             if ($user->hasBadge('Perkenalkan Saya')) {
-                return;
+                return false;
             }
 
             // Check if user has completed basic profile (name and job_title required)
@@ -61,7 +61,7 @@ class BadgeService
         try {
             // Check if user already has this badge
             if ($user->hasBadge('Break the Ice')) {
-                return;
+                return false; // Return false to indicate badge was not just awarded
             }
 
             // Check if this is their first post or they have at least one post
@@ -85,10 +85,15 @@ class BadgeService
                     $user->notify(new BadgeEarnedNotification($badge));
 
                     Log::info("Badge 'Break the Ice' awarded to user {$user->id}");
+
+                    return true; // Return true to indicate badge was just awarded
                 }
             }
+
+            return false;
         } catch (\Exception $e) {
             Log::error("Error awarding 'Break the Ice' badge to user {$user->id}: " . $e->getMessage());
+            return false;
         }
     }
 

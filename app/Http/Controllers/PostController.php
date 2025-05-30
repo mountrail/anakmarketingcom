@@ -111,8 +111,8 @@ class PostController extends Controller
             // Handle image uploads using the service
             $this->imageService->handlePostImages($request, $post);
 
-            // Check for badge
-            BadgeService::checkBreakTheIce(Auth::user());
+            // Check for badge and capture if it was just awarded
+            $badgeAwarded = BadgeService::checkBreakTheIce(Auth::user());
 
             // Send notification to followers
             if (auth()->user()->followers()->exists()) {
@@ -124,6 +124,14 @@ class PostController extends Controller
 
             $successMessage = $validated['type'] === 'question' ? 'Pertanyaan berhasil dibuat!' : 'Diskusi berhasil dibuat!';
 
+            // If badge was just awarded, store the post route in session and redirect to badge page
+            if ($badgeAwarded) {
+                session(['return_to_post' => $post->slug]);
+                return redirect()->route('onboarding.badge-earned', ['badge' => 'Break The Ice'])
+                    ->with('success', $successMessage);
+            }
+
+            // Normal redirect to the post
             return redirect()->route('posts.show', $post->slug)
                 ->with('success', $successMessage);
 
