@@ -100,7 +100,7 @@ class BadgeService
         try {
             // Check if user already has this badge
             if ($user->hasBadge('Ikutan Nimbrung')) {
-                return;
+                return false;
             }
 
             // Check if this is their first answer or they have at least one answer
@@ -124,10 +124,15 @@ class BadgeService
                     $user->notify(new BadgeEarnedNotification($badge));
 
                     Log::info("Badge 'Ikutan Nimbrung' awarded to user {$user->id}");
+
+                    return true; // Return true to indicate badge was just awarded
                 }
             }
+
+            return false;
         } catch (\Exception $e) {
             Log::error("Error awarding 'Ikutan Nimbrung' badge to user {$user->id}: " . $e->getMessage());
+            return false;
         }
     }
 

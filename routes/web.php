@@ -33,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding/basic-profile', [OnboardingController::class, 'basicProfile'])->name('onboarding.basic-profile');
     Route::post('/onboarding/basic-profile', [OnboardingController::class, 'updateBasicProfile'])->name('onboarding.update-basic-profile');
     Route::get('/onboarding/badge-earned', [OnboardingController::class, 'badgeEarned'])->name('onboarding.badge-earned');
+    Route::get('/onboarding/discussion-list', [OnboardingController::class, 'discussionList'])->name('onboarding.discussion-list');
 
     // Add this new route for claiming the final badge
     Route::post('/onboarding/claim-badge', [OnboardingController::class, 'claimBadge'])->name('onboarding.claim-badge');

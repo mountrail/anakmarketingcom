@@ -8,6 +8,7 @@ use App\Services\BadgeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\PostAnsweredNotification;
+use App\Http\Controllers\OnboardingController;
 
 class AnswerController extends Controller
 {
@@ -23,6 +24,9 @@ class AnswerController extends Controller
         // Store content as plain text (no HTML purification needed)
         $content = trim($validated['content']);
 
+        // Track if this is the user's first answer ever (for onboarding)
+        $isFirstAnswerEver = Auth::user()->answers()->count() === 0;
+
         $answer = new Answer([
             'user_id' => Auth::id(),
             'content' => $content,
@@ -31,11 +35,25 @@ class AnswerController extends Controller
         $post->answers()->save($answer);
 
         // **CHECK FOR "IKUTAN NIMBRUNG" BADGE AFTER ANSWER CREATION**
-        BadgeService::checkIkutanNimbrung(Auth::user());
+        $badgeAwarded = BadgeService::checkIkutanNimbrung(Auth::user());
+
+        // **MARK DISCUSSION PARTICIPATION FOR ONBOARDING**
+        if ($isFirstAnswerEver) {
+            OnboardingController::markDiscussionParticipation(Auth::user());
+        }
 
         // Send notification to the post author if it's not their own answer
         if ($post->user_id !== Auth::id()) {
             $post->user->notify(new PostAnsweredNotification($post, $answer, Auth::user()));
+        }
+
+        // **REDIRECT TO BADGE-EARNED PAGE IF BADGE WAS AWARDED**
+        if ($badgeAwarded) {
+            // Store the post slug in session so we can redirect back after badge page
+            session(['return_to_post' => $post->slug]);
+
+            return redirect()->route('onboarding.badge-earned', ['badge' => 'Ikutan Nimbrung'])
+                ->with('success', 'Answer posted successfully.');
         }
 
         return redirect()->route('posts.show', $post->slug)

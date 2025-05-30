@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Services\BadgeService;
 use App\Models\Badge;
+use App\Models\Post;
 
 class OnboardingController extends Controller
 {
@@ -46,6 +47,26 @@ class OnboardingController extends Controller
     {
         return view('onboarding.basic-profile', [
             'showSidebar' => false,
+            'user' => auth()->user()
+        ]);
+    }
+
+    /**
+     * Display the discussion list for "Ikuti Diskusi Pertamamu" onboarding step
+     */
+    public function discussionList(): View
+    {
+        // Get editor's pick posts (featured posts)
+        $editorPicks = Post::featured()
+            ->where('featured_type', '!=', 'none')
+            ->with(['user', 'answers', 'images'])
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('onboarding.discussion-list', [
+            'showSidebar' => false,
+            'editorPicks' => $editorPicks,
             'user' => auth()->user()
         ]);
     }
@@ -184,13 +205,18 @@ class OnboardingController extends Controller
 
         // Check other onboarding steps
         $hasFirstPost = $user->posts()->count() > 0;
+
+        // UPDATED: Check if user has participated in discussions (answered OR voted)
         $hasFirstAnswer = $user->answers()->count() > 0;
+        $hasFirstVote = $user->votes()->count() > 0;
+        $hasParticipatedInDiscussion = $hasFirstAnswer || $hasFirstVote;
+
         $hasFollowedUser = $user->followings()->count() > 0;
 
         return [
             'basic_profile' => $hasBasicProfile,
             'accessed_notifications' => $hasAccessedNotifications,
-            'first_answer' => $hasFirstAnswer,
+            'first_answer' => $hasParticipatedInDiscussion, // Updated to include voting
             'first_post' => $hasFirstPost,
             'followed_user' => $hasFollowedUser,
         ];
@@ -225,6 +251,21 @@ class OnboardingController extends Controller
             $user->update(['onboarding_steps' => json_encode($steps)]);
 
             Log::info("Notification center accessed for user {$user->id}");
+        }
+    }
+
+    /**
+     * Mark discussion participation as completed (call this from VoteController and AnswerController)
+     */
+    public static function markDiscussionParticipation($user): void
+    {
+        $steps = json_decode($user->onboarding_steps, true) ?? [];
+
+        if (!in_array('first_discussion_participation', $steps)) {
+            $steps[] = 'first_discussion_participation';
+            $user->update(['onboarding_steps' => json_encode($steps)]);
+
+            Log::info("Discussion participation completed for user {$user->id}");
         }
     }
 

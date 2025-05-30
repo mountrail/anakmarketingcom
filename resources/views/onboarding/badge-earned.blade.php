@@ -53,6 +53,12 @@
                         size="xl" class="w-auto px-8">
                         Mulai Berdiskusi
                     </x-primary-button>
+                @elseif ($badge->name === 'Ikutan Nimbrung' && session('return_to_post'))
+                    <x-primary-button type="button"
+                        onclick="window.location.href='{{ route('posts.show', session('return_to_post')) }}'"
+                        variant="primary" size="xl" class="w-auto px-8">
+                        Lanjutkan
+                    </x-primary-button>
                 @else
                     <x-primary-button type="button" onclick="window.location.href='{{ route('onboarding.checklist') }}'"
                         variant="primary" size="xl" class="w-auto px-8">

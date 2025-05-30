@@ -33,8 +33,8 @@
                 <!-- Access Notification Center -->
                 <x-onboarding.checklist-item title="Akses Notification Center" :completed="$onboardingStatus['accessed_notifications']" :route="route('notifications.index')" />
 
-                <!-- First Answer -->
-                <x-onboarding.checklist-item title="Ikuti Diskusi Pertamamu!" :completed="$onboardingStatus['first_answer']" :route="route('home')" />
+                <!-- First Discussion Participation (Answer OR Vote) -->
+                <x-onboarding.checklist-item title="Ikuti Diskusi Pertamamu!" :completed="$onboardingStatus['first_answer']" :route="route('onboarding.discussion-list')" />
 
                 <!-- First Post -->
                 <x-onboarding.checklist-item title="Buat Diskusi Pertamamu!" :completed="$onboardingStatus['first_post']" :route="route('posts.create')" />

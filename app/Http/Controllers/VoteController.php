@@ -7,6 +7,7 @@ use App\Models\Answer;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\OnboardingController;
 
 class VoteController extends Controller
 {
@@ -43,6 +44,9 @@ class VoteController extends Controller
             ->where($targetType . '_id', $targetId)
             ->first();
 
+        // Track if this is the user's first vote ever (for onboarding)
+        $isFirstVoteEver = !$vote && $user->votes()->count() === 0;
+
         // Determine the weight of the vote (for admin/staff votes)
         // Fixed the role check to avoid errors if hasRole method doesn't exist
         $weight = 1; // Default weight
@@ -76,6 +80,11 @@ class VoteController extends Controller
             ]);
             $message = 'Vote recorded';
             $newUserVote = $vote->value;
+
+            // **MARK DISCUSSION PARTICIPATION FOR ONBOARDING**
+            if ($isFirstVoteEver) {
+                OnboardingController::markDiscussionParticipation($user);
+            }
         }
 
         // Calculate the new vote totals for the target
