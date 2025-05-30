@@ -14,7 +14,9 @@ use App\Http\Controllers\OnboardingController;
 // Routes accessible to everyone (with conditional middleware applied in controllers)
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
-Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '.*');
+
+// IMPORTANT: Specific routes MUST come before dynamic slug routes
+// Put posts/create and other specific routes BEFORE the slug route
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
 Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 
@@ -35,7 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // Protected routes that require completed onboarding
 Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComplete::class])->group(function () {
-    // Post CRUD operations - CREATE ROUTE FIRST
+    // SPECIFIC POST ROUTES FIRST - These must come before the dynamic slug route
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
@@ -86,6 +88,10 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
     Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
     Route::patch('/profile/badges', [ProfileController::class, 'updateBadges'])->name('profile.update-badges');
 });
+
+// DYNAMIC SLUG ROUTE MUST COME LAST
+// This catches any remaining /posts/{anything} patterns
+Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '.*');
 
 // Include authentication routes
 require __DIR__ . '/auth.php';
