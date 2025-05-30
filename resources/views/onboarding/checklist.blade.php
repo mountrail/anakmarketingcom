@@ -37,7 +37,7 @@
                 <x-onboarding.checklist-item title="Ikuti Diskusi Pertamamu!" :completed="$onboardingStatus['first_answer']" :route="route('onboarding.discussion-list')" />
 
                 <!-- First Post -->
-                <x-onboarding.checklist-item title="Buat Diskusi Pertamamu!" :completed="$onboardingStatus['first_post']" :route="route('posts.create')" />
+                <x-onboarding.checklist-item title="Buat Diskusi Pertamamu!" :completed="$onboardingStatus['first_post']" :route="route('onboarding.first-post')" />
 
                 <!-- Follow User -->
                 <x-onboarding.checklist-item title="Follow User Lain" :completed="$onboardingStatus['followed_user']" :route="route('home')" />
