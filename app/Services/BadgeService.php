@@ -132,6 +132,72 @@ class BadgeService
     }
 
     /**
+     * Award "Marketers Onboard!" badge for completing all onboarding missions
+     */
+    public static function checkMarketersOnboard(User $user)
+    {
+        try {
+            // Check if user already has this badge
+            if ($user->hasBadge('Marketers Onboard!')) {
+                return false;
+            }
+
+            // Check if user has completed all onboarding missions
+            $hasBasicProfile = !empty($user->name) && !empty($user->job_title);
+            $hasAccessedNotifications = self::hasAccessedNotificationCenter($user);
+            $hasFirstPost = $user->posts()->count() > 0;
+            $hasFirstAnswer = $user->answers()->count() > 0;
+            $hasFollowedUser = $user->followings()->count() > 0;
+
+            // All missions must be completed
+            if ($hasBasicProfile && $hasAccessedNotifications && $hasFirstPost && $hasFirstAnswer && $hasFollowedUser) {
+                $badge = Badge::where('name', 'Marketers Onboard!')->first();
+                if ($badge) {
+                    // Award the badge
+                    $user->giveBadge($badge);
+
+                    // Create profile badge entry
+                    UserProfileBadge::firstOrCreate([
+                        'user_id' => $user->id,
+                        'badge_id' => $badge->id,
+                    ], [
+                        'is_displayed' => false,
+                        'display_order' => null,
+                    ]);
+
+                    // Send notification
+                    $user->notify(new BadgeEarnedNotification($badge));
+
+                    Log::info("Badge 'Marketers Onboard!' awarded to user {$user->id}");
+
+                    return true; // Return true to indicate badge was just awarded
+                }
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            Log::error("Error awarding 'Marketers Onboard!' badge to user {$user->id}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Check if user has accessed notification center
+     */
+    private static function hasAccessedNotificationCenter($user): bool
+    {
+        // Check if user has any notifications that have been marked as read
+        // This indicates they've accessed the notification center
+        if ($user->notifications()->whereNotNull('read_at')->exists()) {
+            return true;
+        }
+
+        // Alternative: Check if user has the onboarding step marked as completed
+        return $user->onboarding_steps &&
+            in_array('accessed_notifications', json_decode($user->onboarding_steps, true) ?? []);
+    }
+
+    /**
      * Check and award all applicable badges for existing users
      */
     public static function checkAllBadgesForUser(User $user)
@@ -139,6 +205,7 @@ class BadgeService
         self::checkPerkenalkanSaya($user);
         self::checkBreakTheIce($user);
         self::checkIkutanNimbrung($user);
+        self::checkMarketersOnboard($user);
     }
 
     /**

@@ -10,7 +10,11 @@
                     Selamat!
                 </h1>
                 <h2 class="text-xl font-bold text-branding-primary mb-4">
-                    Kamu mendapatkan <em>badge</em> pertamamu!
+                    @if ($badge->name === 'Marketers Onboard!')
+                        Kamu telah menyelesaikan semua misi onboarding!
+                    @else
+                        Kamu mendapatkan <em>badge</em> pertamamu!
+                    @endif
                 </h2>
             </div>
 
@@ -33,16 +37,28 @@
             <!-- Description -->
             <div class="mb-8">
                 <p class="text-gray-700 text-sm leading-relaxed">
-                    Beri kontribusi pada komunitas ini untuk dapatkan <em>badges</em> dan banyak benefit menarik lainnya
+                    @if ($badge->name === 'Marketers Onboard!')
+                        Selamat datang di komunitas! Mulai berbagi dan berdiskusi untuk mendapatkan lebih banyak
+                        <em>badges</em> dan benefit menarik lainnya.
+                    @else
+                        Beri kontribusi pada komunitas ini untuk dapatkan <em>badges</em> dan banyak benefit menarik lainnya
+                    @endif
                 </p>
             </div>
 
             <!-- Continue Button -->
             <div class="flex justify-center continue-button">
-                <x-primary-button type="button" onclick="window.location.href='{{ route('onboarding.checklist') }}'"
-                    variant="primary" size="xl" class="w-auto px-8">
-                    Lanjutkan
-                </x-primary-button>
+                @if ($badge->name === 'Marketers Onboard!')
+                    <x-primary-button type="button" onclick="window.location.href='{{ route('home') }}'" variant="primary"
+                        size="xl" class="w-auto px-8">
+                        Mulai Berdiskusi
+                    </x-primary-button>
+                @else
+                    <x-primary-button type="button" onclick="window.location.href='{{ route('onboarding.checklist') }}'"
+                        variant="primary" size="xl" class="w-auto px-8">
+                        Lanjutkan
+                    </x-primary-button>
+                @endif
             </div>
         </div>
     </div>

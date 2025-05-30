@@ -30,6 +30,12 @@ class BadgeSeeder extends Seeder
                 'description' => 'Post your first comment/answer',
                 'icon' => 'chat-bubble',
                 'level' => 1,
+            ],
+            [
+                'name' => 'Marketers Onboard!',
+                'description' => 'Complete all onboarding missions and officially join the marketing community',
+                'icon' => 'rocket',
+                'level' => 2,
             ]
         ];
 

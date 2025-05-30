@@ -53,15 +53,16 @@ class OnboardingController extends Controller
     /**
      * Display the badge earned page
      */
-    public function badgeEarned(): View
+    public function badgeEarned(Request $request): View
     {
         $user = auth()->user();
+        $badgeName = $request->query('badge', 'Perkenalkan Saya');
 
-        // Get the most recently earned badge (assuming it's "Perkenalkan Saya")
-        $badge = Badge::where('name', 'Perkenalkan Saya')->first();
+        // Get the specified badge
+        $badge = Badge::where('name', $badgeName)->first();
 
         // If badge doesn't exist or user doesn't have it, redirect to checklist
-        if (!$badge || !$user->hasBadge('Perkenalkan Saya')) {
+        if (!$badge || !$user->hasBadge($badgeName)) {
             return redirect()->route('onboarding.checklist');
         }
 
@@ -72,6 +73,34 @@ class OnboardingController extends Controller
         ]);
     }
 
+    /**
+     * Claim the "Marketers Onboard!" badge when all missions are completed
+     */
+    public function claimBadge(): RedirectResponse
+    {
+        try {
+            $user = auth()->user();
+
+            // Check and award the "Marketers Onboard!" badge
+            $badgeAwarded = BadgeService::checkMarketersOnboard($user);
+
+            if ($badgeAwarded) {
+                // Redirect to badge-earned page with the specific badge
+                return redirect()->route('onboarding.badge-earned', ['badge' => 'Marketers Onboard!'])
+                    ->with('success', 'Selamat! Kamu berhasil mendapatkan badge "Marketers Onboard!"');
+            } else {
+                // If badge wasn't awarded (already has it or doesn't meet requirements)
+                return redirect()->route('onboarding.checklist')
+                    ->with('info', 'Pastikan semua misi onboarding sudah diselesaikan.');
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error claiming Marketers Onboard badge for user ' . auth()->id() . ': ' . $e->getMessage());
+
+            return redirect()->route('onboarding.checklist')
+                ->with('error', 'Terjadi kesalahan saat mengklaim badge. Silakan coba lagi.');
+        }
+    }
 
     /**
      * Update basic profile information during onboarding
@@ -123,7 +152,7 @@ class OnboardingController extends Controller
 
             // If badge was just awarded, redirect to badge-earned page
             if ($badgeAwarded) {
-                return redirect()->route('onboarding.badge-earned')
+                return redirect()->route('onboarding.badge-earned', ['badge' => 'Perkenalkan Saya'])
                     ->with('success', 'Profil dasar berhasil disimpan!');
             }
 
