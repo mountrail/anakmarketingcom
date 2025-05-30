@@ -40,7 +40,7 @@ class GoogleController extends Controller
             $user = User::where('email', $googleUser->email)->first();
 
             $isNewUser = false;
-            $isFirstTimeLogin = false;
+            $needsOnboarding = false;
 
             // If user doesn't exist, create a new one
             if (!$user) {
@@ -62,7 +62,7 @@ class GoogleController extends Controller
 
                     $user = User::create($userData);
                     $isNewUser = true;
-                    $isFirstTimeLogin = true; // New users are definitely first-time login
+                    $needsOnboarding = true; // New users always need onboarding
 
                     \Log::info('New user created successfully with ID: ' . $user->id . ' and auto-verified');
                 } catch (\Exception $createEx) {
@@ -75,8 +75,8 @@ class GoogleController extends Controller
             } else {
                 \Log::info('Existing user found: ' . $user->id);
 
-                // Check if this is their first time logging in
-                $isFirstTimeLogin = OnboardingController::shouldShowOnboarding($user);
+                // Check if existing user needs to complete onboarding
+                $needsOnboarding = OnboardingController::shouldShowOnboarding($user);
 
                 // Update existing user with Google information and auto-verify
                 $updateData = [
@@ -113,9 +113,17 @@ class GoogleController extends Controller
             Auth::login($user);
             \Log::info('User logged in successfully: ' . $user->id);
 
-            // Redirect to onboarding if this is their first-time login
-            if ($isFirstTimeLogin) {
-                return redirect()->route('onboarding.welcome');
+            // Redirect based on onboarding status
+            if ($needsOnboarding) {
+                // For new users, redirect to welcome page (consistent with email verification flow)
+                if ($isNewUser) {
+                    return redirect()->route('onboarding.welcome')
+                        ->with('info', 'Selamat datang! Mari mulai dengan onboarding process.');
+                }
+
+                // For existing users who haven't completed onboarding, go directly to basic profile
+                return redirect()->route('onboarding.basic-profile')
+                    ->with('info', 'Silakan lengkapi profil dasar Anda terlebih dahulu.');
             }
 
             return redirect()->intended(route('home'));

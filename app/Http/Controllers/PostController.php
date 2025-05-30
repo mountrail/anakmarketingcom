@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\OnboardingController;
 
 class PostController extends Controller
 {
@@ -25,10 +26,35 @@ class PostController extends Controller
     }
 
     /**
+     * Check if authenticated user needs onboarding and redirect if necessary
+     */
+    private function checkOnboardingRequired()
+    {
+        if (auth()->check() && OnboardingController::shouldShowOnboarding(auth()->user())) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'redirect' => route('onboarding.basic-profile'),
+                    'message' => 'Silakan lengkapi profil dasar Anda terlebih dahulu.'
+                ], 302);
+            }
+
+            return redirect()->route('onboarding.basic-profile')
+                ->with('info', 'Silakan lengkapi profil dasar Anda terlebih dahulu.');
+        }
+        return null;
+    }
+
+    /**
      * Display a listing of posts based on type filter.
      */
     public function index(Request $request)
     {
+        // Check onboarding for authenticated users
+        $onboardingCheck = $this->checkOnboardingRequired();
+        if ($onboardingCheck) {
+            return $onboardingCheck;
+        }
+
         $selectedType = $request->query('type', 'question');
 
         $data = $this->loadingService->getPostsForIndex($selectedType, 10);
@@ -125,6 +151,12 @@ class PostController extends Controller
      */
     public function show($slug)
     {
+        // Check onboarding for authenticated users
+        $onboardingCheck = $this->checkOnboardingRequired();
+        if ($onboardingCheck) {
+            return $onboardingCheck;
+        }
+
         // First, try to find the post by slug
         $post = Post::where('slug', $slug)->first();
 
@@ -319,6 +351,12 @@ class PostController extends Controller
      */
     public function loadUserPosts(Request $request, User $user)
     {
+        // Check onboarding for authenticated users
+        $onboardingCheck = $this->checkOnboardingRequired();
+        if ($onboardingCheck) {
+            return $onboardingCheck;
+        }
+
         $result = $this->loadingService->loadUserPosts($request, $user);
 
         if ($request->wantsJson()) {

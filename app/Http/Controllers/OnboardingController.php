@@ -112,10 +112,9 @@ class OnboardingController extends Controller
     private function getOnboardingStatus($user): array
     {
         // Check if user has completed basic profile
-        // User must have: name (required for registration) + (job_title OR company) + profile_picture
-        $hasBasicProfile = !empty($user->name) &&
-            (!empty($user->job_title) || !empty($user->company)) &&
-            $user->hasProfilePicture();
+        // User must have: name (required for registration) + job_title
+        // Profile picture and company are optional
+        $hasBasicProfile = !empty($user->name) && !empty($user->job_title);
 
         // Check if user has accessed notifications center
         $hasAccessedNotifications = $this->hasAccessedNotificationCenter($user);
@@ -187,9 +186,7 @@ class OnboardingController extends Controller
     public static function shouldShowOnboarding($user): bool
     {
         // Show onboarding if user hasn't completed basic profile
-        // This means: missing job_title AND company AND profile_picture
-        return empty($user->job_title) &&
-            empty($user->company) &&
-            !$user->hasProfilePicture();
+        // Basic profile requires both name AND job_title to be filled
+        return empty($user->name) || empty($user->job_title);
     }
 }

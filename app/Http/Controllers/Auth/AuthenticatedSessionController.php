@@ -13,7 +13,9 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Display the login view. Deprecated in favor of the new auth modal.
+     * This method is kept for backward compatibility and will be removed in future versions.
+     * Instead, use the auth modal for login.
      */
     public function create(): View
     {
