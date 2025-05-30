@@ -14,6 +14,12 @@ class BadgeSeeder extends Seeder
     {
         $badges = [
             [
+                'name' => 'Perkenalkan Saya',
+                'description' => 'Complete your basic profile to introduce yourself',
+                'icon' => 'user-circle',
+                'level' => 1,
+            ],
+            [
                 'name' => 'Break the Ice',
                 'description' => 'Post your first question or discussion',
                 'icon' => 'ice-cube',

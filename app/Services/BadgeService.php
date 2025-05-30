@@ -11,6 +11,49 @@ use Illuminate\Support\Facades\Log;
 class BadgeService
 {
     /**
+     * Award "Perkenalkan Saya" badge for completing basic profile
+     */
+    public static function checkPerkenalkanSaya(User $user)
+    {
+        try {
+            // Check if user already has this badge
+            if ($user->hasBadge('Perkenalkan Saya')) {
+                return;
+            }
+
+            // Check if user has completed basic profile (name and job_title required)
+            if (!empty($user->name) && !empty($user->job_title)) {
+                $badge = Badge::where('name', 'Perkenalkan Saya')->first();
+                if ($badge) {
+                    // Award the badge
+                    $user->giveBadge($badge);
+
+                    // Create profile badge entry
+                    UserProfileBadge::firstOrCreate([
+                        'user_id' => $user->id,
+                        'badge_id' => $badge->id,
+                    ], [
+                        'is_displayed' => false,
+                        'display_order' => null,
+                    ]);
+
+                    // Send notification
+                    $user->notify(new BadgeEarnedNotification($badge));
+
+                    Log::info("Badge 'Perkenalkan Saya' awarded to user {$user->id}");
+
+                    return true; // Return true to indicate badge was just awarded
+                }
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            Log::error("Error awarding 'Perkenalkan Saya' badge to user {$user->id}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Award "Break the Ice" badge for first post
      */
     public static function checkBreakTheIce(User $user)
@@ -93,6 +136,7 @@ class BadgeService
      */
     public static function checkAllBadgesForUser(User $user)
     {
+        self::checkPerkenalkanSaya($user);
         self::checkBreakTheIce($user);
         self::checkIkutanNimbrung($user);
     }

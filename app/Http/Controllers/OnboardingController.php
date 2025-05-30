@@ -7,6 +7,8 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Services\BadgeService;
+use App\Models\Badge;
 
 class OnboardingController extends Controller
 {
@@ -47,6 +49,29 @@ class OnboardingController extends Controller
             'user' => auth()->user()
         ]);
     }
+
+    /**
+     * Display the badge earned page
+     */
+    public function badgeEarned(): View
+    {
+        $user = auth()->user();
+
+        // Get the most recently earned badge (assuming it's "Perkenalkan Saya")
+        $badge = Badge::where('name', 'Perkenalkan Saya')->first();
+
+        // If badge doesn't exist or user doesn't have it, redirect to checklist
+        if (!$badge || !$user->hasBadge('Perkenalkan Saya')) {
+            return redirect()->route('onboarding.checklist');
+        }
+
+        return view('onboarding.badge-earned', [
+            'showSidebar' => false,
+            'badge' => $badge,
+            'user' => $user
+        ]);
+    }
+
 
     /**
      * Update basic profile information during onboarding
@@ -93,7 +118,16 @@ class OnboardingController extends Controller
             // Mark basic profile as completed
             $this->markOnboardingStepCompleted($user, 'basic_profile');
 
-            // Redirect to checklist with basic profile completed
+            // Check and award "Perkenalkan Saya" badge
+            $badgeAwarded = BadgeService::checkPerkenalkanSaya($user);
+
+            // If badge was just awarded, redirect to badge-earned page
+            if ($badgeAwarded) {
+                return redirect()->route('onboarding.badge-earned')
+                    ->with('success', 'Profil dasar berhasil disimpan!');
+            }
+
+            // Otherwise, redirect to checklist
             return redirect()->route('onboarding.checklist')
                 ->with('success', 'Profil dasar berhasil disimpan!');
 

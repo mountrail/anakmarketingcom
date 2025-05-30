@@ -48,6 +48,7 @@ class EnsureOnboardingComplete
             'onboarding.checklist',
             'onboarding.basic-profile',
             'onboarding.update-basic-profile',
+            'onboarding.badge-earned',
         ];
 
         if (in_array($currentRoute, $onboardingRoutes)) {
