@@ -191,6 +191,21 @@ class OnboardingController extends Controller
     }
 
     /**
+     * Show the first post creation form (simplified version)
+     */
+    public function firstPost()
+    {
+        $user = auth()->user();
+
+        // If user already has posts, redirect to regular create page
+        if ($user->posts()->exists()) {
+            return redirect()->route('posts.create');
+        }
+
+        return view('onboarding.first-post');
+    }
+
+    /**
      * Get user's onboarding status
      */
     private function getOnboardingStatus($user): array
