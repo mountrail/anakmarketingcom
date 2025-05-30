@@ -48,16 +48,16 @@
         <!-- Bottom Navigation Buttons -->
         <div class="flex space-x-3 px-2 sm:px-0">
             <!-- Main Home Button -->
-            <x-primary-button onclick="window.location.href='{{ route('home') }}'" variant="dark" size="sm"
+            <x-primary-button onclick="window.location.href='{{ route('home') }}'" variant="dark" size="md"
                 class="flex-1">
                 ke Halaman Utama
             </x-primary-button>
-
             <!-- Back to Checklist Button -->
             <x-primary-button onclick="window.location.href='{{ route('onboarding.checklist') }}'" variant="primary"
-                size="sm" class="flex-1">
+                size="md" class="flex-1">
                 Kembali ke Checklist
             </x-primary-button>
+
         </div>
     </div>
 @endsection

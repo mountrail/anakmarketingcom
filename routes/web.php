@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding/badge-earned', [OnboardingController::class, 'badgeEarned'])->name('onboarding.badge-earned');
     Route::get('/onboarding/discussion-list', [OnboardingController::class, 'discussionList'])->name('onboarding.discussion-list');
     Route::get('/onboarding/first-post', [OnboardingController::class, 'firstPost'])->name('onboarding.first-post');
+    Route::get('/onboarding/follow-users', [OnboardingController::class, 'followUsers'])->name('onboarding.follow-users');
 
     // Add this new route for claiming the final badge
     Route::post('/onboarding/claim-badge', [OnboardingController::class, 'claimBadge'])->name('onboarding.claim-badge');

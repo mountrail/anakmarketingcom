@@ -40,7 +40,7 @@
                 <x-onboarding.checklist-item title="Buat Diskusi Pertamamu!" :completed="$onboardingStatus['first_post']" :route="route('onboarding.first-post')" />
 
                 <!-- Follow User -->
-                <x-onboarding.checklist-item title="Follow User Lain" :completed="$onboardingStatus['followed_user']" :route="route('home')" />
+                <x-onboarding.checklist-item title="Follow User Lain" :completed="$onboardingStatus['followed_user']" :route="route('onboarding.follow-users')" />
             </div>
 
             <div class="space-y-3 text-center">
