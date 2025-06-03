@@ -24,7 +24,7 @@
             'icon' => 'text-white',
         ],
         'info' => [
-            'bg' => 'bg-essentials-default',
+            'bg' => 'bg-blue-600',
             'text' => 'text-white',
             'icon' => 'text-white',
         ],
@@ -32,21 +32,23 @@
 
     $colorClasses = $colors[$type] ?? $colors['info'];
 
-    // Define position classes
+    // Define position classes with mobile responsiveness
     $positions = [
-        'top-right' => 'top-4 right-4',
-        'top-left' => 'top-4 left-4',
-        'bottom-right' => 'bottom-4 right-4',
-        'bottom-left' => 'bottom-4 left-4',
-        'top-center' => 'top-4 left-1/2 transform -translate-x-1/2',
-        'bottom-center' => 'bottom-4 left-1/2 transform -translate-x-1/2',
+        'top-right' => 'top-4 right-4 sm:max-w-sm sm:w-auto max-w-none w-full left-4 right-4 sm:left-auto',
+        'top-left' => 'top-4 left-4 sm:max-w-sm sm:w-auto max-w-none w-full left-4 right-4 sm:right-auto',
+        'bottom-right' => 'bottom-4 right-4 sm:max-w-sm sm:w-auto max-w-none w-full left-4 right-4 sm:left-auto',
+        'bottom-left' => 'bottom-4 left-4 sm:max-w-sm sm:w-auto max-w-none w-full left-4 right-4 sm:right-auto',
+        'top-center' =>
+            'top-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 sm:max-w-sm sm:w-auto',
+        'bottom-center' =>
+            'bottom-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 sm:max-w-sm sm:w-auto',
     ];
 
     $positionClasses = $positions[$position] ?? $positions['top-right'];
 @endphp
 
 <div id="{{ $toastId }}"
-    class="fixed {{ $positionClasses }} z-50 max-w-sm w-full mx-auto transform transition-all duration-300 ease-in-out opacity-0 translate-y-2 pointer-events-none"
+    class="fixed {{ $positionClasses }} z-50 mx-auto transform transition-all duration-300 ease-in-out opacity-0 translate-y-2 pointer-events-none"
     style="display: none;">
     <div
         class="{{ $colorClasses['bg'] }} {{ $colorClasses['text'] }} px-4 py-3 rounded-lg shadow-lg border-l-4 border-white border-opacity-20">
@@ -67,9 +69,10 @@
                                 clip-rule="evenodd"></path>
                         </svg>
                     @else
+                        {{-- Better info icon --}}
                         <svg class="w-5 h-5 {{ $colorClasses['icon'] }}" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 011-1 1 1 0 110 2H9a1 1 0 01-1-1zm.01 4a1 1 0 112 0v4a1 1 0 11-2 0v-4z"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
                                 clip-rule="evenodd"></path>
                         </svg>
                     @endif
@@ -206,28 +209,30 @@
                             icon: 'text-white'
                         },
                         info: {
-                            bg: 'bg-essentials-default',
+                            bg: 'bg-blue-600',
                             text: 'text-white',
                             icon: 'text-white'
                         }
                     };
 
+                    // Mobile-responsive position classes
                     const positions = {
-                        'top-right': 'top-4 right-4',
-                        'top-left': 'top-4 left-4',
-                        'bottom-right': 'bottom-4 right-4',
-                        'bottom-left': 'bottom-4 left-4',
-                        'top-center': 'top-4 left-1/2 transform -translate-x-1/2',
-                        'bottom-center': 'bottom-4 left-1/2 transform -translate-x-1/2'
+                        'top-right': 'top-4 right-4 sm:max-w-sm sm:w-auto max-w-none w-full left-4 right-4 sm:left-auto',
+                        'top-left': 'top-4 left-4 sm:max-w-sm sm:w-auto max-w-none w-full left-4 right-4 sm:right-auto',
+                        'bottom-right': 'bottom-4 right-4 sm:max-w-sm sm:w-auto max-w-none w-full left-4 right-4 sm:left-auto',
+                        'bottom-left': 'bottom-4 left-4 sm:max-w-sm sm:w-auto max-w-none w-full left-4 right-4 sm:right-auto',
+                        'top-center': 'top-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 sm:max-w-sm sm:w-auto',
+                        'bottom-center': 'bottom-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 sm:max-w-sm sm:w-auto'
                     };
 
                     const colorClasses = colors[type] || colors.info;
                     const positionClasses = positions[config.position] || positions['top-right'];
 
+                    // Updated icons with better info icon
                     const icons = {
                         success: '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>',
                         error: '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>',
-                        info: '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 011-1 1 1 0 110 2H9a1 1 0 01-1-1zm.01 4a1 1 0 112 0v4a1 1 0 11-2 0v-4z" clip-rule="evenodd"></path>'
+                        info: '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>'
                     };
 
                     const progressBar = config.duration > 0 ? `
@@ -245,7 +250,7 @@
                 ` : '';
 
                     const toastHTML = `
-                    <div id="${toastId}" class="fixed ${positionClasses} z-50 max-w-sm w-full mx-auto transform transition-all duration-300 ease-in-out opacity-0 translate-y-2 pointer-events-none" style="display: none;">
+                    <div id="${toastId}" class="fixed ${positionClasses} z-50 mx-auto transform transition-all duration-300 ease-in-out opacity-0 translate-y-2 pointer-events-none" style="display: none;">
                         <div class="${colorClasses.bg} ${colorClasses.text} px-4 py-3 rounded-lg shadow-lg border-l-4 border-white border-opacity-20">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">

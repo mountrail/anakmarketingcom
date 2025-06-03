@@ -105,11 +105,12 @@ class VoteController extends Controller
                 'upvotes' => $upvotes,
                 'downvotes' => $downvotes,
                 'score' => $score,
-                'userVote' => $newUserVote
+                'userVote' => $newUserVote,
+                'showToast' => false // Explicitly disable toast for vote actions
             ]);
         }
 
-        // For non-AJAX, redirect back
-        return redirect()->back()->with('success', $message);
+        // For non-AJAX, redirect back silently without flash message
+        return redirect()->back();
     }
 }
