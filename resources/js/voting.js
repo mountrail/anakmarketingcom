@@ -62,7 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(data => {
                     // Update UI with server data
                     updateUIWithServerData(voteContainers, typeAttr, targetId, data);
-                    if (data.message) {
+                    // FIXED: Only show toast if showToast is not explicitly false
+                    if (data.showToast !== false && data.message) {
                         showNotification(data.message, 'success');
                     }
                 })

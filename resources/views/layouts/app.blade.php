@@ -105,8 +105,13 @@
             });
         };
 
-        // Enhanced global success handler
+        // Enhanced global success handler with toast control
         window.handleAjaxSuccess = function(response, defaultMessage = 'Berhasil!') {
+            // Check if response explicitly disables toast (for vote actions)
+            if (response.showToast === false) {
+                return;
+            }
+
             const message = response.message || defaultMessage;
             ToastManager.create(message, 'success', {
                 duration: 4000

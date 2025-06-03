@@ -4,7 +4,7 @@
     'message' => '',
     'duration' => 4000, // milliseconds, 0 for persistent
     'dismissible' => true,
-    'position' => 'top-right', // top-right, top-left, bottom-right, bottom-left, top-center, bottom-center
+    'position' => 'bottom-center', // Changed default to bottom-center for mobile-first
     'id' => null,
 ])
 
@@ -24,7 +24,7 @@
             'icon' => 'text-white',
         ],
         'info' => [
-            'bg' => 'bg-essentials-default',
+            'bg' => 'bg-blue-600',
             'text' => 'text-white',
             'icon' => 'text-white',
         ],
@@ -32,24 +32,26 @@
 
     $colorClasses = $colors[$type] ?? $colors['info'];
 
-    // Define position classes
+    // Define position classes with mobile-first approach - FIXED for full width mobile
     $positions = [
-        'top-right' => 'top-4 right-4',
-        'top-left' => 'top-4 left-4',
-        'bottom-right' => 'bottom-4 right-4',
-        'bottom-left' => 'bottom-4 left-4',
-        'top-center' => 'top-4 left-1/2 transform -translate-x-1/2',
-        'bottom-center' => 'bottom-4 left-1/2 transform -translate-x-1/2',
+        'top-right' => 'top-4 left-0 right-0 mx-4 sm:left-auto sm:right-4 sm:mx-0 sm:max-w-sm sm:w-auto',
+        'top-left' => 'top-4 left-0 right-0 mx-4 sm:right-auto sm:mx-0 sm:max-w-sm sm:w-auto',
+        'bottom-right' => 'bottom-4 left-0 right-0 mx-4 sm:left-auto sm:right-4 sm:mx-0 sm:max-w-sm sm:w-auto',
+        'bottom-left' => 'bottom-4 left-0 right-0 mx-4 sm:right-auto sm:mx-0 sm:max-w-sm sm:w-auto',
+        'top-center' =>
+            'top-4 left-0 right-0 mx-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 sm:mx-0 sm:max-w-sm sm:w-auto',
+        'bottom-center' =>
+            'bottom-0 left-0 right-0 sm:bottom-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 sm:mx-0 sm:max-w-sm sm:w-auto',
     ];
 
-    $positionClasses = $positions[$position] ?? $positions['top-right'];
+    $positionClasses = $positions[$position] ?? $positions['bottom-center'];
 @endphp
 
 <div id="{{ $toastId }}"
-    class="fixed {{ $positionClasses }} z-50 max-w-sm w-full mx-auto transform transition-all duration-300 ease-in-out opacity-0 translate-y-2 pointer-events-none"
+    class="fixed {{ $positionClasses }} z-50 transform transition-all duration-300 ease-in-out opacity-0 translate-y-2 pointer-events-none"
     style="display: none;">
     <div
-        class="{{ $colorClasses['bg'] }} {{ $colorClasses['text'] }} px-4 py-3 rounded-lg shadow-lg border-l-4 border-white border-opacity-20">
+        class="{{ $colorClasses['bg'] }} {{ $colorClasses['text'] }} px-4 py-3 rounded-none sm:rounded-lg shadow-lg border-t-4 sm:border-l-4 sm:border-t-0 border-white border-opacity-30">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <!-- Icon based on type -->
@@ -67,9 +69,10 @@
                                 clip-rule="evenodd"></path>
                         </svg>
                     @else
+                        {{-- Better, more recognizable info icon --}}
                         <svg class="w-5 h-5 {{ $colorClasses['icon'] }}" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 011-1 1 1 0 110 2H9a1 1 0 01-1-1zm.01 4a1 1 0 112 0v4a1 1 0 11-2 0v-4z"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                                 clip-rule="evenodd"></path>
                         </svg>
                     @endif
@@ -116,6 +119,24 @@
                 width: 0%;
             }
         }
+
+        /* Mobile-first toast styling - full width on mobile */
+        @media (max-width: 640px) {
+            .toast-mobile-full {
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                margin: 0 !important;
+                transform: none !important;
+            }
+
+            .toast-mobile-full>div {
+                border-radius: 0 !important;
+                margin: 0 !important;
+                border-left: none !important;
+                border-top: 4px solid rgba(255, 255, 255, 0.3) !important;
+            }
+        }
     </style>
 @endonce
 
@@ -146,6 +167,11 @@
                         // Hide oldest toast
                         const oldestToast = activeToasts.values().next().value;
                         this.hide(oldestToast);
+                    }
+
+                    // Add mobile-specific class for full width bottom positioning
+                    if (window.innerWidth <= 640) {
+                        toast.classList.add('toast-mobile-full');
                     }
 
                     // Show toast with animation
@@ -180,13 +206,14 @@
                     // Hide completely after animation
                     setTimeout(() => {
                         toast.style.display = 'none';
+                        toast.classList.remove('toast-mobile-full');
                     }, 300);
                 },
 
                 create: function(message, type = 'info', options = {}) {
                     const defaults = {
                         duration: 4000,
-                        position: 'top-right',
+                        position: 'bottom-center',
                         dismissible: true
                     };
 
@@ -206,28 +233,30 @@
                             icon: 'text-white'
                         },
                         info: {
-                            bg: 'bg-essentials-default',
+                            bg: 'bg-blue-600',
                             text: 'text-white',
                             icon: 'text-white'
                         }
                     };
 
+                    // Mobile-first position classes - FIXED for full width mobile
                     const positions = {
-                        'top-right': 'top-4 right-4',
-                        'top-left': 'top-4 left-4',
-                        'bottom-right': 'bottom-4 right-4',
-                        'bottom-left': 'bottom-4 left-4',
-                        'top-center': 'top-4 left-1/2 transform -translate-x-1/2',
-                        'bottom-center': 'bottom-4 left-1/2 transform -translate-x-1/2'
+                        'top-right': 'top-4 left-0 right-0 mx-4 sm:left-auto sm:right-4 sm:mx-0 sm:max-w-sm sm:w-auto',
+                        'top-left': 'top-4 left-0 right-0 mx-4 sm:right-auto sm:mx-0 sm:max-w-sm sm:w-auto',
+                        'bottom-right': 'bottom-4 left-0 right-0 mx-4 sm:left-auto sm:right-4 sm:mx-0 sm:max-w-sm sm:w-auto',
+                        'bottom-left': 'bottom-4 left-0 right-0 mx-4 sm:right-auto sm:mx-0 sm:max-w-sm sm:w-auto',
+                        'top-center': 'top-4 left-0 right-0 mx-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 sm:mx-0 sm:max-w-sm sm:w-auto',
+                        'bottom-center': 'bottom-0 left-0 right-0 sm:bottom-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 sm:mx-0 sm:max-w-sm sm:w-auto'
                     };
 
                     const colorClasses = colors[type] || colors.info;
-                    const positionClasses = positions[config.position] || positions['top-right'];
+                    const positionClasses = positions[config.position] || positions['bottom-center'];
 
+                    // Updated icons with better, more recognizable info icon
                     const icons = {
                         success: '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>',
                         error: '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>',
-                        info: '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 011-1 1 1 0 110 2H9a1 1 0 01-1-1zm.01 4a1 1 0 112 0v4a1 1 0 11-2 0v-4z" clip-rule="evenodd"></path>'
+                        info: '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>'
                     };
 
                     const progressBar = config.duration > 0 ? `
@@ -245,8 +274,8 @@
                 ` : '';
 
                     const toastHTML = `
-                    <div id="${toastId}" class="fixed ${positionClasses} z-50 max-w-sm w-full mx-auto transform transition-all duration-300 ease-in-out opacity-0 translate-y-2 pointer-events-none" style="display: none;">
-                        <div class="${colorClasses.bg} ${colorClasses.text} px-4 py-3 rounded-lg shadow-lg border-l-4 border-white border-opacity-20">
+                    <div id="${toastId}" class="fixed ${positionClasses} z-50 transform transition-all duration-300 ease-in-out opacity-0 translate-y-2 pointer-events-none" style="display: none;">
+                        <div class="${colorClasses.bg} ${colorClasses.text} px-4 py-3 rounded-none sm:rounded-lg shadow-lg border-t-4 sm:border-l-4 sm:border-t-0 border-white border-opacity-30">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <div class="flex-shrink-0">
@@ -292,6 +321,18 @@
             @if ($message)
                 ToastManager.show('{{ $toastId }}');
             @endif
+        });
+
+        // Handle window resize to adjust mobile styling
+        window.addEventListener('resize', function() {
+            const toasts = document.querySelectorAll('[id^="toast-"]');
+            toasts.forEach(toast => {
+                if (window.innerWidth <= 640) {
+                    toast.classList.add('toast-mobile-full');
+                } else {
+                    toast.classList.remove('toast-mobile-full');
+                }
+            });
         });
     </script>
 @endonce
