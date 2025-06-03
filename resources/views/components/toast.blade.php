@@ -234,6 +234,7 @@
                         },
                         info: {
                             bg: 'bg-blue-600',
+                            bg: 'bg-blue-600',
                             text: 'text-white',
                             icon: 'text-white'
                         }
