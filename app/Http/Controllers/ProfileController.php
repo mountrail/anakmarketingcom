@@ -47,6 +47,22 @@ class ProfileController extends Controller
     }
 
     /**
+     * Display the profile edit page with all editable sections.
+     */
+    public function editProfile(Request $request): View
+    {
+        // Check onboarding for authenticated users
+        $onboardingCheck = $this->checkOnboardingRequired();
+        if ($onboardingCheck) {
+            return $onboardingCheck;
+        }
+
+        return view('profile.edit', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
      * Update the user's profile information.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
@@ -173,7 +189,7 @@ class ProfileController extends Controller
                 'company' => $request->company,
             ]);
 
-            return redirect()->route('profile.show', $user)
+            return redirect()->route('profile.edit-profile')
                 ->with('success', 'Informasi dasar berhasil diperbarui!');
 
         } catch (\Exception $e) {
@@ -202,7 +218,7 @@ class ProfileController extends Controller
                 'bio' => $request->bio,
             ]);
 
-            return redirect()->route('profile.show', $user)
+            return redirect()->route('profile.edit-profile')
                 ->with('success', 'Deskripsi berhasil diperbarui!');
 
         } catch (\Exception $e) {
@@ -244,11 +260,13 @@ class ProfileController extends Controller
             $mediaItem = $user->addMediaFromRequest('profile_picture')
                 ->toMediaCollection('profile_pictures');
 
-            return redirect()->route('profile.show', $user)->with('success', 'Foto berhasil diubah!');
+            // Always redirect to edit page after profile picture update
+            return redirect()->route('profile.edit-profile')
+                ->with('success', 'Foto berhasil diubah!');
 
         } catch (\Exception $e) {
             \Log::error('Profile picture upload error: ' . $e->getMessage());
-            return redirect()->route('profile.show', $user)->with('error', 'Terjadi kesalahan saat mengupload foto');
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengupload foto');
         }
     }
 
@@ -291,7 +309,7 @@ class ProfileController extends Controller
             $badgeIds = $request->input('badges', []);
             BadgeService::updateDisplayedBadges(auth()->user(), $badgeIds);
 
-            return redirect()->route('profile.show', auth()->user())
+            return redirect()->route('profile.edit-profile')
                 ->with('success', 'Badge berhasil diperbarui!');
         } catch (\Exception $e) {
             Log::error('Error updating badges: ' . $e->getMessage());

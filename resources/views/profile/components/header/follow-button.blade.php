@@ -1,7 +1,13 @@
 {{-- resources/views/profile/components/header/follow-button.blade.php --}}
 @props(['user', 'isOwner'])
 
-@if (!$isOwner)
+@if ($isOwner)
+    {{-- Show Edit Profile button for profile owner --}}
+    <a href="{{ route('profile.edit-profile') }}"
+        class="inline-flex items-center px-4 py-2 bg-branding-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-opacity-90 focus:bg-opacity-90 active:bg-opacity-75 focus:outline-none focus:ring-2 focus:ring-branding-primary focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
+        Edit Profil
+    </a>
+@else
     @auth
         @php
             $isFollowing = $user->isFollowedBy(auth()->user());

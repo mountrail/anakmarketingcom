@@ -1,7 +1,7 @@
 {{-- resources/views/profile/partials/view-only-profile.blade.php --}}
 @props(['user'])
 
-<div>
+<div class="mb-20 space-y-6">
     <h2
         class="text-xl font-semibold text-branding-black dark:text-white text-center border-b border-gray-200 dark:border-gray-600 mb-4">
         Profil
