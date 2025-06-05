@@ -1,4 +1,4 @@
-{{-- resources/views/profile/partials/form-handler.blade.php --}}
+{{-- resources\views\profile\components\scripts\form-handler.blade.php --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Check for Laravel session messages and show toasts

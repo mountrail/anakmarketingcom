@@ -14,15 +14,14 @@
             ])
 
             <div>
-                @include('profile.partials.profile-information', [
+                {{-- Always show view-only profile information --}}
+                @include('profile.partials.view-only-profile', [
                     'user' => $user,
-                    'isOwner' => $isOwner,
-                    'errors' => $errors,
                 ])
 
-                @include('profile.partials.badges-section', [
+                {{-- Always show view-only badges section --}}
+                @include('profile.partials.badges-section-view-only', [
                     'user' => $user,
-                    'isOwner' => $isOwner,
                 ])
 
                 @include('profile.partials.user-posts', [

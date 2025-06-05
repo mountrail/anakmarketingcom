@@ -86,6 +86,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
     Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
+    // NEW: Profile edit page route
+    Route::get('/profile-edit', [ProfileController::class, 'editProfile'])->name('profile.edit-profile');
+
     // Protected profile update routes
     Route::post('/profile/update-profile-picture', [ProfileController::class, 'updateProfilePicture'])
         ->name('profile.update-profile-picture');

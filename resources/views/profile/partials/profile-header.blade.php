@@ -5,6 +5,7 @@
     @include('profile.components.header.profile-picture', [
         'user' => $user,
         'isOwner' => $isOwner,
+        'showUploadButton' => false,
     ])
 
     @include('profile.components.header.user-info', [

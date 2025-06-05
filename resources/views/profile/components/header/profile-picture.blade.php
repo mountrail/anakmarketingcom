@@ -1,18 +1,18 @@
 {{-- resources\views\profile\components\header\profile-picture.blade.php --}}
-@props(['user', 'isOwner'])
+@props(['user', 'isOwner', 'showUploadButton' => false])
 
 <div class="relative inline-block">
     <img src="{{ $user->getProfileImageUrl() }}" alt="{{ $user->name }}"
         class="w-32 h-32 rounded-full mx-auto mb-4 object-cover object-center border-4 border-white shadow-lg"
         style="aspect-ratio: 1/1;" id="profile-image-preview">
 
-    @if ($isOwner)
+    @if ($isOwner && $showUploadButton)
         <form id="profile-picture-form" enctype="multipart/form-data" method="POST"
             action="{{ route('profile.update-profile-picture') }}" class="mb-4">
             @csrf
 
             <!-- Upload Button with Loading State -->
-            <div class="relative">
+            <div class="relative flex justify-center">
                 <x-primary-button id="upload-photo-btn"
                     onclick="document.getElementById('profile_picture_input').click()" variant="primary" size="sm"
                     type="button"
@@ -34,7 +34,7 @@
     @endif
 </div>
 
-@if ($isOwner)
+@if ($isOwner && $showUploadButton)
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const profilePictureInput = document.getElementById('profile_picture_input');
