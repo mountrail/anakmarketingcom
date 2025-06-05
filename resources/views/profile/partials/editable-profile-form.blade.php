@@ -19,7 +19,7 @@
         <x-input-label for="job_title" :value="__('Pekerjaan')" />
         <x-text-input id="job_title" name="job_title" type="text"
             class="mt-1 block w-full bg-essentials-inactive bg-opacity-20" :value="old('job_title', $user->job_title)"
-            placeholder="contoh: Performance Marketing" />
+            placeholder="contoh: Performance Marketing" required />
         <x-input-error class="mt-2" :messages="$errors->get('job_title')" />
     </div>
 
@@ -96,9 +96,19 @@
         };
         const originalBio = document.getElementById('bio').value;
 
+        // Function to check if required fields are filled
+        function areRequiredFieldsFilled() {
+            const nameValue = document.getElementById('name').value.trim();
+            const jobTitleValue = document.getElementById('job_title').value.trim();
+            return nameValue !== '' && jobTitleValue !== '';
+        }
+
         // Function to update button state and color
-        function updateButtonState(button, hasChanges) {
-            if (hasChanges) {
+        function updateButtonState(button, hasChanges, isBasicInfoForm = false) {
+            // For basic info form, also check if required fields are filled
+            const canSubmit = isBasicInfoForm ? (hasChanges && areRequiredFieldsFilled()) : hasChanges;
+
+            if (canSubmit) {
                 button.disabled = false;
                 // Remove disabled styles and add active brand-primary color
                 button.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -120,7 +130,7 @@
             };
 
             basicInfoChanged = JSON.stringify(currentValues) !== JSON.stringify(originalBasicInfo);
-            updateButtonState(basicInfoButton, basicInfoChanged);
+            updateButtonState(basicInfoButton, basicInfoChanged, true);
         }
 
         // Check for changes in bio form
@@ -161,11 +171,26 @@
         // Add form submission handlers for loading states
         if (basicInfoForm) {
             basicInfoForm.addEventListener('submit', function(e) {
-                if (basicInfoChanged) {
-                    showLoadingState(basicInfoButton);
-                } else {
+                // Prevent submission if required fields are not filled or no changes
+                if (!basicInfoChanged || !areRequiredFieldsFilled()) {
                     e.preventDefault();
+
+                    // Show error message if required fields are missing
+                    if (!areRequiredFieldsFilled()) {
+                        // You can use your toast system here
+                        if (typeof toast === 'function') {
+                            toast('Nama dan Pekerjaan harus diisi!', 'error', {
+                                duration: 4000,
+                                position: 'top-right'
+                            });
+                        } else {
+                            alert('Nama dan Pekerjaan harus diisi!');
+                        }
+                    }
+                    return;
                 }
+
+                showLoadingState(basicInfoButton);
             });
         }
 

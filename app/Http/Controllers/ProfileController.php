@@ -175,8 +175,14 @@ class ProfileController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'job_title' => ['nullable', 'string', 'max:255'],
+            'job_title' => ['required', 'string', 'max:255'], // Changed from nullable to required
             'company' => ['nullable', 'string', 'max:255'],
+        ], [
+            'name.required' => 'Nama harus diisi.',
+            'job_title.required' => 'Pekerjaan harus diisi.',
+            'name.max' => 'Nama tidak boleh lebih dari 255 karakter.',
+            'job_title.max' => 'Pekerjaan tidak boleh lebih dari 255 karakter.',
+            'company.max' => 'Perusahaan tidak boleh lebih dari 255 karakter.',
         ]);
 
         try {
