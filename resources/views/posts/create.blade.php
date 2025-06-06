@@ -27,37 +27,9 @@
 
                         <div>
                             <x-input-label for="type" :value="__('Kategori')" class="font-bold text-lg" />
-                            <x-dropdown align="left" width="48">
-                                <x-slot name="trigger">
-                                    <button type="button"
-                                        class="flex items-center w-48 rounded-md font-medium px-3 py-2 mt-1 border border-essentials-inactive dark:bg-essentials-inactive/20 dark:border-essentials-inactive text-gray-700 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 shadow-sm">
-                                        <span
-                                            id="selected-type-text">{{ old('type') == 'discussion' ? 'Diskusi' : 'Pertanyaan' }}</span>
-                                        <svg class="ms-auto h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                                        </svg>
-                                    </button>
-                                </x-slot>
-
-                                <x-slot name="content">
-                                    <div class="py-1">
-                                        <button type="button" data-value="question"
-                                            class="dropdown-option block w-full px-3 py-2 text-base font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out border-b border-gray-200 dark:border-gray-600 {{ old('type', 'question') == 'question' ? 'bg-gray-100 dark:bg-gray-800' : '' }}">
-                                            Pertanyaan
-                                        </button>
-                                        <button type="button" data-value="discussion"
-                                            class="dropdown-option block w-full px-3 py-2 text-base font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out {{ old('type') == 'discussion' ? 'bg-gray-100 dark:bg-gray-800' : '' }}">
-                                            Diskusi
-                                        </button>
-                                    </div>
-                                </x-slot>
-                            </x-dropdown>
-
-                            <!-- Hidden input to store the selected value -->
-                            <input type="hidden" name="type" id="type" value="{{ old('type', 'question') }}">
-
+                            <x-select-input id="type" name="type" :selected="old('type', 'question')" :options="['question' => 'Pertanyaan', 'discussion' => 'Diskusi']"
+                                placeholder="Pilih kategori"
+                                class="mt-1 w-48 border-essentials-inactive dark:bg-essentials-inactive/20 dark:border-essentials-inactive dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
                             @error('type')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
