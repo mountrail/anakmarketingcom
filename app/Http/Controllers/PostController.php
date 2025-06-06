@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use App\Models\PostSlugRedirect;
 use App\Models\User;
 use App\Services\BadgeService;
 use App\Services\PostImageService;
 use App\Services\PostLoadingService;
+use App\Services\PostValidationService;
+use App\Services\PostNotificationService;
+use App\Services\PostAuthorizationService;
+use App\Services\PostRedirectService;
+use App\Services\PostViewService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
@@ -18,11 +22,28 @@ class PostController extends Controller
 {
     protected PostImageService $imageService;
     protected PostLoadingService $loadingService;
+    protected PostValidationService $validationService;
+    protected PostNotificationService $notificationService;
+    protected PostAuthorizationService $authorizationService;
+    protected PostRedirectService $redirectService;
+    protected PostViewService $viewService;
 
-    public function __construct(PostImageService $imageService, PostLoadingService $loadingService)
-    {
+    public function __construct(
+        PostImageService $imageService,
+        PostLoadingService $loadingService,
+        PostValidationService $validationService,
+        PostNotificationService $notificationService,
+        PostAuthorizationService $authorizationService,
+        PostRedirectService $redirectService,
+        PostViewService $viewService
+    ) {
         $this->imageService = $imageService;
         $this->loadingService = $loadingService;
+        $this->validationService = $validationService;
+        $this->notificationService = $notificationService;
+        $this->authorizationService = $authorizationService;
+        $this->redirectService = $redirectService;
+        $this->viewService = $viewService;
     }
 
     /**
@@ -49,17 +70,15 @@ class PostController extends Controller
      */
     public function index(Request $request)
     {
-        // Check onboarding for authenticated users
         $onboardingCheck = $this->checkOnboardingRequired();
         if ($onboardingCheck) {
             return $onboardingCheck;
         }
 
         $selectedType = $request->query('type', 'question');
-
         $data = $this->loadingService->getPostsForIndex($selectedType, 10);
 
-        view()->share('editorPicks', $data['editorPicks']);
+        $this->viewService->shareEditorPicks();
 
         return view('home.index', [
             'selectedType' => $selectedType,
@@ -73,15 +92,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        $editorPicks = Post::featured()
-            ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers', 'images'])
-            ->latest()
-            ->take(5)
-            ->get();
-
-        view()->share('editorPicks', $editorPicks);
-
+        $this->viewService->shareEditorPicks();
         return view('posts.create');
     }
 
@@ -91,14 +102,7 @@ class PostController extends Controller
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required|string',
-                'type' => 'required|in:question,discussion',
-                'images.*' => 'nullable|file|image|max:2048', // 2MB max per image
-                'uploaded_images' => 'nullable|string', // JSON string of uploaded images
-            ]);
-
+            $validated = $this->validationService->validateStore($request);
             $purifiedContent = Purifier::clean($validated['content']);
 
             $post = Post::create([
@@ -108,30 +112,18 @@ class PostController extends Controller
                 'type' => $validated['type'],
             ]);
 
-            // Handle image uploads using the service
             $this->imageService->handlePostImages($request, $post);
-
-            // Check for badge and capture if it was just awarded
             $badgeAwarded = BadgeService::checkBreakTheIce(Auth::user());
-
-            // Send notification to followers
-            if (auth()->user()->followers()->exists()) {
-                $followers = auth()->user()->followers()->get();
-                foreach ($followers as $follower) {
-                    $follower->notify(new \App\Notifications\FollowedUserPostedNotification($post, auth()->user()));
-                }
-            }
+            $this->notificationService->notifyFollowersOfNewPost($post, auth()->user());
 
             $successMessage = $validated['type'] === 'question' ? 'Pertanyaan berhasil dibuat!' : 'Diskusi berhasil dibuat!';
 
-            // If badge was just awarded, store the post route in session and redirect to badge page
             if ($badgeAwarded) {
                 session(['return_to_post' => $post->slug]);
                 return redirect()->route('onboarding.badge-earned', ['badge' => 'Break The Ice'])
                     ->with('success', $successMessage);
             }
 
-            // Normal redirect to the post
             return redirect()->route('posts.show', $post->slug)
                 ->with('success', $successMessage);
 
@@ -159,60 +151,26 @@ class PostController extends Controller
      */
     public function show($slug)
     {
-        // Check onboarding for authenticated users
         $onboardingCheck = $this->checkOnboardingRequired();
         if ($onboardingCheck) {
             return $onboardingCheck;
         }
 
-        // First, try to find the post by slug
-        $post = Post::where('slug', $slug)->first();
+        // Handle redirects first
+        $redirect = $this->redirectService->handlePostRedirect($slug);
+        if ($redirect) {
+            return $redirect;
+        }
 
-        // If not found, check for redirects and handle various cases
+        // Get the post
+        $post = $this->redirectService->getPostBySlug($slug);
         if (!$post) {
-            // Check if it's an old slug that needs redirecting
-            $redirect = PostSlugRedirect::where('old_slug', $slug)->first();
-
-            if ($redirect && $redirect->post) {
-                // Permanent redirect to new slug
-                return redirect()->route('posts.show', $redirect->post->slug, 301);
-            }
-
-            // If it's numeric, try to find by ID (backward compatibility)
-            if (is_numeric($slug)) {
-                $post = Post::find($slug);
-                if ($post) {
-                    // Redirect to proper slug URL
-                    return redirect()->route('posts.show', $post->slug, 301);
-                }
-            }
-
-            // If still not found, 404
             abort(404);
         }
 
-        // Increment view count
-        $post->increment('view_count');
-
-        // Load post relationships including images
-        $post->load([
-            'user',
-            'answers' => function ($query) {
-                $query->latest();
-            },
-            'answers.user',
-            'images'
-        ]);
-
-        // Share editorPicks for the sidebar
-        $editorPicks = Post::featured()
-            ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers', 'images'])
-            ->latest()
-            ->take(5)
-            ->get();
-
-        view()->share('editorPicks', $editorPicks);
+        $this->viewService->incrementViewCount($post);
+        $post = $this->viewService->loadPostForDisplay($post);
+        $this->viewService->shareEditorPicks();
 
         return view('posts.show', compact('post'));
     }
@@ -222,20 +180,12 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizationService->authorizeOrAbort(
+            $this->authorizationService->canEdit($post, Auth::user())
+        );
 
         $post->load('images');
-
-        $editorPicks = Post::featured()
-            ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers', 'images'])
-            ->latest()
-            ->take(5)
-            ->get();
-
-        view()->share('editorPicks', $editorPicks);
+        $this->viewService->shareEditorPicks();
 
         return view('posts.edit', compact('post'));
     }
@@ -245,21 +195,12 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizationService->authorizeOrAbort(
+            $this->authorizationService->canEdit($post, Auth::user())
+        );
 
         try {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required|string',
-                'type' => 'required|in:question,discussion',
-                'images.*' => 'nullable|file|image|max:2048', // New traditional file uploads
-                'uploaded_images' => 'nullable|string', // JSON string of uploaded images
-                'keep_images' => 'nullable|array', // IDs of existing images to keep (legacy support)
-                'keep_images.*' => 'integer|exists:post_images,id',
-            ]);
-
+            $validated = $this->validationService->validateUpdate($request);
             $purifiedContent = Purifier::clean($validated['content']);
 
             $post->update([
@@ -268,12 +209,9 @@ class PostController extends Controller
                 'type' => $validated['type'],
             ]);
 
-            // Handle image updates using the service
             $this->imageService->handleImageUpdates($request, $post);
 
             $successMessage = $validated['type'] === 'question' ? 'Pertanyaan berhasil diperbarui!' : 'Diskusi berhasil diperbarui!';
-
-            // Use fresh() to get updated model data including potentially new slug
             $updatedPost = $post->fresh();
 
             return redirect()->route('posts.show', $updatedPost->slug)
@@ -304,18 +242,13 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizationService->authorizeOrAbort(
+            $this->authorizationService->canDelete($post, Auth::user())
+        );
 
         try {
-            // Delete associated images using the service
             $this->imageService->deleteAllPostImages($post);
-
-            // Delete associated slug redirects
             $post->slugRedirects()->delete();
-
-            // Delete the post
             $post->delete();
 
             return redirect()->route('home')
@@ -330,10 +263,14 @@ class PostController extends Controller
     }
 
     /**
-     * Toggle the featured status of a post (Editor's Pick) - Enhanced for AJAX
+     * Toggle the featured status of a post (Editor's Pick)
      */
     public function toggleFeatured(Post $post)
     {
+        $this->authorizationService->authorizeOrAbort(
+            $this->authorizationService->canManageFeatured(Auth::user())
+        );
+
         $result = $this->loadingService->toggleFeatured($post);
 
         if (!$result['success'] && isset($result['status_code'])) {
@@ -359,7 +296,6 @@ class PostController extends Controller
      */
     public function loadUserPosts(Request $request, User $user)
     {
-        // Check onboarding for authenticated users
         $onboardingCheck = $this->checkOnboardingRequired();
         if ($onboardingCheck) {
             return $onboardingCheck;
@@ -368,19 +304,7 @@ class PostController extends Controller
         $result = $this->loadingService->loadUserPosts($request, $user);
 
         if ($request->wantsJson()) {
-            $html = '';
-            foreach ($result['posts'] as $post) {
-                $html .= view('components.post-item', [
-                    'post' => $post,
-                    'showMeta' => false,
-                    'showVoteScore' => false,
-                    'showCommentCount' => true,
-                    'showShare' => true,
-                    'showThreeDots' => true,
-                    'customClasses' => 'text-xs',
-                    'containerClasses' => 'border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 last:pb-0'
-                ])->render();
-            }
+            $html = $this->viewService->renderPostItems($result['posts']);
 
             return response()->json([
                 'success' => true,
@@ -397,26 +321,17 @@ class PostController extends Controller
      */
     public function sendPostAnnouncement(Request $request, Post $post)
     {
-        if (!Auth::user()->hasRole(['editor', 'admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizationService->authorizeOrAbort(
+            $this->authorizationService->canSendAnnouncements(Auth::user())
+        );
 
-        $request->validate([
-            'message' => 'required|string|max:1000',
-            'is_pinned' => 'boolean'
-        ]);
+        $validated = $this->validationService->validateAnnouncement($request);
 
-        $users = \App\Models\User::where('id', '!=', Auth::id())->get();
-
-        \Illuminate\Support\Facades\Notification::send(
-            $users,
-            new \App\Notifications\AnnouncementNotification(
-                'Recommended Discussion',
-                $request->message,
-                route('posts.show', $post->slug),
-                $request->boolean('is_pinned'),
-                $post
-            )
+        $this->notificationService->sendPostAnnouncement(
+            $post,
+            $validated['message'],
+            $request->boolean('is_pinned'),
+            Auth::user()
         );
 
         return response()->json([
@@ -430,9 +345,9 @@ class PostController extends Controller
      */
     public function deleteImage(Post $post, $imageId)
     {
-        if ($post->user_id !== Auth::id() && !Auth::user()->hasRole(['editor', 'admin'])) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizationService->authorizeOrAbort(
+            $this->authorizationService->canEdit($post, Auth::user())
+        );
 
         $success = $this->imageService->deletePostImage($post, (int) $imageId);
 
