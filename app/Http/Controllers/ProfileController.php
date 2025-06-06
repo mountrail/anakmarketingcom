@@ -231,7 +231,7 @@ class ProfileController extends Controller
     public function updateBio(Request $request)
     {
         $request->validate([
-            'bio' => ['nullable', 'string', 'max:1000'], // Adjust max length as needed
+            'bio' => ['nullable', 'string', 'max:250'], // Adjust max length as needed
         ]);
 
         try {
