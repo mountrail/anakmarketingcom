@@ -70,6 +70,24 @@ class ProfileController extends Controller
         // Log the incoming request data for debugging
         \Log::info('Profile update request data:', $request->all());
 
+        // Additional validation for required fields
+        $request->validate([
+            'phone_country_code' => 'required',
+            'phone_number' => 'required|string|min:8',
+            'industry' => 'required|string',
+            'seniority' => 'required|string',
+            'company_size' => 'required|string',
+            'city' => 'required|string',
+        ], [
+            'phone_country_code.required' => 'Kode negara nomor telepon harus dipilih.',
+            'phone_number.required' => 'Nomor telepon harus diisi.',
+            'phone_number.min' => 'Nomor telepon minimal 8 digit.',
+            'industry.required' => 'Industri harus dipilih.',
+            'seniority.required' => 'Senioritas harus dipilih.',
+            'company_size.required' => 'Jumlah karyawan harus dipilih.',
+            'city.required' => 'Kota harus dipilih.',
+        ]);
+
         // Get validated data
         $validatedData = $request->validated();
 
@@ -90,21 +108,21 @@ class ProfileController extends Controller
 
             // Log the processed phone number
             \Log::info('Setting phone to: ' . $request->user()->phone);
-        } else if (!$request->filled('phone_country_code') && !$request->filled('phone_number')) {
-            // If both fields are empty, set phone to null
-            $request->user()->phone = null;
-        } else {
-            // If only one phone field is filled, keep the existing value
-            \Log::info('Only one phone field filled, keeping existing value: ' . $request->user()->phone);
         }
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
         }
 
-        $request->user()->save();
+        try {
+            $request->user()->save();
 
-        return Redirect::route('account.edit')->with('status', 'profile-updated');
+            return Redirect::route('account.edit')->with('success', 'Informasi akun berhasil diperbarui!');
+        } catch (\Exception $e) {
+            \Log::error('Account update failed: ' . $e->getMessage());
+
+            return Redirect::route('account.edit')->with('error', 'Terjadi kesalahan saat menyimpan. Silakan coba lagi.');
+        }
     }
 
     /**

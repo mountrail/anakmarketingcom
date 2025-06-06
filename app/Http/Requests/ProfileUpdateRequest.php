@@ -26,30 +26,20 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
             'phone_number' => [
-                'nullable',
+                'required',          // Changed from nullable to required
                 'string',
                 'min:8',            // Minimum 8 digits for phone numbers
-                'max:12',           // Max 12 digits for phone numbers (3 for country codes, 15 total in international standard)
+                'max:12',           // Max 12 digits for phone numbers
                 'regex:/^\d+$/',    // Only digits
-                function ($attribute, $value, $fail) {
-                    if (!empty($value) && empty($this->phone_country_code)) {
-                        $fail('Phone number requires a country code.');
-                    }
-                }
             ],
             'phone_country_code' => [
-                'nullable',
+                'required',          // Changed from nullable to required
                 'string',
                 'max:5',
                 'regex:/^\d+$/',    // Only digits for country code
-                function ($attribute, $value, $fail) {
-                    if (!empty($this->phone_number) && empty($value)) {
-                        $fail('Country code is required when phone number is provided.');
-                    }
-                }
             ],
             'industry' => [
-                'nullable',
+                'required',          // Changed from nullable to required
                 Rule::in([
                     'Beauty',
                     'Consumer',
@@ -66,7 +56,7 @@ class ProfileUpdateRequest extends FormRequest
             ],
 
             'seniority' => [
-                'nullable',
+                'required',          // Changed from nullable to required
                 Rule::in([
                     'Junior Staff',
                     'Senior Staff',
@@ -80,7 +70,7 @@ class ProfileUpdateRequest extends FormRequest
             ],
 
             'company_size' => [
-                'nullable',
+                'required',          // Changed from nullable to required
                 Rule::in([
                     '0-10',
                     '11-50',
@@ -91,7 +81,7 @@ class ProfileUpdateRequest extends FormRequest
             ],
 
             'city' => [
-                'nullable',
+                'required',          // Changed from nullable to required
                 Rule::in([
                     'Bandung',
                     'Jabodetabek',
@@ -113,10 +103,31 @@ class ProfileUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone_number.min' => 'Phone number must be at least 8 digits long.',
-            'phone_number.max' => 'Phone number cannot exceed 12 digits.',
-            'phone_number.regex' => 'Phone number must contain only digits.',
-            'phone_country_code.regex' => 'Country code must contain only digits.',
+            // Phone number validation messages
+            'phone_number.required' => 'Nomor telepon harus diisi.',
+            'phone_number.min' => 'Nomor telepon minimal 8 digit.',
+            'phone_number.max' => 'Nomor telepon tidak boleh lebih dari 12 digit.',
+            'phone_number.regex' => 'Nomor telepon hanya boleh berisi angka.',
+
+            // Phone country code validation messages
+            'phone_country_code.required' => 'Kode negara nomor telepon harus dipilih.',
+            'phone_country_code.regex' => 'Kode negara hanya boleh berisi angka.',
+
+            // Industry validation messages
+            'industry.required' => 'Industri harus dipilih.',
+            'industry.in' => 'Industri yang dipilih tidak valid.',
+
+            // Seniority validation messages
+            'seniority.required' => 'Senioritas harus dipilih.',
+            'seniority.in' => 'Senioritas yang dipilih tidak valid.',
+
+            // Company size validation messages
+            'company_size.required' => 'Jumlah karyawan harus dipilih.',
+            'company_size.in' => 'Jumlah karyawan yang dipilih tidak valid.',
+
+            // City validation messages
+            'city.required' => 'Kota harus dipilih.',
+            'city.in' => 'Kota yang dipilih tidak valid.',
         ];
     }
 }

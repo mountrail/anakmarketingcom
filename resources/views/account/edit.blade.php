@@ -1,7 +1,8 @@
+{{-- resources\views\account\edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Profile') }}
+            {{ __('Akun saya') }}
         </h2>
     </x-slot>
 
@@ -26,5 +27,42 @@
             </div>
         </div>
     </div>
-</x-app-layout>
 
+    {{-- Include toast notification handler --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for Laravel session messages and show toasts
+            @if (session('success'))
+                toast('{{ session('success') }}', 'success', {
+                    duration: 5000,
+                    position: 'top-right'
+                });
+            @endif
+
+            @if (session('error'))
+                toast('{{ session('error') }}', 'error', {
+                    duration: 6000,
+                    position: 'top-right'
+                });
+            @endif
+
+            @if (session('status') === 'profile-updated')
+                toast('Profil berhasil diperbarui!', 'success', {
+                    duration: 5000,
+                    position: 'top-right'
+                });
+            @endif
+
+            @if ($errors->any())
+                @php
+                    $errorMessages = $errors->all();
+                    $firstError = $errorMessages[0];
+                @endphp
+                toast('{{ $firstError }}', 'error', {
+                    duration: 6000,
+                    position: 'top-right'
+                });
+            @endif
+        });
+    </script>
+</x-app-layout>
