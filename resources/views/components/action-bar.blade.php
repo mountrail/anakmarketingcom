@@ -3,6 +3,8 @@
     'model', // The model to vote on (post or answer)
     'modelType' => 'post', // Either 'post' or 'answer'
     'showVoteScore' => false, // Whether to show the vote score in the vote buttons
+    'showUpvoteCount' => true, // Whether to show upvote count
+    'showDownvoteCount' => false, // Whether to show downvote count
     'showCommentCount' => true, // Whether to show comment/answer count
     'showShare' => true, // Whether to show share button
     'showThreeDots' => true, // Whether to show the three dots menu
@@ -60,8 +62,8 @@
 
 <div class="flex flex-wrap items-center justify-between {{ $customClasses }} w-full">
     <div class="action-bar-container flex flex-wrap items-center gap-2 sm:gap-3">
-        {{-- Include vote buttons component --}}
-        <x-vote-buttons :model="$model" :modelType="$modelType" :showScore="$showVoteScore" />
+        {{-- Include vote buttons component with corrected props --}}
+        <x-vote-buttons :model="$model" :modelType="$modelType" :showScore="$showVoteScore" :showUpvoteCount="$showUpvoteCount" :showDownvoteCount="$showDownvoteCount" />
 
         {{-- Comment/Answer count - More compact on mobile --}}
         @if ($showCommentCount && $modelType === 'post')

@@ -84,6 +84,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const states = [];
         containers.forEach(container => {
             const scoreElement = container.querySelector(`.vote-score[data-${typeAttr}-id="${targetId}"]`);
+            const upvoteCountElement = container.querySelector(`.upvote-count[data-${typeAttr}-id="${targetId}"]`);
+            const downvoteCountElement = container.querySelector(`.downvote-count[data-${typeAttr}-id="${targetId}"]`);
+
             if (!scoreElement) return;
 
             const upvoteBtn = container.querySelector('.upvote-btn');
@@ -99,6 +102,10 @@ document.addEventListener('DOMContentLoaded', function () {
             states.push({
                 scoreElement,
                 score: scoreElement.textContent.trim(),
+                upvoteCountElement,
+                upvoteCount: upvoteCountElement ? upvoteCountElement.textContent.trim() : '0',
+                downvoteCountElement,
+                downvoteCount: downvoteCountElement ? downvoteCountElement.textContent.trim() : '0',
                 upvoteBtn: {
                     element: upvoteBtn,
                     classList: [...upvoteBtn.classList],
@@ -147,6 +154,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateVoteUI(containers, typeAttr, targetId, isUpvote, isActive) {
         containers.forEach(container => {
             const scoreElement = container.querySelector(`.vote-score[data-${typeAttr}-id="${targetId}"]`);
+            const upvoteCountElement = container.querySelector(`.upvote-count[data-${typeAttr}-id="${targetId}"]`);
+            const downvoteCountElement = container.querySelector(`.downvote-count[data-${typeAttr}-id="${targetId}"]`);
+
             if (!scoreElement) return;
 
             const upvoteBtn = container.querySelector('.upvote-btn');
@@ -154,28 +164,54 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!upvoteBtn || !downvoteBtn) return;
 
             const currentScore = parseInt(scoreElement.textContent.trim());
+            const currentUpvoteCount = upvoteCountElement ? parseInt(upvoteCountElement.textContent.trim()) : 0;
+            const currentDownvoteCount = downvoteCountElement ? parseInt(downvoteCountElement.textContent.trim()) : 0;
+
             const wasDownvoteActive = downvoteBtn.classList.contains('active-vote');
             const wasUpvoteActive = upvoteBtn.classList.contains('active-vote');
 
             // Reset both buttons first
             resetButtonStyles(upvoteBtn, downvoteBtn);
 
-            // Calculate new score and set appropriate button active
+            // Calculate new score and counts, set appropriate button active
             let newScore = currentScore;
+            let newUpvoteCount = currentUpvoteCount;
+            let newDownvoteCount = currentDownvoteCount;
+
             if (isActive) {
                 // Removing vote
-                newScore += isUpvote ? -1 : 1;
+                if (isUpvote) {
+                    newScore -= 1;
+                    newUpvoteCount -= 1;
+                } else {
+                    newScore += 1;
+                    newDownvoteCount -= 1;
+                }
             } else if (isUpvote) {
                 // Adding upvote
-                newScore += wasDownvoteActive ? 2 : 1;
+                if (wasDownvoteActive) {
+                    newScore += 2;
+                    newDownvoteCount -= 1;
+                } else {
+                    newScore += 1;
+                }
+                newUpvoteCount += 1;
                 setActiveUpvote(upvoteBtn);
             } else {
                 // Adding downvote
-                newScore -= wasUpvoteActive ? 2 : 1;
+                if (wasUpvoteActive) {
+                    newScore -= 2;
+                    newUpvoteCount -= 1;
+                } else {
+                    newScore -= 1;
+                }
+                newDownvoteCount += 1;
                 setActiveDownvote(downvoteBtn);
             }
 
             scoreElement.textContent = newScore.toString();
+            if (upvoteCountElement) upvoteCountElement.textContent = newUpvoteCount.toString();
+            if (downvoteCountElement) downvoteCountElement.textContent = newDownvoteCount.toString();
         });
     }
 
@@ -183,6 +219,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateUIWithServerData(containers, typeAttr, targetId, data) {
         containers.forEach(container => {
             const scoreElement = container.querySelector(`.vote-score[data-${typeAttr}-id="${targetId}"]`);
+            const upvoteCountElement = container.querySelector(`.upvote-count[data-${typeAttr}-id="${targetId}"]`);
+            const downvoteCountElement = container.querySelector(`.downvote-count[data-${typeAttr}-id="${targetId}"]`);
+
             if (!scoreElement) return;
 
             const upvoteBtn = container.querySelector('.upvote-btn');
@@ -190,6 +229,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!upvoteBtn || !downvoteBtn) return;
 
             scoreElement.textContent = data.score;
+            if (upvoteCountElement) upvoteCountElement.textContent = data.upvoteCount || data.upvotes || 0;
+            if (downvoteCountElement) downvoteCountElement.textContent = data.downvoteCount || data.downvotes || 0;
+
             resetButtonStyles(upvoteBtn, downvoteBtn);
 
             const voteValue = Number(data.userVote);
@@ -205,6 +247,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function restoreState(states) {
         states.forEach(state => {
             state.scoreElement.textContent = state.score;
+            if (state.upvoteCountElement) state.upvoteCountElement.textContent = state.upvoteCount;
+            if (state.downvoteCountElement) state.downvoteCountElement.textContent = state.downvoteCount;
 
             // Restore upvote button
             const upvoteBtn = state.upvoteBtn.element;

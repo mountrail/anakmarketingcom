@@ -47,12 +47,12 @@ class VoteController extends Controller
         // Track if this is the user's first vote ever (for onboarding)
         $isFirstVoteEver = !$vote && $user->votes()->count() === 0;
 
-        // Determine the weight of the vote (for admin/staff votes)
-        // Fixed the role check to avoid errors if hasRole method doesn't exist
-        $weight = 1; // Default weight
+        // Determine the weight of the vote (for admin/staff votes affecting SCORE only)
+        // Vote counts are always 1 regardless of role
+        $weight = 1; // Default weight for score calculation
         if (method_exists($user, 'hasRole')) {
             if ($user->hasRole('admin') || $user->hasRole('staff')) {
-                $weight = 5;
+                $weight = 5; // Higher weight for score calculation only
             }
         }
 
@@ -66,6 +66,7 @@ class VoteController extends Controller
             } else {
                 // Change the vote direction
                 $vote->value = $value;
+                $vote->weight = $weight; // Update weight in case user's role changed
                 $vote->save();
                 $message = 'Vote updated';
                 $newUserVote = $vote->value;
@@ -88,23 +89,35 @@ class VoteController extends Controller
         }
 
         // Calculate the new vote totals for the target
-        $upvotes = Vote::where($targetType . '_id', $targetId)
+        // For SCORE: use weighted sum (admin votes count more)
+        $upvotesWeighted = Vote::where($targetType . '_id', $targetId)
             ->where('value', 1)
             ->sum('weight');
 
-        $downvotes = Vote::where($targetType . '_id', $targetId)
+        $downvotesWeighted = Vote::where($targetType . '_id', $targetId)
             ->where('value', -1)
             ->sum('weight');
 
-        $score = $upvotes - $downvotes;
+        $score = $upvotesWeighted - $downvotesWeighted;
+
+        // For DISPLAY COUNTS: use regular count (all votes equal)
+        $upvoteCount = Vote::where($targetType . '_id', $targetId)
+            ->where('value', 1)
+            ->count();
+
+        $downvoteCount = Vote::where($targetType . '_id', $targetId)
+            ->where('value', -1)
+            ->count();
 
         // If this is an AJAX request
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'message' => $message,
-                'upvotes' => $upvotes,
-                'downvotes' => $downvotes,
-                'score' => $score,
+                'upvotes' => $upvotesWeighted, // For backward compatibility
+                'downvotes' => $downvotesWeighted, // For backward compatibility
+                'upvoteCount' => $upvoteCount, // Display count (unweighted)
+                'downvoteCount' => $downvoteCount, // Display count (unweighted)
+                'score' => $score, // Weighted score
                 'userVote' => $newUserVote,
                 'showToast' => false // Explicitly disable toast for vote actions
             ]);
