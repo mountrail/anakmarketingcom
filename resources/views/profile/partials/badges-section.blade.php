@@ -23,7 +23,7 @@
 
     @if ($isOwner)
         <p class="text-sm text-branding-black dark:text-gray-400 text-center mb-6">
-            Pilih 3 badge untuk ditampilkan di profil Anda
+            Pilih 3 badge untuk ditampilkan di profil Anda (urutan berdasarkan waktu pemilihan)
         </p>
 
         @if ($allUserBadges->count() > 0)
@@ -36,6 +36,7 @@
                         @php
                             $badge = $userProfileBadge->badge;
                             $isSelected = in_array($badge->id, $selectedBadgeIds);
+                            $selectionOrder = $isSelected ? array_search($badge->id, $selectedBadgeIds) + 1 : 0;
                         @endphp
 
                         <div class="flex flex-col items-center space-y-3">
@@ -45,11 +46,16 @@
                                         <x-icons.badge
                                             class="w-16 h-16 badge-icon {{ $isSelected ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-600' }} transition-colors duration-200" />
 
-                                        {{-- Checkbox positioned at top right --}}
-                                        <div class="absolute -top-1 -right-1 w-5 h-5">
+                                        {{-- Number indicator positioned at top right --}}
+                                        <div class="absolute -top-1 -right-1 w-6 h-6">
+                                            <div
+                                                class="w-6 h-6 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center text-xs font-bold badge-number {{ $isSelected ? 'bg-branding-primary text-white border-branding-primary' : 'text-gray-400' }} transition-all duration-200">
+                                                <span
+                                                    class="number-display">{{ $selectionOrder > 0 ? $selectionOrder : '' }}</span>
+                                            </div>
                                             <input type="checkbox" id="badge_{{ $badge->id }}" name="badges[]"
-                                                value="{{ $badge->id }}"
-                                                class="w-5 h-5 text-branding-primary bg-white border-2 border-gray-300 rounded focus:ring-branding-primary focus:ring-2 badge-checkbox"
+                                                value="{{ $badge->id }}" class="hidden badge-checkbox"
+                                                data-selection-order="{{ $selectionOrder }}"
                                                 {{ $isSelected ? 'checked' : '' }}>
                                         </div>
                                     </div>
@@ -93,7 +99,8 @@
                     <div class="flex flex-col items-center space-y-3">
                         <x-icons.badge class="w-16 h-16 text-yellow-500" />
                         <div class="text-center">
-                            <p class="text-sm font-semibold text-branding-black dark:text-white">{{ $badge->name }}</p>
+                            <p class="text-sm font-semibold text-branding-black dark:text-white">{{ $badge->name }}
+                            </p>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $badge->description }}</p>
                         </div>
                     </div>
@@ -115,12 +122,23 @@
             const saveButton = document.getElementById('save-badges-btn');
             const badgeForm = document.getElementById('badge-form');
             const maxSelection = 3;
+            let selectionOrder = [];
 
             // Store original selected badges
             const originalSelectedBadges = Array.from(checkboxes)
                 .filter(checkbox => checkbox.checked)
                 .map(checkbox => checkbox.value)
                 .sort();
+
+            // Initialize selection order based on current selection
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const order = parseInt(checkbox.dataset.selectionOrder);
+                    if (order > 0) {
+                        selectionOrder[order - 1] = checkbox.value;
+                    }
+                }
+            });
 
             // Track changes to enable/disable button
             let badgesChanged = false;
@@ -151,42 +169,78 @@
                 updateButtonState(saveButton, badgesChanged);
             }
 
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const checkedBoxes = document.querySelectorAll('.badge-checkbox:checked');
-
-                    // Update visual states
-                    updateBadgeVisuals();
-
-                    // Enforce max selection
-                    if (checkedBoxes.length > maxSelection) {
-                        this.checked = false;
-                        updateBadgeVisuals();
-                        alert('Anda hanya dapat memilih maksimal 3 badge.');
-                        return;
-                    }
-
-                    // Check for changes to enable/disable button
-                    checkBadgeChanges();
-                });
-            });
-
-            function updateBadgeVisuals() {
+            // Update number displays based on selection order
+            function updateNumberDisplays() {
                 checkboxes.forEach(checkbox => {
                     const badgeContainer = checkbox.closest('.flex.flex-col');
                     const badgeIcon = badgeContainer.querySelector('.badge-icon');
+                    const numberContainer = badgeContainer.querySelector('.badge-number');
+                    const numberDisplay = numberContainer.querySelector('.number-display');
 
-                    if (checkbox.checked) {
-                        // Selected state - make badge golden
+                    const badgeId = checkbox.value;
+                    const orderIndex = selectionOrder.indexOf(badgeId);
+
+                    if (orderIndex !== -1) {
+                        // Badge is selected - show number and golden color
+                        const displayNumber = orderIndex + 1;
+                        numberDisplay.textContent = displayNumber;
+
+                        // Update number container styling
+                        numberContainer.classList.remove('text-gray-400', 'border-gray-300', 'bg-white');
+                        numberContainer.classList.add('bg-branding-primary', 'text-white',
+                            'border-branding-primary');
+
+                        // Update badge icon color
                         badgeIcon.classList.remove('text-gray-400', 'dark:text-gray-600');
                         badgeIcon.classList.add('text-yellow-500');
+
+                        checkbox.checked = true;
                     } else {
-                        // Unselected state - make badge gray
+                        // Badge is not selected - hide number and gray color
+                        numberDisplay.textContent = '';
+
+                        // Update number container styling
+                        numberContainer.classList.remove('bg-branding-primary', 'text-white',
+                            'border-branding-primary');
+                        numberContainer.classList.add('text-gray-400', 'border-gray-300', 'bg-white');
+
+                        // Update badge icon color
                         badgeIcon.classList.remove('text-yellow-500');
                         badgeIcon.classList.add('text-gray-400', 'dark:text-gray-600');
+
+                        checkbox.checked = false;
                     }
                 });
             }
+
+            // Handle badge selection clicks
+            checkboxes.forEach(checkbox => {
+                const badgeContainer = checkbox.closest('.flex.flex-col');
+                const label = badgeContainer.querySelector('label');
+
+                label.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default label behavior
+
+                    const badgeId = checkbox.value;
+                    const orderIndex = selectionOrder.indexOf(badgeId);
+
+                    if (orderIndex !== -1) {
+                        // Badge is currently selected - remove it
+                        selectionOrder.splice(orderIndex, 1);
+                    } else {
+                        // Badge is not selected - add it
+                        if (selectionOrder.length >= maxSelection) {
+                            alert('Anda hanya dapat memilih maksimal 3 badge.');
+                            return;
+                        }
+                        selectionOrder.push(badgeId);
+                    }
+
+                    // Update displays and check for changes
+                    updateNumberDisplays();
+                    checkBadgeChanges();
+                });
+            });
 
             // Show loading state on form submission
             function showLoadingState(button) {
@@ -214,6 +268,7 @@
             }
 
             // Initial state check
+            updateNumberDisplays();
             checkBadgeChanges();
         });
     </script>
