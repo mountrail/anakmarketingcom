@@ -58,6 +58,12 @@
         $modelType === 'post'
             ? Str::limit(strip_tags($model->content), 150)
             : Str::limit(strip_tags($model->content), 150);
+
+    // Generate comment/answer section URL
+    $commentUrl =
+        $modelType === 'post'
+            ? route('posts.show', $model->slug ?? $model->id) . '#answers-section'
+            : route('posts.show', $model->post->slug ?? $model->post->id) . '#answers-section';
 @endphp
 
 <div class="flex flex-wrap items-center justify-between {{ $customClasses }} w-full">
@@ -65,13 +71,14 @@
         {{-- Include vote buttons component with corrected props --}}
         <x-vote-buttons :model="$model" :modelType="$modelType" :showScore="$showVoteScore" :showUpvoteCount="$showUpvoteCount" :showDownvoteCount="$showDownvoteCount" />
 
-        {{-- Comment/Answer count - More compact on mobile --}}
+        {{-- Comment/Answer count - Now clickable and redirects to comment section --}}
         @if ($showCommentCount && $modelType === 'post')
-            <span class="flex items-center text-xs py-1 rounded-md text-gray-600 dark:text-gray-400">
+            <a href="{{ $commentUrl }}"
+                class="flex items-center text-xs py-1 rounded-md text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200">
                 <x-icons.comment class="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 <span class="hidden sm:inline">{{ $model->answers->count() }}</span>
                 <span class="sm:hidden">{{ $model->answers->count() }}</span>
-            </span>
+            </a>
         @endif
 
         {{-- Share button - Simple inline component - Only for posts --}}
@@ -122,7 +129,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                     Edit Jawaban
                                     @if ($isAdmin && !$isOwner)

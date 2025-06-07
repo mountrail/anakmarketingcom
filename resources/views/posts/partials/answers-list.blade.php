@@ -12,7 +12,7 @@
                     this.editing = true;
                     this.content = this.originalContent;
                     this.$nextTick(() => {
-                        // Focus on the textarea after it becomes visible
+                        // Fokus pada textarea setelah terlihat
                         this.$refs.editTextarea?.focus();
                     });
                 },
@@ -24,7 +24,7 @@
 
                 async saveEdit() {
                     if (this.content.trim().length < 5) {
-                        alert('Content must be at least 5 characters long.');
+                        alert('Konten harus memiliki setidaknya 5 karakter.');
                         return;
                     }
 
@@ -48,25 +48,25 @@
                             this.originalContent = this.content;
                             this.editing = false;
 
-                            // Update the content display with line breaks
+                            // Perbarui tampilan konten dengan baris baru
                             const displayContent = this.content.replace(/\n/g, '<br>');
                             document.querySelector('#answer-content-{{ $answer->id }}').innerHTML = displayContent;
 
-                            // Show success message
-                            this.showMessage('Answer updated successfully!', 'success');
+                            // Tampilkan pesan sukses
+                            this.showMessage('Jawaban berhasil diperbarui!', 'success');
                         } else {
-                            throw new Error('Failed to update answer');
+                            throw new Error('Gagal memperbarui jawaban');
                         }
                     } catch (error) {
-                        console.error('Error updating answer:', error);
-                        this.showMessage('Failed to update answer. Please try again.', 'error');
+                        console.error('Error memperbarui jawaban:', error);
+                        this.showMessage('Gagal memperbarui jawaban. Silakan coba lagi.', 'error');
                     } finally {
                         this.saving = false;
                     }
                 },
 
                 showMessage(message, type) {
-                    // Simple toast notification
+                    // Notifikasi toast sederhana
                     const toast = document.createElement('div');
                     toast.className = `fixed top-4 right-4 p-4 rounded-md z-50 ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`;
                     toast.textContent = message;
@@ -79,7 +79,7 @@
             }"
                 @edit-answer.window="if ($event.detail.id === {{ $answer->id }}) startEdit()">
 
-                <!-- Answer Header - Profile, User Info, and Badges -->
+                <!-- Header Jawaban - Profil, Info Pengguna, dan Lencana -->
                 <div class="mb-4">
                     <x-user-profile-info :user="$answer->user" :timestamp="$answer->created_at" badgeSize="w-7 h-7" profileSize="h-10 w-10"
                         :showJobInfo="true">
@@ -93,39 +93,39 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                     </svg>
-                                    Editor's Pick
+                                    Pilihan Editor
                                 </span>
                             @endif
                         </x-slot>
                     </x-user-profile-info>
                 </div>
 
-                <!-- Answer Content - Display Mode -->
+                <!-- Konten Jawaban - Mode Tampilan -->
                 <div x-show="!editing" class="mt-3 text-gray-900 dark:text-gray-100"
                     id="answer-content-{{ $answer->id }}">
                     {!! nl2br(e(strip_tags($answer->content))) !!}
                 </div>
 
-                <!-- Answer Content - Edit Mode -->
+                <!-- Konten Jawaban - Mode Edit -->
                 <div x-show="editing" x-cloak class="mt-3">
                     <div class="mb-4">
                         <label for="edit-content-{{ $answer->id }}"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Edit your answer
+                            Edit jawaban Anda
                         </label>
                         <textarea x-ref="editTextarea" x-model="content" id="edit-content-{{ $answer->id }}" rows="6"
                             class="block w-full rounded-md border-gray-300 dark:border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100 sm:text-sm resize-none"
-                            placeholder="Edit your answer..." required></textarea>
+                            placeholder="Edit jawaban Anda..." required></textarea>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Minimum 5 characters required. Use Enter for line breaks.
+                            Minimal 5 karakter diperlukan. Gunakan Enter untuk baris baru.
                         </p>
                     </div>
 
-                    <!-- Edit Action Buttons -->
+                    <!-- Tombol Aksi Edit -->
                     <div class="flex items-center space-x-3">
                         <x-primary-button @click="saveEdit()" :disabled="false"
                             x-bind:disabled="saving || content.trim().length < 5" variant="primary" size="md">
-                            <span x-show="!saving">Save</span>
+                            <span x-show="!saving">Simpan</span>
                             <span x-show="saving" class="flex items-center">
                                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -135,17 +135,17 @@
                                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                     </path>
                                 </svg>
-                                Saving...
+                                Menyimpan...
                             </span>
                         </x-primary-button>
 
                         <x-primary-button @click="cancelEdit()" variant="inactive" size="md">
-                            Cancel
+                            Batal
                         </x-primary-button>
                     </div>
                 </div>
 
-                <!-- Action Bar -->
+                <!-- Bilah Aksi -->
                 <div class="mt-4" x-show="!editing">
                     <x-action-bar :model="$answer" modelType="answer" :showVoteScore="false" :showCommentCount="false"
                         :showShare="false" customClasses="justify-start" />
@@ -156,30 +156,30 @@
 @else
     <div class="p-6 text-center border rounded-md border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <p class="text-gray-500 dark:text-gray-400">
-            No answers yet. Be the first to share your knowledge!
+            Belum ada jawaban. Jadilah yang pertama berbagi pengetahuan Anda!
         </p>
     </div>
 @endif
 
 @push('styles')
     <style>
-        /* Hide elements with x-cloak until Alpine.js has initialized */
+        /* Sembunyikan elemen dengan x-cloak hingga Alpine.js diinisialisasi */
         [x-cloak] {
             display: none !important;
         }
 
-        /* Smooth transitions for edit mode */
+        /* Transisi halus untuk mode edit */
         .answer-transition {
             transition: all 0.3s ease;
         }
 
-        /* Focus styles for textarea */
+        /* Gaya fokus untuk textarea */
         textarea:focus {
             outline: none;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
-        /* Disable textarea resize */
+        /* Nonaktifkan resize textarea */
         textarea {
             resize: none;
         }

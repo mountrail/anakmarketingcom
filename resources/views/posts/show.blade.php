@@ -59,15 +59,17 @@
 
                     @auth
                         <!-- Answer form and list only for authenticated users -->
+                        <!-- Anchor point for comments/answers section -->
+                        <div id="answers-section" class="scroll-mt-20">
+                            <!-- Include answer form partial -->
+                            @include('posts.partials.answer-form', ['post' => $post])
 
-                        <!-- Include answer form partial -->
-                        @include('posts.partials.answer-form', ['post' => $post])
-
-                        <!-- Include answers list partial -->
-                        @include('posts.partials.answers-list', ['post' => $post])
+                            <!-- Include answers list partial -->
+                            @include('posts.partials.answers-list', ['post' => $post])
+                        </div>
                     @else
                         <!-- Access restriction message in place of answer/comment area -->
-                        <div class="my-8 border-y py-8">
+                        <div class="my-8 border-y py-8" id="answers-section">
                             <div class="text-center">
                                 <div class="text-xl font-bold mb-4">Ups! Akses terbatas</div>
                                 <p class="mb-6 text-gray-600 dark:text-gray-400">
