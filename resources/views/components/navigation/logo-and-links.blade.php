@@ -11,11 +11,11 @@
     {{-- Navigation Links --}}
     <div class="hidden space-x-4 sm:ml-10 sm:flex">
         <a href="{{ route('home') }}"
-            class="bg-branding-primary text-branding-light px-4 py-2 rounded-md text-sm font-medium shadow-md hover:bg-opacity-90 transition-colors">
+            class="bg-branding-primary text-branding-light px-4 py-2 rounded-md text-sm font-bold shadow-md hover:bg-opacity-90 transition-colors">
             {{ __('Home') }}
         </a>
         <a href="https://anakmarketing.com"
-            class="text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+            class="text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 px-4 py-2 rounded-md text-sm font-bold">
             {{ __('Insights') }}
         </a>
     </div>

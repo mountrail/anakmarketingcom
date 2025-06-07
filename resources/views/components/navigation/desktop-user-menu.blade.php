@@ -7,7 +7,7 @@
     <x-dropdown align="right" width="48">
         <x-slot name="trigger">
             <button
-                class="inline-flex items-center px-3 py-2 bg-branding-primary text-branding-light rounded-md text-sm font-medium shadow-md hover:bg-opacity-90 transition-colors">
+                class="inline-flex items-center px-3 py-2 bg-branding-primary text-branding-light rounded-md text-sm font-bold shadow-md hover:bg-opacity-90 transition-colors">
                 <div>Hai, {{ Str::words(Auth::user()->name, 1, '') }}!</div>
                 <div class="ms-1">
                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
