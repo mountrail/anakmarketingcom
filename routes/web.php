@@ -94,8 +94,12 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
-    Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifications/delete-all', [NotificationController::class, 'deleteAll'])->name('notifications.delete-all');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'delete'])->name('notifications.delete');
+
+    // AJAX endpoints for notifications
+    Route::patch('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
 
     // NEW: Profile edit page route
     Route::get('/profile-edit', [ProfileController::class, 'editProfile'])->name('profile.edit-profile');

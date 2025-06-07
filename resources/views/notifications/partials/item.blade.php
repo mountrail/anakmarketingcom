@@ -1,6 +1,7 @@
 {{-- resources/views/notifications/partials/item.blade.php --}}
 @php
-    $isUnread = is_null($notification->read_at);
+    // Check if this notification was unread when the page was loaded
+    $wasUnread = in_array($notification->id, $unreadNotificationIds ?? []);
     $isPinned =
         isset($notification->data['is_pinned']) &&
         ($notification->data['is_pinned'] === true || $notification->data['is_pinned'] === 1);
@@ -33,7 +34,7 @@
     }
 @endphp
 
-<div class="notification-item {{ $isUnread ? 'unread' : 'read' }} {{ $isPinned ? 'pinned' : '' }}"
+<div class="notification-item {{ $wasUnread ? 'unread' : 'read' }} {{ $isPinned ? 'pinned' : '' }}"
     data-notification-id="{{ $notification->id }}">
     <div
         class="flex items-start space-x-4 p-4 border-b border-gray-200 dark:border-gray-700
@@ -61,7 +62,7 @@
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
                         <p
-                            class="text-base {{ $isUnread ? 'font-bold' : 'font-normal' }} text-gray-900 dark:text-white leading-relaxed">
+                            class="text-base {{ $wasUnread ? 'font-bold' : 'font-normal' }} text-gray-900 dark:text-white leading-relaxed">
                             {{ $notification->data['message'] }}
                         </p>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -69,8 +70,8 @@
                         </p>
                     </div>
 
-                    {{-- Unread indicator --}}
-                    @if ($isUnread)
+                    {{-- Unread indicator - show if was unread when page loaded --}}
+                    @if ($wasUnread)
                         <div class="w-3 h-3 bg-orange-500 rounded-full flex-shrink-0 ml-3"></div>
                     @endif
                 </div>

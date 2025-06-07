@@ -42,6 +42,7 @@ class FollowedUserPostedNotification extends Notification
 
         return [
             'type' => 'followed_user_posted',
+            'category' => 'content', // Content-related category
             'post_id' => $this->post->id,
             'post_title' => $this->post->title,
             'post_type' => $this->post->type,

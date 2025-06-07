@@ -1,6 +1,6 @@
 <?php
 
-// BadgeEarnedNotification.php - Updated
+// BadgeEarnedNotification.php - Updated with category system
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -29,11 +29,13 @@ class BadgeEarnedNotification extends Notification
     {
         return [
             'type' => 'badge_earned',
+            'category' => 'system', // System category
             'message' => "Selamat! Kamu mendapatkan badge: \"{$this->badge->name}\".",
             'badge_id' => $this->badge->id,
             'badge_name' => $this->badge->name,
             'badge_description' => $this->badge->description,
             'action_url' => '/profile/' . auth()->id(), // Store relative URL
+            'created_at' => now(),
         ];
     }
 }

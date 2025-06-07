@@ -1,9 +1,10 @@
 {{-- resources/views/notifications/partials/delete-all-button.blade.php --}}
 <div class="text-center mb-6">
-    <form id="delete-all-form" class="inline">
+    <form action="{{ route('notifications.delete-all') }}" method="POST" class="inline"
+        onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua notifikasi? Notifikasi sistem tidak akan dihapus. Tindakan ini tidak dapat dibatalkan.')">
         @csrf
         @method('DELETE')
-        <x-primary-button type="button" variant="secondary" size="md" id="delete-all-btn"
+        <x-primary-button type="submit" variant="secondary" size="md"
             class="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

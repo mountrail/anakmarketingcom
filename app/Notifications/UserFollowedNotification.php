@@ -1,6 +1,6 @@
 <?php
 
-// UserFollowedNotification.php - Updated
+// UserFollowedNotification.php - Updated with category system
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -37,6 +37,7 @@ class UserFollowedNotification extends Notification
     {
         return [
             'type' => 'user_followed',
+            'category' => 'social', // Regular category for social interactions
             'follower_id' => $this->follower->id,
             'follower_name' => $this->follower->name,
             'follower_avatar' => $this->follower->getProfileImageUrl(),

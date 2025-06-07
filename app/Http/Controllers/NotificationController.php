@@ -9,11 +9,19 @@ class NotificationController extends Controller
 {
     /**
      * Display a listing of the user's notifications.
-     * Filtering is now handled client-side with JavaScript.
+     * Auto-mark all unread notifications as read when user visits the page.
      */
     public function index(Request $request)
     {
-        $baseQuery = auth()->user()->notifications();
+        $user = auth()->user();
+
+        // Get unread notification IDs before marking them as read
+        $unreadNotificationIds = $user->unreadNotifications->pluck('id')->toArray();
+
+        // Auto-mark all unread notifications as read when user visits notification page
+        $user->unreadNotifications->markAsRead();
+
+        $baseQuery = $user->notifications();
 
         // Get pinned notifications separately (not paginated)
         $pinnedNotifications = (clone $baseQuery)
@@ -34,12 +42,11 @@ class NotificationController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return view('notifications.index', compact('pinnedNotifications', 'regularNotifications'));
+        return view('notifications.index', compact('pinnedNotifications', 'regularNotifications', 'unreadNotificationIds'));
     }
 
     /**
      * Mark notification as read and redirect to action URL.
-     * This replaces the AJAX approach for better reliability.
      */
     public function read(Request $request, string $id)
     {
@@ -97,15 +104,22 @@ class NotificationController extends Controller
     }
 
     /**
-     * Mark all notifications as read.
-     * Updated to use regular form submission instead of AJAX.
+     * Delete all non-system notifications.
      */
-    public function markAllAsRead(Request $request)
+    public function deleteAll(Request $request)
     {
-        auth()->user()->unreadNotifications->markAsRead();
+        $user = auth()->user();
+
+        // Delete all notifications except system notifications
+        $user->notifications()
+            ->where(function ($query) {
+                $query->whereJsonDoesntContain('data->category', 'system')
+                    ->orWhereNull('data->category');
+            })
+            ->delete();
 
         return redirect()->route('notifications.index')
-            ->with('success', 'Semua notifikasi telah ditandai sebagai sudah dibaca.');
+            ->with('success', 'Semua notifikasi non-sistem telah dihapus.');
     }
 
     /**
@@ -140,5 +154,33 @@ class NotificationController extends Controller
         return response()->json([
             'unread_count' => $count
         ]);
+    }
+
+    /**
+     * Delete specific notification.
+     */
+    public function delete(string $id)
+    {
+        $notification = auth()->user()
+            ->notifications()
+            ->where('id', $id)
+            ->first();
+
+        if (!$notification) {
+            return redirect()->route('notifications.index')
+                ->with('error', 'Notifikasi tidak ditemukan.');
+        }
+
+        // Check if it's a system notification
+        $category = $notification->data['category'] ?? null;
+        if ($category === 'system') {
+            return redirect()->route('notifications.index')
+                ->with('error', 'Notifikasi sistem tidak dapat dihapus.');
+        }
+
+        $notification->delete();
+
+        return redirect()->route('notifications.index')
+            ->with('success', 'Notifikasi telah dihapus.');
     }
 }

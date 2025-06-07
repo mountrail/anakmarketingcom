@@ -45,6 +45,7 @@ class PostAnsweredNotification extends Notification
 
         return [
             'type' => 'post_answered',
+            'category' => 'content', // Content-related category
             'post_id' => $this->post->id,
             'post_title' => $this->post->title,
             'post_type' => $this->post->type,

@@ -1,6 +1,6 @@
 <?php
 
-// AnnouncementNotification.php - Updated
+// AnnouncementNotification.php - Updated with category system
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -87,6 +87,7 @@ class AnnouncementNotification extends Notification
     {
         return [
             'type' => 'announcement',
+            'category' => 'system', // System category
             'title' => $this->title,
             'message' => $this->message,
             'action_url' => $this->actionUrl, // Now stores relative URL

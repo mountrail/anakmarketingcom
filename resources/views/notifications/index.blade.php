@@ -51,9 +51,20 @@
                     </div>
 
                     {{-- Action Buttons --}}
-                    {{-- Mark All as Read Button --}}
-                    @if (auth()->user()->unreadNotifications->count() > 0)
-                        @include('notifications.partials.mark-all-read-button')
+                    {{-- Delete All Button (only show if there are non-system notifications) --}}
+                    @php
+                        $hasNonSystemNotifications = false;
+                        $allNotifications = $pinnedNotifications->merge($regularNotifications);
+                        foreach ($allNotifications as $notification) {
+                            if (($notification->data['category'] ?? null) !== 'system') {
+                                $hasNonSystemNotifications = true;
+                                break;
+                            }
+                        }
+                    @endphp
+
+                    @if ($hasNonSystemNotifications)
+                        @include('notifications.partials.delete-all-button')
                     @endif
 
                     {{-- Check if we have any notifications at all --}}
@@ -65,6 +76,7 @@
                                 @foreach ($pinnedNotifications as $notification)
                                     @include('notifications.partials.item', [
                                         'notification' => $notification,
+                                        'unreadNotificationIds' => $unreadNotificationIds,
                                     ])
                                 @endforeach
                             </div>
@@ -76,6 +88,7 @@
                                 @foreach ($regularNotifications as $notification)
                                     @include('notifications.partials.item', [
                                         'notification' => $notification,
+                                        'unreadNotificationIds' => $unreadNotificationIds,
                                     ])
                                 @endforeach
                             </div>
@@ -113,10 +126,11 @@
             const pinnedNotifications = document.querySelector('.pinned-notifications');
             const regularNotifications = document.querySelector('.regular-notifications');
 
-            // Add data attributes to notification items based on their type
+            // Add data attributes to notification items based on their type and category
             notificationItems.forEach(item => {
                 const notificationData = getNotificationDataFromElement(item);
                 item.setAttribute('data-notification-type', notificationData.type || 'unknown');
+                item.setAttribute('data-notification-category', notificationData.category || 'regular');
             });
 
             categoryButtons.forEach(button => {
@@ -141,39 +155,39 @@
             });
 
             function getNotificationDataFromElement(element) {
-                // Try to extract notification type from the element's content or data attributes
-                // This is a simplified approach - in a real app you might embed JSON data
+                // Try to extract notification type and category from the element's content or data attributes
                 const messageText = element.querySelector('p')?.textContent?.toLowerCase() || '';
 
+                // Determine category first
+                let category = 'regular';
+
+                // Check for system notifications (badges, announcements, onboarding)
+                if (messageText.includes('badge') || messageText.includes('lencana') ||
+                    messageText.includes('pengumuman') || messageText.includes('announcement') ||
+                    messageText.includes('selamat datang') || messageText.includes('welcome') ||
+                    element.querySelector('.ring-2')) {
+                    category = 'system';
+                }
+
+                // Determine type
+                let type = 'unknown';
                 if (messageText.includes('menjawab pertanyaan') || messageText.includes('answered your post')) {
-                    return {
-                        type: 'post_answered'
-                    };
+                    type = 'post_answered';
                 } else if (messageText.includes('mengikuti') || messageText.includes('followed you')) {
-                    return {
-                        type: 'user_followed'
-                    };
+                    type = 'user_followed';
                 } else if (messageText.includes('memposting') || messageText.includes('posted')) {
-                    return {
-                        type: 'followed_user_posted'
-                    };
+                    type = 'followed_user_posted';
                 } else if (messageText.includes('badge') || messageText.includes('lencana')) {
-                    return {
-                        type: 'badge_earned'
-                    };
+                    type = 'badge_earned';
                 } else if (messageText.includes('pengumuman') || messageText.includes('announcement')) {
-                    return {
-                        type: 'announcement'
-                    };
-                } else if (element.querySelector('.ring-2')) {
-                    // System notifications have rings
-                    return {
-                        type: 'system'
-                    };
+                    type = 'announcement';
+                } else if (messageText.includes('selamat datang') || messageText.includes('welcome')) {
+                    type = 'onboarding';
                 }
 
                 return {
-                    type: 'unknown'
+                    type: type,
+                    category: category
                 };
             }
 
@@ -184,6 +198,7 @@
 
                 notificationItems.forEach(item => {
                     const notificationType = item.getAttribute('data-notification-type');
+                    const notificationCategory = item.getAttribute('data-notification-category');
                     let shouldShow = false;
 
                     switch (category) {
@@ -197,9 +212,9 @@
                             shouldShow = notificationType === 'followed_user_posted';
                             break;
                         case 'Lainnya':
-                            shouldShow = ['user_followed', 'badge_earned', 'announcement', 'system',
-                                'unknown'
-                            ].includes(notificationType);
+                            // Lainnya includes everything except specific post/discussion types
+                            shouldShow = !['post_answered', 'followed_user_posted'].includes(
+                                notificationType);
                             break;
                     }
 
