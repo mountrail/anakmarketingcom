@@ -48,10 +48,18 @@
             <!-- Content Area -->
             <div class="py-6 px-8 max-h-[80vh] overflow-y-auto">
                 <div x-show="activeTab === 'register'">
+                    {{-- Pass empty errors collection to avoid undefined variable error --}}
+                    @php
+                        $errors = $errors ?? new \Illuminate\Support\MessageBag();
+                    @endphp
                     @include('auth.register-form')
                 </div>
 
                 <div x-show="activeTab === 'login'">
+                    {{-- Pass empty errors collection to avoid undefined variable error --}}
+                    @php
+                        $errors = $errors ?? new \Illuminate\Support\MessageBag();
+                    @endphp
                     @include('auth.login-form')
                 </div>
             </div>
