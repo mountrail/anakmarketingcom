@@ -5,12 +5,12 @@
     <div class="max-w-2xl mx-auto px-0 sm:px-4 py-8">
         <!-- Header -->
         <div class="text-center mb-8 px-2 sm:px-0">
-            <h1 class="text-lg font-medium text-gray-800 mb-2">
+            <p class="text-base font-bold text-gray-800 mb-2">
                 Ikuti diskusi atau pertanyaan dengan<br>
                 Upvote, Downvote, atau memberikan<br>
                 komentar di postingan melalui Home dan<br>
                 klik yang membuatmu tertarik
-            </h1>
+            </p>
             <p class="text-xl font-bold mt-4">
                 Kami bantu untuk yang pertama
             </p>

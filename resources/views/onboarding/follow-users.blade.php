@@ -9,7 +9,7 @@
                 Ikuti user lain agar tidak<br>
                 ketinggalan diskusi seru
             </h1>
-            <h2 class="text-xl font-bold text-orange-500 mt-4">
+            <h2 class="text-xl font-bold text-branding-primary mt-4">
                 Rekomendasi Kami
             </h2>
         </div>

@@ -7,15 +7,13 @@
             <!-- Congratulations Message -->
             <div class="mb-8">
                 <h1 class="text-2xl font-bold text-branding-primary mb-2">
-                    Selamat!
-                </h1>
-                <h2 class="text-xl font-bold text-branding-primary mb-4">
+                    Selamat! <br>
                     @if ($badge->name === 'Marketers Onboard!')
                         Kamu telah menyelesaikan semua misi onboarding!
                     @else
                         Kamu mendapatkan <em>badge</em> pertamamu!
                     @endif
-                </h2>
+                </h1>
             </div>
 
             <!-- Badge Display -->
@@ -26,17 +24,17 @@
                     </div>
                 </div>
 
-                <h3 class="text-lg font-bold text-gray-900 mb-2 badge-title">
+                <h3 class="text-lg font-bold mb-2 badge-title">
                     {{ $badge->name }}
                 </h3>
-                <p class="text-gray-600 text-sm leading-relaxed badge-description">
+                <p class=" text-base leading-relaxed badge-description">
                     {{ $badge->description }}
                 </p>
             </div>
 
             <!-- Description -->
             <div class="mb-8">
-                <p class="text-gray-700 text-sm leading-relaxed">
+                <p class="text-gray-700 text-lg font-medium leading-relaxed">
                     @if ($badge->name === 'Marketers Onboard!')
                         Selamat datang di komunitas! Mulai berbagi dan berdiskusi untuk mendapatkan lebih banyak
                         <em>badges</em> dan benefit menarik lainnya.

@@ -5,18 +5,18 @@
     <div class="max-w-2xl mx-auto px-4 py-8">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-gray-900 mb-2">
+            <h1 class="text-xl font-bold text-gray-900 mb-2">
                 Buat pertanyaan atau diskusi baru<br>
                 dengan mengakses Home
             </h1>
-            <p class="text-gray-600 font-medium">
+            <p class="font-medium">
                 Kami bantu untuk yang pertama!
             </p>
         </div>
 
         <!-- Form -->
         <div class="space-y-6">
-            <h2 class="text-xl font-bold text-branding-primary">
+            <h2 class="text-xl font-bold text-center text-branding-primary">
                 Buat Pertanyaan / Diskusi Baru
             </h2>
 

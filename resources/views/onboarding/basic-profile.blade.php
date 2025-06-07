@@ -5,11 +5,11 @@
     <div class="max-w-2xl mx-auto px-4 py-8">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-branding-primary mb-2">
+            <h1 class="text-xl font-bold mb-2">
                 Karena tak kenal maka tak sayang,<br>
                 yuk isi profilmu sekarang!
             </h1>
-            <p class="text-gray-700 font-medium">
+            <p class="font-bold">
                 Kesempatan personal branding, nih!
             </p>
         </div>
