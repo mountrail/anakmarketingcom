@@ -165,7 +165,11 @@ class PostController extends Controller
         // Get the post
         $post = $this->redirectService->getPostBySlug($slug);
         if (!$post) {
-            abort(404);
+            // Share editor picks for the 404 page
+            $this->viewService->shareEditorPicks();
+
+            // Return custom 404 view for posts
+            return response()->view('errors.post-not-found', [], 404);
         }
 
         // Record initial view (don't increment yet)

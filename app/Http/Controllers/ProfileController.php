@@ -128,12 +128,43 @@ class ProfileController extends Controller
     /**
      * Display the specified user's profile.
      */
-    public function show(User $user)
+    public function show($userIdentifier)
     {
         // Check onboarding for authenticated users
         $onboardingCheck = $this->checkOnboardingRequired();
         if ($onboardingCheck) {
             return $onboardingCheck;
+        }
+
+        // Try to find the user by ID or any other identifier you're using
+        $user = null;
+
+        // If it's numeric, try to find by ID
+        if (is_numeric($userIdentifier)) {
+            $user = User::find($userIdentifier);
+        } else {
+            // If it's not numeric, you might be using username, slug, or some other identifier
+            // Adjust this based on your actual user identification method
+            $user = User::where('id', $userIdentifier)
+                ->orWhere('name', $userIdentifier)
+                ->first();
+        }
+
+        // If user not found, show custom 404 page
+        if (!$user) {
+            // Get editor's picks for the sidebar even on 404 page
+            $editorPicks = Post::featured()
+                ->where('featured_type', '!=', 'none')
+                ->with(['user', 'answers'])
+                ->latest()
+                ->take(5)
+                ->get();
+
+            // Share editorPicks for the sidebar
+            view()->share('editorPicks', $editorPicks);
+
+            // Return custom 404 view for user profiles
+            return response()->view('errors.user-not-found', [], 404);
         }
 
         $isOwner = auth()->check() && auth()->id() === $user->id;
