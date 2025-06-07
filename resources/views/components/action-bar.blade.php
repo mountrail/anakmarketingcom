@@ -74,7 +74,7 @@
         {{-- Comment/Answer count - Now clickable and redirects to comment section --}}
         @if ($showCommentCount && $modelType === 'post')
             <a href="{{ $commentUrl }}"
-                class="flex items-center text-xs py-1 rounded-md text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200">
+                class="flex items-center text-xs py-1 rounded-md text-gray-900 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200">
                 <x-icons.comment class="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 <span class="hidden sm:inline">{{ $model->answers->count() }}</span>
                 <span class="sm:hidden">{{ $model->answers->count() }}</span>

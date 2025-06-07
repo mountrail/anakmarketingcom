@@ -30,7 +30,7 @@
             <div class="flex justify-between items-start">
                 <div class="flex-col">
                     @if ($showMeta)
-                        <div class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                        <div class="flex items-center py-2 space-x-4 text-xs text-gray-900 dark:text-gray-400">
                             <span>By: {{ $post->user->name ?? 'Unknown' }}</span>
                             <span>{{ $post->created_at->diffForHumans() }}</span>
                             @if ($viewService->canSeeViewCount($post, auth()->user()))
@@ -45,7 +45,7 @@
                     </h3>
 
                     @if ($showExcerpt)
-                        <p class="text-gray-600 dark:text-gray-400 mt-2">
+                        <p class="text-gray-900 dark:text-gray-400 mt-2">
                             @excerpt($post->content, $excerptLength, '...')
                         </p>
                     @endif

@@ -43,7 +43,7 @@
             <div class="max-w-7xl mx-auto px-0">
                 <div class="flex flex-col lg:flex-row">
                     <!-- Main Content Area -->
-                    <div class="w-full {{ !isset($showSidebar) || $showSidebar ? 'lg:w-3/4' : '' }}">
+                    <div class="w-full {{ !isset($showSidebar) || $showSidebar ? 'lg:w-2/3' : '' }}">
                         @hasSection('content')
                             @yield('content')
                         @else
