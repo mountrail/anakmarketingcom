@@ -12,7 +12,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans], // Changed from 'Figtree' to 'Inter'
             },
             fontSize: {
                 xs: ['clamp(0.75rem, 0.5vw + 0.5rem, 0.875rem)', '1.4'],   // 12px to 14px
