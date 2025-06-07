@@ -168,11 +168,26 @@ class PostController extends Controller
             abort(404);
         }
 
-        $this->viewService->incrementViewCount($post);
+        // Record initial view (don't increment yet)
+        $this->viewService->recordInitialView($post);
+
         $post = $this->viewService->loadPostForDisplay($post);
         $this->viewService->shareEditorPicks();
 
         return view('posts.show', compact('post'));
+    }
+
+    /**
+     * Increment view count after user has viewed for 45 seconds (AJAX endpoint)
+     */
+    public function incrementView(Post $post)
+    {
+        $incremented = $this->viewService->incrementViewCount($post);
+
+        return response()->json([
+            'success' => $incremented,
+            'view_count' => $incremented ? $post->fresh()->view_count : $post->view_count
+        ]);
     }
 
     /**

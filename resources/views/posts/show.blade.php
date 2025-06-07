@@ -13,7 +13,9 @@
                             <span class="mr-2">{{ $post->type === 'question' ? 'Pertanyaan' : 'Diskusi' }}</span>
                             <span class="mx-2">|</span>
                             <span>{{ $post->created_at->diffForHumans() }}</span>
-                            <span class="ml-auto">{{ $post->view_count }} views</span>
+                            @if (app('App\Services\PostViewService')->canSeeViewCount($post, auth()->user()))
+                                <span class="ml-auto" id="view-count-display">{{ $post->view_count }} views</span>
+                            @endif
                         </div>
 
                         <!-- Post Title -->
@@ -90,6 +92,53 @@
             </div>
         </div>
     </div>
+
+    <!-- View tracking script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let viewTracked = false;
+            console.log('View tracking initialized for post {{ $post->id }}');
+
+            // Track view after 45 seconds
+            setTimeout(function() {
+                if (!viewTracked) {
+                    console.log('Attempting to track view after 45 seconds...');
+
+                    fetch('{{ route('posts.increment-view', $post->id) }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                        .then(response => {
+                            console.log('Response status:', response.status);
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('View tracking response:', data);
+
+                            if (data.success) {
+                                viewTracked = true;
+
+                                // Update view count display if visible
+                                const viewCountDisplay = document.getElementById('view-count-display');
+                                if (viewCountDisplay && data.view_count) {
+                                    viewCountDisplay.textContent = data.view_count + ' views';
+                                    console.log('View count updated to:', data.view_count);
+                                }
+                            } else {
+                                console.log('View tracking failed:', data);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('View tracking error:', error);
+                        });
+                }
+            }, 45000); // 45 seconds
+        });
+    </script>
 @endsection
 
 {{-- NO toast scripts here - all flash messages are handled globally in app.blade.php --}}

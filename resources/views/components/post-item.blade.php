@@ -20,6 +20,8 @@
     $containerClass = $isHighlighted
         ? 'bg-branding-primary/20 dark:bg-branding-primary/10 py-4 px-6 border-b border-essentials-inactive'
         : $containerClasses;
+
+    $viewService = app('App\Services\PostViewService');
 @endphp
 
 <div class="{{ $containerClass }}">
@@ -31,7 +33,9 @@
                         <div class="flex items-center py-2 space-x-4 text-xs text-gray-500 dark:text-gray-400">
                             <span>By: {{ $post->user->name ?? 'Unknown' }}</span>
                             <span>{{ $post->created_at->diffForHumans() }}</span>
-                            <span>{{ $post->view_count }} views</span>
+                            @if ($viewService->canSeeViewCount($post, auth()->user()))
+                                <span>{{ $post->view_count }} views</span>
+                            @endif
                         </div>
                     @endif
 
