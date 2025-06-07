@@ -15,6 +15,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\MessageBag;
 
 class RegisteredUserController extends Controller
 {
@@ -23,7 +24,10 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        // Ensure $errors is always available
+        $errors = session('errors', new MessageBag());
+
+        return view('auth.register', compact('errors'));
     }
 
     /**
@@ -143,10 +147,13 @@ class RegisteredUserController extends Controller
                 ], 500);
             }
 
+            // Create a MessageBag for errors
+            $errors = new MessageBag(['error' => 'Registration failed. Please try again.']);
+
             // Return back with an error message instead of rethrowing the exception
             return back()
                 ->withInput($request->except(['password', 'password_confirmation']))
-                ->withErrors(['error' => 'Registration failed. Please try again.']);
+                ->withErrors($errors);
         }
     }
 }

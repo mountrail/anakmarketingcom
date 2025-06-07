@@ -11,12 +11,22 @@ use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 
-// Routes accessible to everyone (with conditional middleware applied in controllers)
+// Home route
 Route::get('/', [PostController::class, 'index'])->name('home');
+Route::get('/home', function () {
+    return redirect()->route('home');
+});
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
 
+// Profile redirect route - redirect to current user's profile if authenticated
+Route::get('/profile', function () {
+    if (auth()->check()) {
+        return redirect()->route('profile.show', auth()->user()->id);
+    }
+    return redirect()->route('login');
+})->name('profile.redirect');
+
 // IMPORTANT: Specific routes MUST come before dynamic slug routes
-// Put posts/create and other specific routes BEFORE the slug route
 Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
 Route::get('/profile/{user}/posts', [PostController::class, 'loadUserPosts'])->name('profile.load-posts');
 
