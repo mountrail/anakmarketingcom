@@ -1,3 +1,5 @@
+@props(['class' => ''])
+
 <svg {{ $attributes->merge(['class' => $class]) }} width="32" height="35" viewBox="0 0 32 35" fill="none"
     xmlns="http://www.w3.org/2000/svg">
     <g clip-path="url(#clip0_6_149)">

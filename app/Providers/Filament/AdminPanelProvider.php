@@ -17,6 +17,8 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Support\Facades\FilamentView;
+use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -53,9 +55,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                // Remove the custom CheckAdminRole middleware - Filament handles this now
             ])
-            ->brandName('Admin Panel')
+            ->brandLogo(fn() => view('components.icons.anakmarketing'))
+            ->brandLogoHeight('2rem')
             ->favicon(asset('favicon.ico'))
             ->userMenuItems([
                 'home' => \Filament\Navigation\MenuItem::make()
@@ -70,6 +72,10 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-arrow-left-on-rectangle')
                     ->group('External')
                     ->sort(-1),
-            ]);
+            ])
+            ->renderHook(
+                'panels::topbar.start',
+                fn(): string => Blade::render('<livewire:music-player />')
+            );
     }
 }
