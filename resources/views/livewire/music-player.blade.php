@@ -7,7 +7,7 @@
 
     <!-- Player Container -->
     <div
-        class="flex items-center space-x-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-2 mr-4">
+        class="flex items-center space-x-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-2 ml-4">
 
         <!-- Previous Button -->
         <button x-on:click="previousTrack()"
@@ -121,7 +121,10 @@
 
                 handleTogglePlay() {
                     if (this.isPlaying) {
-                        this.$refs.audio.play().catch(e => console.error('Error playing:', e));
+                        this.$refs.audio.play().catch(e => {
+                            console.error('Error playing:', e);
+                            this.$wire.set('isPlaying', false);
+                        });
                     } else {
                         this.$refs.audio.pause();
                     }
@@ -132,16 +135,34 @@
                     this.loadCurrentTrack();
                     if (wasPlaying) {
                         this.$refs.audio.addEventListener('canplay', () => {
-                            this.$refs.audio.play().catch(e => console.error('Error playing:', e));
+                            this.$refs.audio.play().catch(e => {
+                                console.error('Error playing:', e);
+                                this.$wire.set('isPlaying', false);
+                            });
                         }, {
                             once: true
                         });
                     }
                 },
 
-                togglePlay() {
-                    this.$wire.togglePlay();
+                async togglePlay() {
+                    if (!this.getCurrentTrack() || !this.getCurrentTrack().file) {
+                        return;
+                    }
+
+                    if (!this.isPlaying) {
+                        try {
+                            await this.$refs.audio.play();
+                            this.$wire.set('isPlaying', true);
+                        } catch (error) {
+                            console.error('Error playing audio:', error);
+                        }
+                    } else {
+                        this.$refs.audio.pause();
+                        this.$wire.set('isPlaying', false);
+                    }
                 },
+
                 previousTrack() {
                     this.$wire.previousTrack();
                 },

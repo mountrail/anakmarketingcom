@@ -74,7 +74,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(-1),
             ])
             ->renderHook(
-                'panels::topbar.start',
+                'panels::topbar.end',
                 fn(): string => Blade::render('<livewire:music-player />')
             );
     }
