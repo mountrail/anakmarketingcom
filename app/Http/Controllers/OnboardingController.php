@@ -88,7 +88,7 @@ class OnboardingController extends Controller
             return redirect()->route('onboarding.checklist');
         }
 
-        return view('onboarding.badge-earned', [
+        return view('badges.badge-earned', [
             'showSidebar' => false,
             'badge' => $badge,
             'user' => $user
@@ -126,9 +126,7 @@ class OnboardingController extends Controller
                 }
 
                 // Show Marketers Onboard badge earned page
-                $marketersOnboardBadge = Badge::where('name', 'Marketers Onboard!')->first();
-                return view('onboarding.badge-earned', compact('marketersOnboardBadge'))
-                    ->with('badge', $marketersOnboardBadge);
+                return redirect()->route('badge.earned', ['badge' => 'Marketers Onboard!']);
             }
 
             // If badge wasn't awarded (already has it), redirect to home
@@ -163,8 +161,7 @@ class OnboardingController extends Controller
         // Clear the session
         session()->forget('pending_founding_users_badge');
 
-        return view('onboarding.badge-earned', compact('foundingUsersBadge'))
-            ->with('badge', $foundingUsersBadge);
+        return redirect()->route('badge.earned', ['badge' => 'Founding Users']);
     }
 
     /**
@@ -248,7 +245,7 @@ class OnboardingController extends Controller
 
             // If badge was just awarded, redirect to badge-earned page
             if ($badgeAwarded) {
-                return redirect()->route('onboarding.badge-earned', ['badge' => 'Perkenalkan Saya'])
+                return redirect()->route('badge.earned', ['badge' => 'Perkenalkan Saya'])
                     ->with('success', 'Profil dasar berhasil disimpan!');
             }
 

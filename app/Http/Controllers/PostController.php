@@ -117,7 +117,7 @@ class PostController extends Controller
 
             if ($badgeAwarded) {
                 session(['return_to_post' => $post->slug]);
-                return redirect()->route('onboarding.badge-earned', ['badge' => 'Break The Ice'])
+                return redirect()->route('badge.earned', ['badge' => 'Break The Ice'])
                     ->with('success', $successMessage);
             }
 
