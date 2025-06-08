@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\VoteController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\AnswerController;
@@ -11,12 +12,23 @@ use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 
-// Home route
+// Home route - defaults to questions
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/home', function () {
     return redirect()->route('home');
 });
-Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+// Specific type routes
+Route::get('/pertanyaan', [PostController::class, 'index'])->defaults('type', 'question')->name('posts.questions');
+Route::get('/diskusi', [PostController::class, 'index'])->defaults('type', 'discussion')->name('posts.discussions');
+
+// Keep the old routes for backward compatibility (redirect to new ones)
+Route::get('/posts', function (Request $request) {
+    $type = $request->get('type', 'question');
+    if ($type === 'discussion') {
+        return redirect()->route('posts.discussions');
+    }
+    return redirect()->route('posts.questions');
+})->name('posts.index');
 
 // Profile redirect route - redirect to current user's profile if authenticated
 Route::get('/profile', function () {

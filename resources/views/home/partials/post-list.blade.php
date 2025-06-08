@@ -10,10 +10,10 @@
         </div>
 
         <div class="flex items-center my-1">
-            <x-dropdown align="center" width="64">
+            <x-dropdown align="center" width="trigger">
                 <x-slot name="trigger">
                     <button
-                        class="flex items-center w-52 rounded-md font-bold px-5 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:border-secondary-pale focus:ring-secondary-pale shadow-md">
+                        class="flex items-center w-52 rounded-md font-bold px-5 py-2.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:border-secondary-pale focus:ring-secondary-pale shadow-md">
                         <span class="text-lg">{{ $selectedType == 'question' ? 'Pertanyaan' : 'Diskusi' }}</span>
                         <svg class="ms-auto h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -24,12 +24,13 @@
 
                 <x-slot name="content">
                     <div class="py-1">
-                        <a href="{{ route('posts.index', ['type' => 'question']) }}"
-                            class="block w-full px-5 py-3 text-xl font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out">
+                        <a href="{{ route('posts.questions') }}"
+                            class="block w-full px-4 py-2 text-lg font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out">
                             Pertanyaan
                         </a>
-                        <a href="{{ route('posts.index', ['type' => 'discussion']) }}"
-                            class="block w-full px-5 py-3 text-xl font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out">
+                        <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+                        <a href="{{ route('posts.discussions') }}"
+                            class="block w-full px-4 py-2 text-lg font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out">
                             Diskusi
                         </a>
                     </div>

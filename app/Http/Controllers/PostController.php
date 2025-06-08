@@ -64,10 +64,6 @@ class PostController extends Controller
         }
         return null;
     }
-
-    /**
-     * Display a listing of posts based on type filter.
-     */
     public function index(Request $request)
     {
         $onboardingCheck = $this->checkOnboardingRequired();
@@ -75,7 +71,9 @@ class PostController extends Controller
             return $onboardingCheck;
         }
 
-        $selectedType = $request->query('type', 'question');
+        // Determine type from route or default to question
+        $selectedType = $request->route()->parameter('type') ?? $request->query('type', 'question');
+
         $data = $this->loadingService->getPostsForIndex($selectedType, 10);
 
         $this->viewService->shareEditorPicks();
@@ -86,7 +84,6 @@ class PostController extends Controller
             'typedEditorPicks' => $data['typedEditorPicks']
         ]);
     }
-
     /**
      * Show the form for creating a new post.
      */
