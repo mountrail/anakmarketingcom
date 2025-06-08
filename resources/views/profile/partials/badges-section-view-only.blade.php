@@ -17,7 +17,8 @@
             @foreach ($displayedBadges as $userProfileBadge)
                 @php $badge = $userProfileBadge->badge; @endphp
                 <div class="flex flex-col items-center space-y-3">
-                    <x-icons.badge class="w-16 h-16 text-yellow-500" />
+                    <img src="{{ asset('images/badges/' . $badge->icon) }}" alt="{{ $badge->name }}"
+                        class="w-16 h-16 object-contain" />
                     <div class="text-center">
                         <p class="text-sm font-semibold text-branding-black dark:text-white">{{ $badge->name }}</p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $badge->description }}</p>
@@ -27,7 +28,8 @@
         </div>
     @else
         <div class="text-center text-essentials-inactive dark:text-gray-400 py-8">
-            <x-icons.badge class="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+            <img src="{{ asset('images/badges/default-badge.png') }}" alt="No badges"
+                class="w-16 h-16 mx-auto mb-4 opacity-30 object-contain" />
             <p>Belum ada badge yang ditampilkan</p>
         </div>
     @endif
