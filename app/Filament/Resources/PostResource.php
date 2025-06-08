@@ -250,20 +250,11 @@ class PostResource extends Resource
                             ->fromTable()
                             ->withFilename(fn() => 'posts-' . date('Y-m-d'))
                             ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
-                            ->withColumns([
-                                'id' => 'ID',
-                                'user.name' => 'Author',
-                                'user.email' => 'Author Email',
-                                'title' => 'Title',
-                                'type' => 'Type',
-                                'is_featured' => 'Featured',
-                                'featured_type' => 'Featured Type',
-                                'vote_score' => 'Vote Score',
-                                'answers_count' => 'Answers Count',
-                                'view_count' => 'View Count',
-                                'slug' => 'Slug',
-                                'created_at' => 'Created Date',
-                                'updated_at' => 'Updated Date',
+                            ->except([
+                                'user.profile_picture', // Remove image columns from export
+                                'vote_score', // Computed attributes that cause issues
+                                'answers_count', // Count columns that might not export properly
+                                'featured_type', // Conditional columns
                             ]),
                     ])
                     ->color('success')
@@ -294,7 +285,13 @@ class PostResource extends Resource
                             ExcelExport::make()
                                 ->fromTable()
                                 ->withFilename(fn() => 'selected-posts-' . date('Y-m-d'))
-                                ->withWriterType(\Maatwebsite\Excel\Excel::XLSX),
+                                ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
+                                ->except([
+                                    'user.profile_picture',
+                                    'vote_score',
+                                    'answers_count',
+                                    'featured_type',
+                                ]),
                         ]),
 
                     Tables\Actions\BulkAction::make('feature')

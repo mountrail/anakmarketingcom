@@ -276,22 +276,12 @@ class UserResource extends Resource
                             ->fromTable()
                             ->withFilename(fn() => 'users-' . date('Y-m-d'))
                             ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
-                            ->withColumns([
-                                'name' => 'Name',
-                                'email' => 'Email',
-                                'phone' => 'Phone',
-                                'job_title' => 'Job Title',
-                                'company' => 'Company',
-                                'industry' => 'Industry',
-                                'seniority' => 'Seniority',
-                                'company_size' => 'Company Size',
-                                'city' => 'City',
-                                'provider' => 'Login Provider',
-                                'reputation' => 'Reputation',
-                                'posts_count' => 'Posts Count',
-                                'answers_count' => 'Answers Count',
-                                'email_verified_at' => 'Email Verified',
-                                'created_at' => 'Joined Date',
+                            ->except([
+                                'profile_picture', // Remove image columns from export
+                                'roles.name', // Complex relationship columns
+                                'posts_count',
+                                'answers_count',
+                                'followers_count'
                             ]),
                     ])
                     ->color('success')
@@ -313,7 +303,14 @@ class UserResource extends Resource
                             ExcelExport::make()
                                 ->fromTable()
                                 ->withFilename(fn() => 'selected-users-' . date('Y-m-d'))
-                                ->withWriterType(\Maatwebsite\Excel\Excel::XLSX),
+                                ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
+                                ->except([
+                                    'profile_picture',
+                                    'roles.name',
+                                    'posts_count',
+                                    'answers_count',
+                                    'followers_count'
+                                ]),
                         ]),
                     Tables\Actions\DeleteBulkAction::make()
                         ->requiresConfirmation()
