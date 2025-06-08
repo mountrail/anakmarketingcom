@@ -8,7 +8,9 @@
             <div class="mb-8">
                 <h1 class="text-2xl font-bold text-branding-primary mb-2">
                     Selamat! <br>
-                    @if ($badge->name === 'Marketers Onboard!')
+                    @if ($badge->name === 'Founding Users')
+                        Kamu mendapatkan <em>badge</em> eksklusif!
+                    @elseif ($badge->name === 'Marketers Onboard!')
                         Kamu telah menyelesaikan semua misi onboarding!
                     @else
                         Kamu mendapatkan <em>badge</em> pertamamu!
@@ -35,7 +37,10 @@
             <!-- Description -->
             <div class="mb-8">
                 <p class="text-gray-700 text-lg font-medium leading-relaxed">
-                    @if ($badge->name === 'Marketers Onboard!')
+                    @if ($badge->name === 'Founding Users')
+                        Selamat! Kamu adalah salah satu dari 50 pengguna pertama yang menyelesaikan onboarding. Sebagai
+                        founding member, kamu memiliki peran penting dalam membangun komunitas ini!
+                    @elseif ($badge->name === 'Marketers Onboard!')
                         Selamat datang di komunitas! Mulai berbagi dan berdiskusi untuk mendapatkan lebih banyak
                         <em>badges</em> dan benefit menarik lainnya.
                     @else
@@ -46,7 +51,14 @@
 
             <!-- Continue Button -->
             <div class="flex justify-center continue-button">
-                @if ($badge->name === 'Marketers Onboard!')
+                @if ($badge->name === 'Marketers Onboard!' && session('pending_founding_users_badge'))
+                    {{-- Show Founding Users badge next --}}
+                    <x-primary-button type="button"
+                        onclick="window.location.href='{{ route('onboarding.founding-users-badge') }}'" variant="primary"
+                        size="xl" class="w-auto px-8">
+                        Lanjutkan
+                    </x-primary-button>
+                @elseif ($badge->name === 'Marketers Onboard!' || $badge->name === 'Founding Users')
                     <x-primary-button type="button" onclick="window.location.href='{{ route('home') }}'" variant="primary"
                         size="xl" class="w-auto px-8">
                         Mulai Berdiskusi

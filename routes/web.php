@@ -61,6 +61,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Add this new route for claiming the final badge
     Route::post('/onboarding/claim-badge', [OnboardingController::class, 'claimBadge'])->name('onboarding.claim-badge');
+
+    // Add this route with your other onboarding routes
+    Route::get('/onboarding/founding-users-badge', [OnboardingController::class, 'showFoundingUsersBadge'])->name('onboarding.founding-users-badge');
 });
 
 // Protected routes that require completed onboarding
@@ -82,7 +85,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
     Route::patch('/answers/{answer}/toggle-editors-pick', [AnswerController::class, 'toggleEditorsPick'])->name('answers.toggle-editors-pick');
     Route::delete('/answers/{answer}', [AnswerController::class, 'destroy'])->name('answers.destroy');
 
-    // Voting routes - USING ID FOR FORM SUBMISSIONS
+    // Update your voting routes to use post ID
     Route::post('/posts/{post}/vote', [VoteController::class, 'votePost'])->name('posts.vote');
     Route::post('/answers/{answer}/vote', [VoteController::class, 'voteAnswer'])->name('answers.vote');
 

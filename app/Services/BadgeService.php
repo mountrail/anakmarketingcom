@@ -196,6 +196,63 @@ class BadgeService
         }
     }
 
+
+    /**
+     * Award "Founding Users" badge for first 50 users to complete onboarding
+     */
+    public static function checkFoundingUsers(User $user)
+    {
+        try {
+            // Check if user already has this badge
+            if ($user->hasBadge('Founding Users')) {
+                return false;
+            }
+
+            // Check if user has the "Marketers Onboard!" badge (prerequisite)
+            if (!$user->hasBadge('Marketers Onboard!')) {
+                return false;
+            }
+
+            // Count how many users have the "Marketers Onboard!" badge
+            $marketersOnboardBadge = Badge::where('name', 'Marketers Onboard!')->first();
+            if (!$marketersOnboardBadge) {
+                return false;
+            }
+
+            $marketersOnboardCount = $marketersOnboardBadge->users()->count();
+
+            // Award Founding Users badge if they're among the first 50
+            if ($marketersOnboardCount <= 50) {
+                $foundingUsersBadge = Badge::where('name', 'Founding Users')->first();
+                if ($foundingUsersBadge) {
+                    // Award the badge
+                    $user->giveBadge($foundingUsersBadge);
+
+                    // Create profile badge entry
+                    UserProfileBadge::firstOrCreate([
+                        'user_id' => $user->id,
+                        'badge_id' => $foundingUsersBadge->id,
+                    ], [
+                        'is_displayed' => false,
+                        'display_order' => null,
+                    ]);
+
+                    // Send notification
+                    $user->notify(new BadgeEarnedNotification($foundingUsersBadge));
+
+                    Log::info("Badge 'Founding Users' awarded to user {$user->id} (#{$marketersOnboardCount} to complete onboarding)");
+
+                    return true; // Return true to indicate badge was just awarded
+                }
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            Log::error("Error awarding 'Founding Users' badge to user {$user->id}: " . $e->getMessage());
+            return false;
+        }
+    }
+
     /**
      * Check if user has accessed notification center
      */
@@ -212,6 +269,7 @@ class BadgeService
             in_array('accessed_notifications', json_decode($user->onboarding_steps, true) ?? []);
     }
 
+
     /**
      * Check and award all applicable badges for existing users
      */
@@ -221,6 +279,7 @@ class BadgeService
         self::checkBreakTheIce($user);
         self::checkIkutanNimbrung($user);
         self::checkMarketersOnboard($user);
+        self::checkFoundingUsers($user);
     }
 
     /**

@@ -96,35 +96,75 @@ class OnboardingController extends Controller
     }
 
     /**
-     * Claim the "Marketers Onboard!" badge when all missions are completed
+     * Claim the Marketers Onboard badge
      */
-    public function claimBadge(): RedirectResponse
+    public function claimBadge(Request $request)
     {
         try {
             $user = auth()->user();
 
-            // Check and award the "Marketers Onboard!" badge
-            $badgeAwarded = BadgeService::checkMarketersOnboard($user);
+            // Check if user has completed all onboarding steps
+            $onboardingStatus = $this->getOnboardingStatus($user);
+            $allCompleted = collect($onboardingStatus)->every(fn($status) => $status === true);
 
-            if ($badgeAwarded) {
-                // Delete onboarding notifications for this user
-                $this->deleteOnboardingNotifications($user);
-
-                // Redirect to badge-earned page with the specific badge
-                return redirect()->route('onboarding.badge-earned', ['badge' => 'Marketers Onboard!'])
-                    ->with('success', 'Selamat! Kamu berhasil mendapatkan badge "Marketers Onboard!"');
-            } else {
-                // If badge wasn't awarded (already has it or doesn't meet requirements)
+            if (!$allCompleted) {
                 return redirect()->route('onboarding.checklist')
-                    ->with('info', 'Pastikan semua misi onboarding sudah diselesaikan.');
+                    ->with('error', 'Silakan selesaikan semua langkah onboarding terlebih dahulu.');
             }
 
+            // Award Marketers Onboard badge
+            $marketersOnboardAwarded = BadgeService::checkMarketersOnboard($user);
+
+            if ($marketersOnboardAwarded) {
+                // Check and award Founding Users badge if eligible
+                $foundingUsersAwarded = BadgeService::checkFoundingUsers($user);
+
+                // Store founding users badge info in session for chained animation
+                if ($foundingUsersAwarded) {
+                    $foundingUsersBadge = Badge::where('name', 'Founding Users')->first();
+                    session(['pending_founding_users_badge' => $foundingUsersBadge->id]);
+                }
+
+                // Show Marketers Onboard badge earned page
+                $marketersOnboardBadge = Badge::where('name', 'Marketers Onboard!')->first();
+                return view('onboarding.badge-earned', compact('marketersOnboardBadge'))
+                    ->with('badge', $marketersOnboardBadge);
+            }
+
+            // If badge wasn't awarded (already has it), redirect to home
+            return redirect()->route('home')
+                ->with('info', 'Selamat! Anda telah menyelesaikan onboarding!');
+
         } catch (\Exception $e) {
-            Log::error('Error claiming Marketers Onboard badge for user ' . auth()->id() . ': ' . $e->getMessage());
+            Log::error('Error claiming Marketers Onboard badge: ' . $e->getMessage());
 
             return redirect()->route('onboarding.checklist')
-                ->with('error', 'Terjadi kesalahan saat mengklaim badge. Silakan coba lagi.');
+                ->with('error', 'Terjadi kesalahan. Silakan coba lagi.');
         }
+    }
+
+    /**
+     * Show Founding Users badge after Marketers Onboard
+     */
+    public function showFoundingUsersBadge()
+    {
+        $foundingUsersBadgeId = session('pending_founding_users_badge');
+
+        if (!$foundingUsersBadgeId) {
+            return redirect()->route('home');
+        }
+
+        $foundingUsersBadge = Badge::find($foundingUsersBadgeId);
+
+        if (!$foundingUsersBadge) {
+            return redirect()->route('home');
+        }
+
+        // Clear the session
+        session()->forget('pending_founding_users_badge');
+
+        return view('onboarding.badge-earned', compact('foundingUsersBadge'))
+            ->with('badge', $foundingUsersBadge);
     }
 
     /**

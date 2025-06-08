@@ -36,6 +36,12 @@ class BadgeSeeder extends Seeder
                 'description' => 'Complete all onboarding missions and officially join the marketing community',
                 'icon' => 'rocket',
                 'level' => 2,
+            ],
+            [
+                'name' => 'Founding Users',
+                'description' => 'One of the first 50 members to complete onboarding and join the community',
+                'icon' => 'star',
+                'level' => 3,
             ]
         ];
 
