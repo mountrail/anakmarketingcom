@@ -1,324 +1,281 @@
-// resources\js\voting.js
-// optimized-voting.js - Hybrid voting system with optimistic UI updates
-document.addEventListener('DOMContentLoaded', function () {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const activeVoteRequests = {};
-
-    document.querySelectorAll('.vote-btn').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            const form = button.closest('.vote-form');
-            if (!form) return;
-
-            const url = form.getAttribute('action');
-            const isPostVote = url.includes('/posts/') && !url.includes('/answers/');
-
-            // Extract the target ID from the vote container data attribute instead of URL
-            const voteContainer = button.closest('.vote-container');
-            if (!voteContainer) return;
-
-            const typeAttr = isPostVote ? 'post' : 'answer';
-            const targetId = voteContainer.getAttribute(`data-${typeAttr}-id`);
-
-            if (!targetId || activeVoteRequests[targetId]) return;
-
-            const voteContainers = document.querySelectorAll(
-                `.vote-container[data-${typeAttr}-id="${targetId}"], ` +
-                `.vote-container:has(.vote-score[data-${typeAttr}-id="${targetId}"])`
-            );
-
-            // Store previous states for potential rollback
-            const previousStates = captureState(voteContainers, typeAttr, targetId);
-
-            // Disable vote buttons and mark request as active
-            activeVoteRequests[targetId] = true;
-            toggleButtonsState(voteContainers, true);
-
-            // Apply optimistic UI update
-            const isUpvote = button.classList.contains('upvote-btn');
-            const isActive = button.classList.contains('active-vote');
-            updateVoteUI(voteContainers, typeAttr, targetId, isUpvote, isActive);
-
-            // Make the server request
-            const formData = new FormData(form);
-            fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                }
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json()
-                            .then(errorData => { throw new Error(errorData.message || `Server error: ${response.status}`); })
-                            .catch(() => { throw new Error(`Server error: ${response.status}`); });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Update UI with server data
-                    updateUIWithServerData(voteContainers, typeAttr, targetId, data);
-                    // FIXED: Only show toast if showToast is not explicitly false
-                    if (data.showToast !== false && data.message) {
-                        showNotification(data.message, 'success');
-                    }
-                })
-                .catch(error => {
-                    // Revert to previous state on error
-                    showNotification('Error processing your vote. Please try again.', 'error');
-                    restoreState(previousStates);
-                })
-                .finally(() => {
-                    delete activeVoteRequests[targetId];
-                    toggleButtonsState(voteContainers, false);
-                });
-        });
-    });
-
-    // Helper function to capture current state
-    function captureState(containers, typeAttr, targetId) {
-        const states = [];
-        containers.forEach(container => {
-            const scoreElement = container.querySelector(`.vote-score[data-${typeAttr}-id="${targetId}"]`);
-            const upvoteCountElement = container.querySelector(`.upvote-count[data-${typeAttr}-id="${targetId}"]`);
-            const downvoteCountElement = container.querySelector(`.downvote-count[data-${typeAttr}-id="${targetId}"]`);
-
-            if (!scoreElement) return;
-
-            const upvoteBtn = container.querySelector('.upvote-btn');
-            const downvoteBtn = container.querySelector('.downvote-btn');
-            if (!upvoteBtn || !downvoteBtn) return;
-
-            // Capture icon states as well
-            const upvoteNormalIcon = upvoteBtn.querySelector('.icon-container svg:first-child');
-            const upvoteClickedIcon = upvoteBtn.querySelector('.icon-container svg:last-child');
-            const downvoteNormalIcon = downvoteBtn.querySelector('.icon-container svg:first-child');
-            const downvoteClickedIcon = downvoteBtn.querySelector('.icon-container svg:last-child');
-
-            states.push({
-                scoreElement,
-                score: scoreElement.textContent.trim(),
-                upvoteCountElement,
-                upvoteCount: upvoteCountElement ? upvoteCountElement.textContent.trim() : '0',
-                downvoteCountElement,
-                downvoteCount: downvoteCountElement ? downvoteCountElement.textContent.trim() : '0',
-                upvoteBtn: {
-                    element: upvoteBtn,
-                    classList: [...upvoteBtn.classList],
-                    active: upvoteBtn.classList.contains('active-vote')
-                },
-                downvoteBtn: {
-                    element: downvoteBtn,
-                    classList: [...downvoteBtn.classList],
-                    active: downvoteBtn.classList.contains('active-vote')
-                },
-                icons: {
-                    upvoteNormal: {
-                        element: upvoteNormalIcon,
-                        hidden: upvoteNormalIcon ? upvoteNormalIcon.classList.contains('hidden') : false
-                    },
-                    upvoteClicked: {
-                        element: upvoteClickedIcon,
-                        hidden: upvoteClickedIcon ? upvoteClickedIcon.classList.contains('hidden') : true
-                    },
-                    downvoteNormal: {
-                        element: downvoteNormalIcon,
-                        hidden: downvoteNormalIcon ? downvoteNormalIcon.classList.contains('hidden') : false
-                    },
-                    downvoteClicked: {
-                        element: downvoteClickedIcon,
-                        hidden: downvoteClickedIcon ? downvoteClickedIcon.classList.contains('hidden') : true
-                    }
-                }
-            });
-        });
-        return states;
+// resources/js/voting.js - Simplified dynamic voting system
+class VotingSystem {
+    constructor() {
+        this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        this.activeRequests = new Set();
+        this.init();
     }
 
-    // Helper function to toggle button states (disabled/enabled)
-    function toggleButtonsState(containers, disabled) {
-        containers.forEach(container => {
-            container.querySelectorAll('.vote-btn').forEach(btn => {
-                btn.disabled = disabled;
-                btn.classList.toggle('opacity-50', disabled);
-                btn.classList.toggle('cursor-not-allowed', disabled);
-            });
-        });
+    init() {
+        // Use event delegation for dynamic content
+        document.addEventListener('click', this.handleVoteClick.bind(this));
     }
 
-    // Helper function to update UI optimistically
-    function updateVoteUI(containers, typeAttr, targetId, isUpvote, isActive) {
-        containers.forEach(container => {
-            const scoreElement = container.querySelector(`.vote-score[data-${typeAttr}-id="${targetId}"]`);
-            const upvoteCountElement = container.querySelector(`.upvote-count[data-${typeAttr}-id="${targetId}"]`);
-            const downvoteCountElement = container.querySelector(`.downvote-count[data-${typeAttr}-id="${targetId}"]`);
+    handleVoteClick(e) {
+        const voteBtn = e.target.closest('.vote-btn');
+        if (!voteBtn || voteBtn.classList.contains('guest-vote')) return;
 
-            if (!scoreElement) return;
+        e.preventDefault();
+        this.processVote(voteBtn);
+    }
 
-            const upvoteBtn = container.querySelector('.upvote-btn');
-            const downvoteBtn = container.querySelector('.downvote-btn');
-            if (!upvoteBtn || !downvoteBtn) return;
+    async processVote(button) {
+        const form = button.closest('.vote-form');
+        if (!form) return;
 
-            const currentScore = parseInt(scoreElement.textContent.trim());
-            const currentUpvoteCount = upvoteCountElement ? parseInt(upvoteCountElement.textContent.trim()) : 0;
-            const currentDownvoteCount = downvoteCountElement ? parseInt(downvoteCountElement.textContent.trim()) : 0;
+        const url = form.getAttribute('action');
+        const voteContainer = button.closest('.vote-container');
+        if (!voteContainer) return;
 
-            const wasDownvoteActive = downvoteBtn.classList.contains('active-vote');
-            const wasUpvoteActive = upvoteBtn.classList.contains('active-vote');
+        // Extract target info dynamically
+        const targetInfo = this.extractTargetInfo(voteContainer, url);
+        if (!targetInfo || this.activeRequests.has(targetInfo.key)) return;
 
-            // Reset both buttons first
-            resetButtonStyles(upvoteBtn, downvoteBtn);
+        // Prevent multiple requests
+        this.activeRequests.add(targetInfo.key);
+        this.toggleButtonsState(voteContainer, true);
 
-            // Calculate new score and counts, set appropriate button active
-            let newScore = currentScore;
-            let newUpvoteCount = currentUpvoteCount;
-            let newDownvoteCount = currentDownvoteCount;
+        // Store previous state for rollback
+        const previousState = this.captureState(voteContainer, targetInfo);
 
-            if (isActive) {
-                // Removing vote
-                if (isUpvote) {
-                    newScore -= 1;
-                    newUpvoteCount -= 1;
-                } else {
-                    newScore += 1;
-                    newDownvoteCount -= 1;
-                }
-            } else if (isUpvote) {
-                // Adding upvote
-                if (wasDownvoteActive) {
-                    newScore += 2;
-                    newDownvoteCount -= 1;
-                } else {
-                    newScore += 1;
-                }
-                newUpvoteCount += 1;
-                setActiveUpvote(upvoteBtn);
+        // Apply optimistic update
+        const isUpvote = button.classList.contains('upvote-btn');
+        const isActive = button.classList.contains('active-vote');
+        this.updateVoteUI(voteContainer, targetInfo, isUpvote, isActive);
+
+        try {
+            const response = await this.sendVoteRequest(form, url);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || `Server error: ${response.status}`);
+            }
+
+            // Update with server data
+            this.updateUIWithServerData(voteContainer, targetInfo, data);
+
+            if (data.showToast !== false && data.message) {
+                this.showNotification(data.message, 'success');
+            }
+        } catch (error) {
+            console.error('Vote error:', error);
+            this.showNotification('Error processing your vote. Please try again.', 'error');
+            this.restoreState(voteContainer, targetInfo, previousState);
+        } finally {
+            this.activeRequests.delete(targetInfo.key);
+            this.toggleButtonsState(voteContainer, false);
+        }
+    }
+
+    extractTargetInfo(container, url) {
+        // Check for post or answer data attributes
+        const postId = container.getAttribute('data-post-id');
+        const answerId = container.getAttribute('data-answer-id');
+
+        if (postId) {
+            return {
+                type: 'post',
+                id: postId,
+                key: `post-${postId}`,
+                attr: 'data-post-id'
+            };
+        }
+
+        if (answerId) {
+            return {
+                type: 'answer',
+                id: answerId,
+                key: `answer-${answerId}`,
+                attr: 'data-answer-id'
+            };
+        }
+
+        return null;
+    }
+
+    captureState(container, targetInfo) {
+        const scoreEl = container.querySelector(`.vote-score[${targetInfo.attr}="${targetInfo.id}"]`);
+        const upvoteCountEl = container.querySelector(`.upvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+        const downvoteCountEl = container.querySelector(`.downvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+        const upvoteBtn = container.querySelector('.upvote-btn');
+        const downvoteBtn = container.querySelector('.downvote-btn');
+
+        return {
+            score: scoreEl?.textContent.trim() || '0',
+            upvoteCount: upvoteCountEl?.textContent.trim() || '0',
+            downvoteCount: downvoteCountEl?.textContent.trim() || '0',
+            upvoteActive: upvoteBtn?.classList.contains('active-vote') || false,
+            downvoteActive: downvoteBtn?.classList.contains('active-vote') || false,
+            upvoteIcons: this.captureIconState(upvoteBtn),
+            downvoteIcons: this.captureIconState(downvoteBtn)
+        };
+    }
+
+    captureIconState(button) {
+        if (!button) return null;
+        const icons = button.querySelectorAll('.icon-container svg');
+        return {
+            normal: icons[0]?.classList.contains('hidden') || false,
+            clicked: icons[1]?.classList.contains('hidden') !== false
+        };
+    }
+
+    updateVoteUI(container, targetInfo, isUpvote, wasActive) {
+        const scoreEl = container.querySelector(`.vote-score[${targetInfo.attr}="${targetInfo.id}"]`);
+        const upvoteCountEl = container.querySelector(`.upvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+        const downvoteCountEl = container.querySelector(`.downvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+        const upvoteBtn = container.querySelector('.upvote-btn');
+        const downvoteBtn = container.querySelector('.downvote-btn');
+
+        if (!scoreEl || !upvoteBtn || !downvoteBtn) return;
+
+        const currentScore = parseInt(scoreEl.textContent.trim()) || 0;
+        const currentUpvotes = parseInt(upvoteCountEl?.textContent.trim() || '0');
+        const currentDownvotes = parseInt(downvoteCountEl?.textContent.trim() || '0');
+
+        const wasUpvoteActive = upvoteBtn.classList.contains('active-vote');
+        const wasDownvoteActive = downvoteBtn.classList.contains('active-vote');
+
+        // Reset both buttons
+        this.resetButtonStyles(upvoteBtn, downvoteBtn);
+
+        let newScore = currentScore;
+        let newUpvotes = currentUpvotes;
+        let newDownvotes = currentDownvotes;
+
+        if (wasActive) {
+            // Removing vote
+            if (isUpvote) {
+                newScore -= 1;
+                newUpvotes -= 1;
             } else {
-                // Adding downvote
-                if (wasUpvoteActive) {
-                    newScore -= 2;
-                    newUpvoteCount -= 1;
-                } else {
-                    newScore -= 1;
-                }
-                newDownvoteCount += 1;
-                setActiveDownvote(downvoteBtn);
+                newScore += 1;
+                newDownvotes -= 1;
             }
+        } else if (isUpvote) {
+            // Adding upvote
+            if (wasDownvoteActive) {
+                newScore += 2;
+                newDownvotes -= 1;
+            } else {
+                newScore += 1;
+            }
+            newUpvotes += 1;
+            this.setActiveUpvote(upvoteBtn);
+        } else {
+            // Adding downvote
+            if (wasUpvoteActive) {
+                newScore -= 2;
+                newUpvotes -= 1;
+            } else {
+                newScore -= 1;
+            }
+            newDownvotes += 1;
+            this.setActiveDownvote(downvoteBtn);
+        }
 
-            scoreElement.textContent = newScore.toString();
-            if (upvoteCountElement) upvoteCountElement.textContent = newUpvoteCount.toString();
-            if (downvoteCountElement) downvoteCountElement.textContent = newDownvoteCount.toString();
+        // Update display
+        scoreEl.textContent = newScore.toString();
+        if (upvoteCountEl) upvoteCountEl.textContent = newUpvotes.toString();
+        if (downvoteCountEl) downvoteCountEl.textContent = newDownvotes.toString();
+    }
+
+    updateUIWithServerData(container, targetInfo, data) {
+        const scoreEl = container.querySelector(`.vote-score[${targetInfo.attr}="${targetInfo.id}"]`);
+        const upvoteCountEl = container.querySelector(`.upvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+        const downvoteCountEl = container.querySelector(`.downvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+        const upvoteBtn = container.querySelector('.upvote-btn');
+        const downvoteBtn = container.querySelector('.downvote-btn');
+
+        if (!scoreEl || !upvoteBtn || !downvoteBtn) return;
+
+        // Update counts and score
+        scoreEl.textContent = data.score || '0';
+        if (upvoteCountEl) upvoteCountEl.textContent = data.upvoteCount || data.upvotes || '0';
+        if (downvoteCountEl) downvoteCountEl.textContent = data.downvoteCount || data.downvotes || '0';
+
+        // Reset and set correct button state
+        this.resetButtonStyles(upvoteBtn, downvoteBtn);
+
+        const userVote = Number(data.userVote);
+        if (userVote === 1) {
+            this.setActiveUpvote(upvoteBtn);
+        } else if (userVote === -1) {
+            this.setActiveDownvote(downvoteBtn);
+        }
+    }
+
+    restoreState(container, targetInfo, state) {
+        const scoreEl = container.querySelector(`.vote-score[${targetInfo.attr}="${targetInfo.id}"]`);
+        const upvoteCountEl = container.querySelector(`.upvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+        const downvoteCountEl = container.querySelector(`.downvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+        const upvoteBtn = container.querySelector('.upvote-btn');
+        const downvoteBtn = container.querySelector('.downvote-btn');
+
+        if (scoreEl) scoreEl.textContent = state.score;
+        if (upvoteCountEl) upvoteCountEl.textContent = state.upvoteCount;
+        if (downvoteCountEl) downvoteCountEl.textContent = state.downvoteCount;
+
+        this.resetButtonStyles(upvoteBtn, downvoteBtn);
+
+        if (state.upvoteActive) this.setActiveUpvote(upvoteBtn);
+        if (state.downvoteActive) this.setActiveDownvote(downvoteBtn);
+    }
+
+    toggleButtonsState(container, disabled) {
+        container.querySelectorAll('.vote-btn').forEach(btn => {
+            btn.disabled = disabled;
+            btn.classList.toggle('opacity-50', disabled);
+            btn.classList.toggle('cursor-not-allowed', disabled);
         });
     }
 
-    // Helper function to update UI with server data
-    function updateUIWithServerData(containers, typeAttr, targetId, data) {
-        containers.forEach(container => {
-            const scoreElement = container.querySelector(`.vote-score[data-${typeAttr}-id="${targetId}"]`);
-            const upvoteCountElement = container.querySelector(`.upvote-count[data-${typeAttr}-id="${targetId}"]`);
-            const downvoteCountElement = container.querySelector(`.downvote-count[data-${typeAttr}-id="${targetId}"]`);
-
-            if (!scoreElement) return;
-
-            const upvoteBtn = container.querySelector('.upvote-btn');
-            const downvoteBtn = container.querySelector('.downvote-btn');
-            if (!upvoteBtn || !downvoteBtn) return;
-
-            scoreElement.textContent = data.score;
-            if (upvoteCountElement) upvoteCountElement.textContent = data.upvoteCount || data.upvotes || 0;
-            if (downvoteCountElement) downvoteCountElement.textContent = data.downvoteCount || data.downvotes || 0;
-
-            resetButtonStyles(upvoteBtn, downvoteBtn);
-
-            const voteValue = Number(data.userVote);
-            if (voteValue === 1) {
-                setActiveUpvote(upvoteBtn);
-            } else if (voteValue === -1) {
-                setActiveDownvote(downvoteBtn);
+    resetButtonStyles(upvoteBtn, downvoteBtn) {
+        [upvoteBtn, downvoteBtn].forEach(btn => {
+            if (btn) {
+                btn.classList.remove('active-vote');
+                this.toggleIconVisibility(btn, false);
             }
         });
     }
 
-    // Helper function to restore previous state
-    function restoreState(states) {
-        states.forEach(state => {
-            state.scoreElement.textContent = state.score;
-            if (state.upvoteCountElement) state.upvoteCountElement.textContent = state.upvoteCount;
-            if (state.downvoteCountElement) state.downvoteCountElement.textContent = state.downvoteCount;
+    setActiveUpvote(btn) {
+        if (btn) {
+            btn.classList.add('active-vote');
+            this.toggleIconVisibility(btn, true);
+        }
+    }
 
-            // Restore upvote button
-            const upvoteBtn = state.upvoteBtn.element;
-            upvoteBtn.className = '';
-            state.upvoteBtn.classList.forEach(cls => upvoteBtn.classList.add(cls));
+    setActiveDownvote(btn) {
+        if (btn) {
+            btn.classList.add('active-vote');
+            this.toggleIconVisibility(btn, true);
+        }
+    }
 
-            // Restore downvote button
-            const downvoteBtn = state.downvoteBtn.element;
-            downvoteBtn.className = '';
-            state.downvoteBtn.classList.forEach(cls => downvoteBtn.classList.add(cls));
+    toggleIconVisibility(button, active) {
+        const icons = button?.querySelectorAll('.icon-container svg');
+        if (icons && icons.length >= 2) {
+            icons[0].classList.toggle('hidden', active);  // normal icon
+            icons[1].classList.toggle('hidden', !active); // clicked icon
+        }
+    }
 
-            // Restore icon states
-            if (state.icons.upvoteNormal.element) {
-                state.icons.upvoteNormal.element.classList.toggle('hidden', state.icons.upvoteNormal.hidden);
-            }
-            if (state.icons.upvoteClicked.element) {
-                state.icons.upvoteClicked.element.classList.toggle('hidden', state.icons.upvoteClicked.hidden);
-            }
-            if (state.icons.downvoteNormal.element) {
-                state.icons.downvoteNormal.element.classList.toggle('hidden', state.icons.downvoteNormal.hidden);
-            }
-            if (state.icons.downvoteClicked.element) {
-                state.icons.downvoteClicked.element.classList.toggle('hidden', state.icons.downvoteClicked.hidden);
+    async sendVoteRequest(form, url) {
+        const formData = new FormData(form);
+
+        return fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': this.csrfToken,
+                'Accept': 'application/json'
             }
         });
     }
 
-    // Helper function to reset button styles
-    function resetButtonStyles(upvoteBtn, downvoteBtn) {
-        // Remove active class from both buttons
-        upvoteBtn.classList.remove('active-vote');
-        downvoteBtn.classList.remove('active-vote');
-
-        // Reset icon visibility
-        toggleIconVisibility(upvoteBtn, false);
-        toggleIconVisibility(downvoteBtn, false);
-    }
-
-    // Helper function to set active upvote style
-    function setActiveUpvote(upvoteBtn) {
-        upvoteBtn.classList.add('active-vote');
-        toggleIconVisibility(upvoteBtn, true);
-    }
-
-    // Helper function to set active downvote style
-    function setActiveDownvote(downvoteBtn) {
-        downvoteBtn.classList.add('active-vote');
-        toggleIconVisibility(downvoteBtn, true);
-    }
-
-    // Helper function to toggle icon visibility - FIXED VERSION
-    function toggleIconVisibility(button, active) {
-        const iconContainer = button.querySelector('.icon-container');
-        if (!iconContainer) return;
-
-        // Get both icons directly - more reliable than complex selectors
-        const icons = iconContainer.querySelectorAll('svg');
-        if (icons.length < 2) return;  // We need both icons to work
-
-        // First SVG is normal, second SVG is clicked
-        const normalIcon = icons[0];
-        const clickedIcon = icons[1];
-
-        // Toggle hidden class appropriately
-        normalIcon.classList.toggle('hidden', active);
-        clickedIcon.classList.toggle('hidden', !active);
-    }
-
-    // Helper function to show notifications
-    function showNotification(message, type = 'success') {
+    showNotification(message, type = 'success') {
         let container = document.getElementById('notification-container');
 
         if (!container) {
@@ -329,9 +286,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const notification = document.createElement('div');
-        notification.className = `mb-2 p-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-0
-            ${type === 'error' ? 'bg-red-100 border-l-4 border-red-600 text-red-700' : 'bg-green-100 border-l-4 border-green-600 text-green-700'}`;
+        const bgClass = type === 'error'
+            ? 'bg-red-100 border-l-4 border-red-600 text-red-700'
+            : 'bg-green-100 border-l-4 border-green-600 text-green-700';
 
+        notification.className = `mb-2 p-3 rounded-lg shadow-lg transition-all duration-300 ${bgClass}`;
         notification.innerHTML = `
             <div class="flex justify-between items-center">
                 <span>${message}</span>
@@ -352,4 +311,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 5000);
     }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    new VotingSystem();
 });

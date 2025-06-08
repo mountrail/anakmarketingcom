@@ -9,8 +9,8 @@
 
 @php
     $routeName = $modelType === 'post' ? 'posts.vote' : 'answers.vote';
-    // Use slug for posts, id for answers
-    $routeParam = $modelType === 'post' ? $model->slug : $model->id;
+    // Always use ID for voting - more reliable than slug
+    $routeParam = $model->id;
     $modelId = $model->id;
     $voteScore = $model->vote_score;
     $userVote = $model->user_vote;

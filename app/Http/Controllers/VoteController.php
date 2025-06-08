@@ -12,12 +12,10 @@ use App\Http\Controllers\OnboardingController;
 class VoteController extends Controller
 {
     /**
-     * Vote on a post
+     * Vote on a post - using post ID instead of slug
      */
-    public function votePost(Request $request, $slug)
+    public function votePost(Request $request, Post $post)
     {
-        // Find post by slug
-        $post = Post::where('slug', $slug)->firstOrFail();
         return $this->handleVote($request, $request->user(), null, $post, $request->value);
     }
 
