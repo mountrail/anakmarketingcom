@@ -28,7 +28,8 @@
         </div>
     @else
         <div class="text-center text-essentials-inactive dark:text-gray-400 py-8">
-            <x-icons.badge class="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+            <img src="{{ asset('images/badges/default-badge.png') }}" alt="No badges"
+                class="w-16 h-16 mx-auto mb-4 opacity-30 object-contain" />
             <p>Belum ada badge yang ditampilkan</p>
         </div>
     @endif
