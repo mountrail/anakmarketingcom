@@ -27,7 +27,7 @@
                                 </x-slot>
 
                                 <x-slot name="content">
-                                    <div class="py-1 max-h-none overflow-visible">
+                                    <div class="py-1 max-h-none w-max overflow-visible">
                                         <button data-category="Semua"
                                             class="category-filter block w-full px-5 py-3 text-lg font-medium text-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out bg-gray-100 dark:bg-gray-800">
                                             Semua
