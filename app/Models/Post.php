@@ -98,7 +98,7 @@ class Post extends Model
     }
 
     /**
-     * Generate slug using title-id format
+     * Generate slug using user_id/title-id format
      */
     public function generateSlugWithId($title, $id)
     {
@@ -108,9 +108,10 @@ class Post extends Model
             $baseSlug = 'post';
         }
 
-        $slug = $baseSlug . '-' . $id;
+        // New format: user_id/title-id
+        $slug = $this->user_id . '/' . $baseSlug . '-' . $id;
 
-        // Ensure uniqueness (though ID should make it unique)
+        // Ensure uniqueness
         $counter = 1;
         $originalSlug = $slug;
 
@@ -119,7 +120,7 @@ class Post extends Model
                 ->where('id', '!=', $id)
                 ->exists()
         ) {
-            $slug = $originalSlug . '-' . $counter;
+            $slug = $this->user_id . '/' . $baseSlug . '-' . $id . '-' . $counter;
             $counter++;
         }
 
@@ -158,33 +159,30 @@ class Post extends Model
         $this->updateCachedReferences($newUrl);
     }
 
-    /**
-     * Update notification URLs when slug changes
-     */
     protected function updateNotificationUrls($newUrl)
     {
         // Update PostAnsweredNotification URLs
         DB::table('notifications')
-            ->where('data->post_id', $this->id)
-            ->where('data->type', 'post_answered')
+            ->whereRaw("JSON_EXTRACT(data, '$.post_id') = ?", [$this->id])
+            ->whereRaw("JSON_EXTRACT(data, '$.type') = ?", ['post_answered'])
             ->update([
-                'data' => DB::raw("JSON_SET(data, '$.action_url', '{$newUrl}')")
+                'data' => DB::raw("JSON_SET(data, '$.action_url', " . DB::getPdo()->quote($newUrl) . ")")
             ]);
 
         // Update FollowedUserPostedNotification URLs
         DB::table('notifications')
-            ->where('data->post_id', $this->id)
-            ->where('data->type', 'followed_user_posted')
+            ->whereRaw("JSON_EXTRACT(data, '$.post_id') = ?", [$this->id])
+            ->whereRaw("JSON_EXTRACT(data, '$.type') = ?", ['followed_user_posted'])
             ->update([
-                'data' => DB::raw("JSON_SET(data, '$.action_url', '{$newUrl}')")
+                'data' => DB::raw("JSON_SET(data, '$.action_url', " . DB::getPdo()->quote($newUrl) . ")")
             ]);
 
         // Update announcement notifications that reference this post
         DB::table('notifications')
-            ->where('data->post_id', $this->id)
-            ->where('data->type', 'announcement')
+            ->whereRaw("JSON_EXTRACT(data, '$.post_id') = ?", [$this->id])
+            ->whereRaw("JSON_EXTRACT(data, '$.type') = ?", ['announcement'])
             ->update([
-                'data' => DB::raw("JSON_SET(data, '$.action_url', '{$newUrl}')")
+                'data' => DB::raw("JSON_SET(data, '$.action_url', " . DB::getPdo()->quote($newUrl) . ")")
             ]);
     }
 

@@ -13,7 +13,7 @@ class PostRedirectService
      */
     public function handlePostRedirect(string $slug): ?RedirectResponse
     {
-        // First, try to find the post by slug
+        // First, try to find the post by slug (new format: user_id/title-id)
         $post = Post::where('slug', $slug)->first();
 
         if ($post) {
@@ -33,6 +33,17 @@ class PostRedirectService
             $post = Post::find($slug);
             if ($post) {
                 // Redirect to proper slug URL
+                return redirect()->route('posts.show', $post->slug, 301);
+            }
+        }
+
+        // Check if it's old format slug (title-id without user_id)
+        if (preg_match('/^(.+)-(\d+)$/', $slug, $matches)) {
+            $postId = $matches[2];
+            $post = Post::find($postId);
+
+            if ($post) {
+                // Redirect to new format
                 return redirect()->route('posts.show', $post->slug, 301);
             }
         }

@@ -114,7 +114,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
 });
 
 // DYNAMIC SLUG ROUTE MUST COME LAST
-// This catches any remaining /posts/{anything} patterns
+// This catches any remaining /posts/{anything} patterns including new format: user_id/title-id
 Route::get('/posts/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '.*');
 
 // Include authentication routes
