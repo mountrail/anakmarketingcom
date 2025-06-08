@@ -43,8 +43,14 @@
                             <div class="relative">
                                 <label for="badge_{{ $badge->id }}" class="cursor-pointer block">
                                     <div class="relative transition-transform duration-200 hover:scale-105">
-                                        <x-icons.badge
-                                            class="w-16 h-16 badge-icon {{ $isSelected ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-600' }} transition-colors duration-200" />
+                                        @if ($badge->icon && file_exists(public_path('images/badges/' . $badge->icon)))
+                                            <img src="{{ asset('images/badges/' . $badge->icon) }}"
+                                                alt="{{ $badge->name }}"
+                                                class="w-16 h-16 object-contain badge-icon transition-opacity duration-200 {{ $isSelected ? 'opacity-100' : 'opacity-60' }}" />
+                                        @else
+                                            <x-icons.badge
+                                                class="w-16 h-16 badge-icon {{ $isSelected ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-600' }} transition-colors duration-200" />
+                                        @endif
 
                                         {{-- Number indicator positioned at top right --}}
                                         <div class="absolute -top-1 -right-1 w-6 h-6">
@@ -62,7 +68,8 @@
                                 </label>
                             </div>
                             <div class="text-center">
-                                <p class="text-sm font-semibold text-branding-black dark:text-white">{{ $badge->name }}
+                                <p class="text-sm font-semibold text-branding-black dark:text-white">
+                                    {{ $badge->name }}
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $badge->description }}</p>
                             </div>
@@ -190,9 +197,14 @@
                         numberContainer.classList.add('bg-branding-primary', 'text-white',
                             'border-branding-primary');
 
-                        // Update badge icon color
-                        badgeIcon.classList.remove('text-gray-400', 'dark:text-gray-600');
-                        badgeIcon.classList.add('text-yellow-500');
+                        // Update badge icon styling (handle both img and svg)
+                        if (badgeIcon.tagName === 'IMG') {
+                            badgeIcon.classList.remove('opacity-60');
+                            badgeIcon.classList.add('opacity-100');
+                        } else {
+                            badgeIcon.classList.remove('text-gray-400', 'dark:text-gray-600');
+                            badgeIcon.classList.add('text-yellow-500');
+                        }
 
                         checkbox.checked = true;
                     } else {
@@ -205,8 +217,13 @@
                         numberContainer.classList.add('text-gray-400', 'border-gray-300', 'bg-white');
 
                         // Update badge icon color
-                        badgeIcon.classList.remove('text-yellow-500');
-                        badgeIcon.classList.add('text-gray-400', 'dark:text-gray-600');
+                        if (badgeIcon.tagName === 'IMG') {
+                            badgeIcon.classList.remove('opacity-100');
+                            badgeIcon.classList.add('opacity-60');
+                        } else {
+                            badgeIcon.classList.remove('text-yellow-500');
+                            badgeIcon.classList.add('text-gray-400', 'dark:text-gray-600');
+                        }
 
                         checkbox.checked = false;
                     }

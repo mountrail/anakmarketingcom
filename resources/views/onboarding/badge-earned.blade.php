@@ -21,8 +21,13 @@
             <!-- Badge Display -->
             <div class="mb-8">
                 <div class="flex justify-center mb-4">
-                    <div class="w-24 h-24 flex items-center justify-center badge-container">
-                        <x-icons.badge class="w-20 h-20 text-gray-800 badge-icon" />
+                    <div class="w-32 h-32 flex items-center justify-center badge-container">
+                        @if ($badge->icon && file_exists(public_path('images/badges/' . $badge->icon)))
+                            <img src="{{ asset('images/badges/' . $badge->icon) }}" alt="{{ $badge->name }}"
+                                class="w-28 h-28 object-contain badge-icon" />
+                        @else
+                            <x-icons.badge class="w-28 h-28 text-gray-800 badge-icon" />
+                        @endif
                     </div>
                 </div>
 

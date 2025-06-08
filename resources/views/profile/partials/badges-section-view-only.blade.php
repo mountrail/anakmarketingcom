@@ -17,7 +17,8 @@
             @foreach ($displayedBadges as $userProfileBadge)
                 @php $badge = $userProfileBadge->badge; @endphp
                 <div class="flex flex-col items-center space-y-3">
-                    <x-icons.badge class="w-16 h-16 text-yellow-500" />
+                    <img src="{{ asset('images/badges/' . $badge->icon) }}" alt="{{ $badge->name }}"
+                        class="w-16 h-16 object-contain" />
                     <div class="text-center">
                         <p class="text-sm font-semibold text-branding-black dark:text-white">{{ $badge->name }}</p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $badge->description }}</p>
