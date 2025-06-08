@@ -13,6 +13,7 @@ class MusicPlayer extends Component
     public $volume = 0.5;
     public $isMuted = false;
     public $currentTrack = 0;
+    public $showBunny = false; // Add this property
 
     public $playlist = [];
 
@@ -66,6 +67,7 @@ class MusicPlayer extends Component
     public function togglePlay()
     {
         $this->isPlaying = !$this->isPlaying;
+        $this->showBunny = $this->isPlaying; // Show/hide bunny based on playing state
         $this->dispatch('toggle-play');
     }
 
@@ -107,6 +109,13 @@ class MusicPlayer extends Component
     {
         $this->currentTime = (float) $time;
         $this->dispatch('seek-to', time: $time);
+    }
+
+    // Add method to handle when track ends
+    public function onTrackEnd()
+    {
+        $this->showBunny = false; // Hide bunny when track ends
+        $this->nextTrack();
     }
 
     public function getCurrentTrack()

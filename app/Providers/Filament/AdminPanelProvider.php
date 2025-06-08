@@ -17,8 +17,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\Support\Facades\FilamentView;
-use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -72,10 +70,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-arrow-left-on-rectangle')
                     ->group('External')
                     ->sort(-1),
-            ])
-            ->renderHook(
-                'panels::topbar.end',
-                fn(): string => Blade::render('<livewire:music-player />')
-            );
+            ]);
+        // Removed the renderHook for music player from header
     }
 }

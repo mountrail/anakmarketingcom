@@ -1,7 +1,7 @@
-<div x-data="musicPlayer()" x-init="init()" wire:ignore>
+<div x-data="musicPlayer()" x-init="init()" wire:ignore class="relative">
     <!-- Audio Element -->
     <audio x-ref="audio" preload="metadata" x-on:loadedmetadata="updateDuration()" x-on:timeupdate="updateTime()"
-        x-on:ended="nextTrack()" x-on:canplay="isLoading = false" x-on:error="hasError = true">
+        x-on:ended="onTrackEnd()" x-on:canplay="isLoading = false" x-on:error="hasError = true">
         <source x-bind:src="getAudioSource()" type="audio/mpeg">
     </audio>
 
@@ -41,22 +41,11 @@
         </button>
 
         <!-- Track Info -->
-        <div class="hidden sm:flex flex-col min-w-0 px-2">
+        <div class="flex flex-col min-w-0 px-2 flex-1">
             <div class="text-xs font-medium text-gray-900 dark:text-gray-100 truncate" x-text="getCurrentTrack().title">
             </div>
             <div class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="getCurrentTrack().artist">
             </div>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="hidden md:flex items-center space-x-2 min-w-0 flex-1">
-            <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap"
-                x-text="formatTime(currentTime)"></span>
-            <input type="range" x-bind:value="currentTime" x-bind:max="duration || 100"
-                x-on:input="seek($event.target.value)"
-                class="flex-1 h-1 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
-            <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap"
-                x-text="formatTime(duration)"></span>
         </div>
 
         <!-- Volume Control -->
@@ -82,6 +71,23 @@
         </div>
     </div>
 
+    <!-- Dancing Bunny - Now positioned below the player -->
+    <div x-show="showBunny" x-transition:enter="transition ease-out duration-500"
+        x-transition:enter-start="opacity-0 transform translate-y-4"
+        x-transition:enter-end="opacity-100 transform translate-y-0"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100 transform translate-y-0"
+        x-transition:leave-end="opacity-0 transform translate-y-4" class="flex justify-center mt-4">
+        <div x-on:click="togglePlay()"
+            class="cursor-pointer group bg-gradient-to-br from-amber-400 to-amber-600 rounded-full p-2 shadow-lg border-2 border-white dark:border-gray-700 animate-bounce hover:scale-110 transition-transform duration-200 group-hover:shadow-amber-500/50"
+            title="Click to pause music">
+            <img src="{{ asset('storage/uploads/gif/bunny-dancing-on-loud-speakers.webp') }}"
+                alt="Dancing Bunny - Click to pause" class="w-16 h-16 rounded-full pointer-events-none">
+            <!-- Pulse ring animation -->
+            <div class="absolute inset-0 rounded-full bg-amber-400 opacity-20 animate-ping space-y-4"></div>
+        </div>
+    </div>
+
     <script>
         function musicPlayer() {
             return {
@@ -92,6 +98,7 @@
                 volume: @entangle('volume'),
                 isMuted: @entangle('isMuted'),
                 currentTrack: @entangle('currentTrack'),
+                showBunny: @entangle('showBunny'),
 
                 // Local properties
                 playlist: @json($playlist),
@@ -124,6 +131,7 @@
                         this.$refs.audio.play().catch(e => {
                             console.error('Error playing:', e);
                             this.$wire.set('isPlaying', false);
+                            this.$wire.set('showBunny', false);
                         });
                     } else {
                         this.$refs.audio.pause();
@@ -138,6 +146,7 @@
                             this.$refs.audio.play().catch(e => {
                                 console.error('Error playing:', e);
                                 this.$wire.set('isPlaying', false);
+                                this.$wire.set('showBunny', false);
                             });
                         }, {
                             once: true
@@ -154,27 +163,38 @@
                         try {
                             await this.$refs.audio.play();
                             this.$wire.set('isPlaying', true);
+                            this.$wire.set('showBunny', true);
                         } catch (error) {
                             console.error('Error playing audio:', error);
                         }
                     } else {
                         this.$refs.audio.pause();
                         this.$wire.set('isPlaying', false);
+                        this.$wire.set('showBunny', false);
                     }
                 },
 
                 previousTrack() {
                     this.$wire.previousTrack();
                 },
+
                 nextTrack() {
                     this.$wire.nextTrack();
                 },
+
+                onTrackEnd() {
+                    this.$wire.set('showBunny', false);
+                    this.$wire.onTrackEnd();
+                },
+
                 toggleMute() {
                     this.$wire.toggleMute();
                 },
+
                 seek(time) {
                     this.$wire.seek(parseFloat(time));
                 },
+
                 setVolume(volume) {
                     this.$wire.updateVolume(parseFloat(volume));
                 },

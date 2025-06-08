@@ -58,6 +58,16 @@ class UserStatsWidget extends BaseWidget
             ->first();
 
         return [
+            // Music Player Stat (full width)
+            Stat::make('🎵 Music Player', '')
+                ->description('Control your background music while working')
+                ->descriptionIcon('heroicon-m-musical-note')
+                ->color('amber')
+                ->extraAttributes([
+                    'class' => 'col-span-full music-player-stat',
+                ])
+                ->view('filament.widgets.music-player-stat'),
+
             // Total Users
             Stat::make('Total Users', number_format($totalUsers))
                 ->description('All registered users')
