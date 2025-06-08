@@ -57,7 +57,7 @@ class AnswerController extends Controller
             // Store the post slug in session so we can redirect back after badge page
             session(['return_to_post' => $post->slug]);
 
-            return redirect()->route('onboarding.badge-earned', ['badge' => 'Ikutan Nimbrung'])
+            return redirect()->route('badge.earned', ['badge' => 'Ikutan Nimbrung'])
                 ->with('success', 'Answer posted successfully.');
         }
 

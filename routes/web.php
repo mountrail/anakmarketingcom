@@ -11,6 +11,7 @@ use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\BadgeController;
 
 // Home route - defaults to questions
 Route::get('/', [PostController::class, 'index'])->name('home');
@@ -91,6 +92,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
 
     // Main image upload route
     Route::post('/image/upload', [ImageUploadController::class, 'upload'])->name('image.upload');
+
+    // Badge routes
+    Route::get('/badge-earned', [BadgeController::class, 'earned'])->name('badge.earned');
 
     // Follow/Unfollow routes
     Route::post('/follow/{user}', [FollowController::class, 'toggle'])->name('follow.toggle');

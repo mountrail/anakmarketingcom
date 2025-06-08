@@ -1,3 +1,4 @@
+// resources\js\app.js
 import './bootstrap';
 import './auth-modal.js';
 import './voting.js';
