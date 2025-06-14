@@ -83,33 +83,7 @@
                                     <!-- User Badges -->
                                     <div class="flex items-center space-x-1 mt-1">
                                         @if ($displayedBadges && $displayedBadges->count() > 0)
-                                            @foreach ($displayedBadges->take(3) as $userProfileBadge)
-                                                <div class="relative group">
-                                                    <x-icons.badge class="w-4 h-4 text-yellow-500" />
-
-                                                    {{-- Tooltip --}}
-                                                    <div
-                                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                                                        {{ $userProfileBadge->badge->name }}
-                                                        <div class="text-xs text-gray-300">
-                                                            {{ $userProfileBadge->badge->description }}
-                                                        </div>
-                                                        {{-- Tooltip arrow --}}
-                                                        <div
-                                                            class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                            @if ($displayedBadges->count() > 3)
-                                                <span class="text-xs text-gray-500 font-medium">
-                                                    +{{ $displayedBadges->count() - 3 }}
-                                                </span>
-                                            @endif
-                                        @else
-                                            <span class="text-xs text-gray-400 italic">
-                                                Belum ada badge
-                                            </span>
+                                            <x-badge-preview :badges="$displayedBadges" :user="$user" badgeSize="w-7 h-7" />
                                         @endif
                                     </div>
                                 </div>

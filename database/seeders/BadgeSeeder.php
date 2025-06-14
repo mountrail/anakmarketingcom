@@ -15,31 +15,31 @@ class BadgeSeeder extends Seeder
         $badges = [
             [
                 'name' => 'Perkenalkan Saya',
-                'description' => 'Complete your basic profile to introduce yourself',
+                'description' => 'Lengkapi profil dasar Anda untuk memperkenalkan diri',
                 'icon' => 'perkenalkan-saya.png',
                 'level' => 1,
             ],
             [
                 'name' => 'Break the Ice',
-                'description' => 'Post your first question or discussion',
+                'description' => 'Posting pertanyaan atau diskusi pertama Anda',
                 'icon' => 'break-the-ice.png',
                 'level' => 1,
             ],
             [
                 'name' => 'Ikutan Nimbrung',
-                'description' => 'Post your first comment/answer',
+                'description' => 'Posting komentar/jawaban pertama Anda',
                 'icon' => 'ikutan-nimbrung.png',
                 'level' => 1,
             ],
             [
                 'name' => 'Marketers Onboard!',
-                'description' => 'Complete all onboarding missions and officially join the marketing community',
+                'description' => 'Selesaikan semua misi onboarding dan resmi bergabung dengan komunitas marketing',
                 'icon' => 'marketers-onboard.png',
                 'level' => 2,
             ],
             [
                 'name' => 'Founding Users',
-                'description' => 'One of the first 50 members to complete onboarding and join the community',
+                'description' => 'Salah satu dari 50 anggota pertama yang menyelesaikan onboarding dan bergabung dengan komunitas',
                 'icon' => 'founding-users.png',
                 'level' => 3,
             ]
@@ -58,3 +58,4 @@ class BadgeSeeder extends Seeder
         $this->command->info('Badge seeding completed!');
     }
 }
+
