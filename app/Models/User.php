@@ -15,6 +15,8 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Image\Enums\Fit;
+use App\Models\UserProfileBadge;
+use App\Models\Badge;
 
 class User extends Authenticatable implements MustVerifyEmail, FilamentUser, HasMedia
 {
@@ -138,6 +140,14 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
      * Get the user's profile badges.
      */
     public function profileBadges()
+    {
+        return $this->hasMany(UserProfileBadge::class);
+    }
+
+    /**
+     * Get the user's profile badges (displayed badges)
+     */
+    public function userProfileBadges()
     {
         return $this->hasMany(UserProfileBadge::class);
     }

@@ -362,7 +362,17 @@ class ProfileController extends Controller
 
         try {
             $badgeIds = $request->input('badges', []);
-            BadgeService::updateDisplayedBadges(auth()->user(), $badgeIds);
+
+            // Clear existing displayed badges
+            auth()->user()->userProfileBadges()->delete();
+
+            // Save badges in the exact order they were submitted
+            foreach ($badgeIds as $index => $badgeId) {
+                auth()->user()->userProfileBadges()->create([
+                    'badge_id' => $badgeId,
+                    'display_order' => $index + 1, // Store the selection order
+                ]);
+            }
 
             return redirect()->route('profile.edit-profile')
                 ->with('success', 'Badge berhasil diperbarui!');

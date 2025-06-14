@@ -46,10 +46,10 @@
                                         @if ($badge->icon && file_exists(public_path('images/badges/' . $badge->icon)))
                                             <img src="{{ asset('images/badges/' . $badge->icon) }}"
                                                 alt="{{ $badge->name }}"
-                                                class="w-16 h-16 object-contain badge-icon transition-opacity duration-200 {{ $isSelected ? 'opacity-100' : 'opacity-60' }}" />
+                                                class="w-24 h-24 object-contain badge-icon transition-opacity duration-200 {{ $isSelected ? 'opacity-100' : 'opacity-60' }}" />
                                         @else
                                             <x-icons.badge
-                                                class="w-16 h-16 badge-icon {{ $isSelected ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-600' }} transition-colors duration-200" />
+                                                class="w-24 h-24 badge-icon {{ $isSelected ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-600' }} transition-colors duration-200" />
                                         @endif
 
                                         {{-- Number indicator positioned at top right --}}
@@ -76,6 +76,9 @@
                         </div>
                     @endforeach
                 </div>
+
+                {{-- Hidden inputs for ordered badge IDs --}}
+                <div id="ordered-badge-inputs"></div>
 
                 <div class="text-center">
                     <x-primary-button type="submit" size="xl" id="save-badges-btn"
@@ -131,21 +134,32 @@
             const maxSelection = 3;
             let selectionOrder = [];
 
-            // Store original selected badges
-            const originalSelectedBadges = Array.from(checkboxes)
-                .filter(checkbox => checkbox.checked)
-                .map(checkbox => checkbox.value)
-                .sort();
+            // Store original selected badges WITH their order
+            const originalSelectedBadges = [];
+            const currentSelected = [];
 
-            // Initialize selection order based on current selection
             checkboxes.forEach(checkbox => {
                 if (checkbox.checked) {
                     const order = parseInt(checkbox.dataset.selectionOrder);
                     if (order > 0) {
-                        selectionOrder[order - 1] = checkbox.value;
+                        currentSelected.push({
+                            badgeId: checkbox.value,
+                            order: order
+                        });
+                        originalSelectedBadges.push({
+                            badgeId: checkbox.value,
+                            order: order
+                        });
                     }
                 }
             });
+
+            // Sort by order and populate selectionOrder array
+            currentSelected.sort((a, b) => a.order - b.order);
+            selectionOrder = currentSelected.map(item => item.badgeId);
+
+            // Store original order for comparison
+            const originalSelectionOrder = [...selectionOrder];
 
             // Track changes to enable/disable button
             let badgesChanged = false;
@@ -154,12 +168,10 @@
             function updateButtonState(button, hasChanges) {
                 if (hasChanges) {
                     button.disabled = false;
-                    // Remove disabled styles and add active brand-primary color
                     button.classList.remove('opacity-50', 'cursor-not-allowed');
                     button.classList.add('bg-branding-primary', 'hover:bg-opacity-90', 'focus:bg-opacity-90');
                 } else {
                     button.disabled = true;
-                    // Add disabled styles and remove active colors
                     button.classList.add('opacity-50', 'cursor-not-allowed');
                     button.classList.remove('bg-branding-primary', 'hover:bg-opacity-90', 'focus:bg-opacity-90');
                 }
@@ -167,15 +179,19 @@
 
             // Check for changes in badge selection
             function checkBadgeChanges() {
-                const currentSelectedBadges = Array.from(checkboxes)
-                    .filter(checkbox => checkbox.checked)
-                    .map(checkbox => checkbox.value)
-                    .sort();
+                // Check if badges changed OR if order changed
+                const currentOrderedBadges = selectionOrder.slice().sort();
+                const originalOrderedBadges = originalSelectedBadges.map(item => item.badgeId).sort();
 
-                badgesChanged = JSON.stringify(currentSelectedBadges) !== JSON.stringify(originalSelectedBadges);
+                const badgesListChanged = JSON.stringify(currentOrderedBadges) !== JSON.stringify(
+                    originalOrderedBadges);
+                const orderChanged = JSON.stringify(selectionOrder) !== JSON.stringify(originalSelectionOrder);
+
+                badgesChanged = badgesListChanged || orderChanged;
                 updateButtonState(saveButton, badgesChanged);
             }
 
+            // Update number displays based on selection order
             // Update number displays based on selection order
             function updateNumberDisplays() {
                 checkboxes.forEach(checkbox => {
@@ -228,6 +244,24 @@
                         checkbox.checked = false;
                     }
                 });
+
+                // Update hidden inputs with ordered badge IDs
+                updateOrderedInputs();
+            }
+
+            // Add this new function after updateNumberDisplays
+            function updateOrderedInputs() {
+                const orderedInputsContainer = document.getElementById('ordered-badge-inputs');
+                orderedInputsContainer.innerHTML = '';
+
+                // Create hidden inputs in the selection order
+                selectionOrder.forEach((badgeId, index) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'badges[]';
+                    input.value = badgeId;
+                    orderedInputsContainer.appendChild(input);
+                });
             }
 
             // Handle badge selection clicks
@@ -236,7 +270,7 @@
                 const label = badgeContainer.querySelector('label');
 
                 label.addEventListener('click', function(e) {
-                    e.preventDefault(); // Prevent default label behavior
+                    e.preventDefault();
 
                     const badgeId = checkbox.value;
                     const orderIndex = selectionOrder.indexOf(badgeId);
@@ -253,7 +287,6 @@
                         selectionOrder.push(badgeId);
                     }
 
-                    // Update displays and check for changes
                     updateNumberDisplays();
                     checkBadgeChanges();
                 });
