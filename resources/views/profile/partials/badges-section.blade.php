@@ -46,10 +46,10 @@
                                         @if ($badge->icon && file_exists(public_path('images/badges/' . $badge->icon)))
                                             <img src="{{ asset('images/badges/' . $badge->icon) }}"
                                                 alt="{{ $badge->name }}"
-                                                class="w-16 h-16 object-contain badge-icon transition-opacity duration-200 {{ $isSelected ? 'opacity-100' : 'opacity-60' }}" />
+                                                class="w-32 h-32 object-contain badge-icon transition-opacity duration-200 {{ $isSelected ? 'opacity-100' : 'opacity-60' }}" />
                                         @else
                                             <x-icons.badge
-                                                class="w-16 h-16 badge-icon {{ $isSelected ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-600' }} transition-colors duration-200" />
+                                                class="w-32 h-32 badge-icon {{ $isSelected ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-600' }} transition-colors duration-200" />
                                         @endif
 
                                         {{-- Number indicator positioned at top right --}}
