@@ -60,26 +60,7 @@
 
         <!-- User Achievement Badges -->
         @if ($displayedBadges->count() > 0)
-            <div class="flex items-center space-x-1">
-                @foreach ($displayedBadges as $userProfileBadge)
-                    <div class="relative group">
-                        <x-icons.badge class="{{ $badgeSize }} text-yellow-500" />
-
-                        {{-- Tooltip --}}
-                        <div
-                            class="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                            {{ $userProfileBadge->badge->name }}
-                            <div class="text-xs text-gray-300">
-                                {{ $userProfileBadge->badge->description }}
-                            </div>
-                            {{-- Tooltip arrow --}}
-                            <div
-                                class="absolute top-full right-2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900">
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+            <x-badge-preview :badges="$displayedBadges" :user="$user" :badgeSize="$badgeSize" />
         @endif
     </div>
 </div>
