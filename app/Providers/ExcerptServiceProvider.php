@@ -34,5 +34,16 @@ class ExcerptServiceProvider extends ServiceProvider
         Blade::directive('excerptWithFormatting', function ($expression) {
             return "<?php echo \App\Helpers\ExcerptHelper::preserveBasicFormatting($expression); ?>";
         });
+
+        // Create a Blade directive for excerpts that preserve line structure
+        Blade::directive('excerptLines', function ($expression) {
+            // Parse expression which should be in format: 'content, maxLines, end'
+            return "<?php echo \App\Helpers\ExcerptHelper::preserveLines($expression); ?>";
+        });
+
+        // Create a Blade directive for excerpts with line breaks (alias for preserveLines)
+        Blade::directive('excerptWithLines', function ($expression) {
+            return "<?php echo \App\Helpers\ExcerptHelper::withLineBreaks($expression); ?>";
+        });
     }
 }

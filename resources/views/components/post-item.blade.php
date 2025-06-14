@@ -12,7 +12,9 @@
     'customClasses' => '', // Custom classes for action bar
     'containerClasses' => ' p-4 px-6 border-b border-essentials-inactive', // Container styling
     'isHighlighted' => false, // For editor's picks highlighting
-    'excerptLength' => 100, // Length of excerpt
+    'excerptLength' => 100, // Length of excerpt (for character-based excerpts)
+    'excerptLines' => 3, // Number of lines for line-based excerpts
+    'excerptType' => 'lines', // 'lines', 'characters', or 'clean'
 ])
 
 @php
@@ -45,9 +47,10 @@
                     </h3>
 
                     @if ($showExcerpt)
-                        <p class="text-gray-900 dark:text-gray-400 mt-2">
-                            @excerpt($post->content, $excerptLength, '...')
-                        </p>
+                        <div
+                            class="text-gray-900 dark:text-gray-400 mt-2 prose prose-sm max-w-none dark:prose-invert line-clamp-3">
+                            {!! $post->content !!}
+                        </div>
                     @endif
                 </div>
 
