@@ -59,6 +59,8 @@
             ? Str::limit(strip_tags($model->content), 150)
             : Str::limit(strip_tags($model->content), 150);
 
+    $shareImage = $modelType === 'post' ? $model->share_image : $model->post->share_image;
+
     // Generate comment/answer section URL
     $commentUrl =
         $modelType === 'post'
@@ -84,7 +86,7 @@
         {{-- Share button - Simple inline component - Only for posts --}}
         @if ($showShare && $modelType === 'post')
             <div class="share-button-wrapper">
-                <x-share-modal :shareUrl="$shareUrl" :shareTitle="$shareTitle" :shareDescription="$shareDescription" />
+                <x-share-modal :shareUrl="$shareUrl" :shareTitle="$shareTitle" :shareDescription="$shareDescription" :shareImage="$shareImage" />
             </div>
         @endif
     </div>

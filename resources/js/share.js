@@ -12,7 +12,8 @@ class ShareManager {
                 const shareData = {
                     url: button.dataset.shareUrl,
                     title: button.dataset.shareTitle,
-                    text: button.dataset.shareDescription || ''
+                    text: button.dataset.shareDescription || '',
+                    image: button.dataset.shareImage || ''
                 };
                 this.handleShare(shareData);
             }
@@ -23,20 +24,30 @@ class ShareManager {
         // Check if native Web Share API is supported (mobile and some desktop browsers)
         if (navigator.share && this.isMobileOrHasWebShare()) {
             try {
-                await navigator.share({
+                const shareObject = {
                     title: shareData.title,
                     text: shareData.text,
                     url: shareData.url
-                });
-                // Successfully shared via native API - return early to prevent fallback
+                };
+
+                // Add image if supported and available
+                if (shareData.image && 'files' in navigator.share) {
+                    try {
+                        const response = await fetch(shareData.image);
+                        const blob = await response.blob();
+                        const file = new File([blob], 'image.jpg', { type: blob.type });
+                        shareObject.files = [file];
+                    } catch (err) {
+                        console.log('Could not share image:', err);
+                    }
+                }
+
+                await navigator.share(shareObject);
                 return;
             } catch (err) {
-                // Only show fallback if user didn't cancel (AbortError means user cancelled)
                 if (err.name === 'AbortError') {
-                    // User cancelled - don't show fallback
                     return;
                 }
-                // Other errors - fall through to show custom options
                 console.log('Web Share API failed:', err);
             }
         }
@@ -137,8 +148,15 @@ class ShareManager {
     }
 
     shareToWhatsApp(shareData) {
-        const text = encodeURIComponent(`${shareData.title}\n\n${shareData.url}`);
-        window.open(`https://wa.me/?text=${text}`, '_blank');
+        let text = `${shareData.title}\n\n${shareData.url}`;
+
+        // Add image if available
+        if (shareData.image && shareData.image !== '') {
+            text = `${shareData.title}\n\n${shareData.image}\n\n${shareData.url}`;
+        }
+
+        const encodedText = encodeURIComponent(text);
+        window.open(`https://wa.me/?text=${encodedText}`, '_blank');
     }
 
     closeModal(modal) {

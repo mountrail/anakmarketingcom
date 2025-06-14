@@ -321,4 +321,19 @@ class Post extends Model
             ];
         });
     }
+
+    /**
+     * Get the first image URL for sharing thumbnail
+     */
+    public function getShareImageAttribute()
+    {
+        $firstImage = $this->images()->first();
+
+        if ($firstImage) {
+            return $firstImage->url;
+        }
+
+        // Fallback to application logo
+        return asset('images/logo.png'); // Adjust path as needed
+    }
 }
