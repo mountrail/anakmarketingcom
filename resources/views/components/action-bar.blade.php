@@ -84,7 +84,7 @@
         {{-- Share button - Simple inline component - Only for posts --}}
         @if ($showShare && $modelType === 'post')
             <div class="share-button-wrapper">
-                <x-simple-share-modal :shareUrl="$shareUrl" :shareTitle="$shareTitle" :shareDescription="$shareDescription" />
+                <x-share-modal :shareUrl="$shareUrl" :shareTitle="$shareTitle" :shareDescription="$shareDescription" />
             </div>
         @endif
     </div>
