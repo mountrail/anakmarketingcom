@@ -221,8 +221,8 @@ class BadgeService
 
             $marketersOnboardCount = $marketersOnboardBadge->users()->count();
 
-            // Award Founding Users badge if they're among the first 50
-            if ($marketersOnboardCount <= 50) {
+            // Award Founding Users badge if they're among the first 60 (but display as 50)
+            if ($marketersOnboardCount <= 60) {
                 $foundingUsersBadge = Badge::where('name', 'Founding Users')->first();
                 if ($foundingUsersBadge) {
                     // Award the badge

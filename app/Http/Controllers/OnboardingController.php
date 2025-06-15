@@ -116,6 +116,9 @@ class OnboardingController extends Controller
             $marketersOnboardAwarded = BadgeService::checkMarketersOnboard($user);
 
             if ($marketersOnboardAwarded) {
+                // Delete onboarding notifications after successful badge claim
+                $this->deleteOnboardingNotifications($user);
+
                 // Check and award Founding Users badge if eligible
                 $foundingUsersAwarded = BadgeService::checkFoundingUsers($user);
 
@@ -129,7 +132,9 @@ class OnboardingController extends Controller
                 return redirect()->route('badge.earned', ['badge' => 'Marketers Onboard!']);
             }
 
-            // If badge wasn't awarded (already has it), redirect to home
+            // If badge wasn't awarded (already has it), still delete notifications and redirect to home
+            $this->deleteOnboardingNotifications($user);
+
             return redirect()->route('home')
                 ->with('info', 'Selamat! Anda telah menyelesaikan onboarding!');
 
