@@ -37,8 +37,35 @@ class PasswordResetLinkController extends Controller
         );
 
         return $status == Password::RESET_LINK_SENT
-                    ? back()->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+            ? back()->with('status', __($status))
+            : back()->withInput($request->only('email'))
+
+
+                ->withErrors(['email' => __($status)]);
     }
+    /**
+     * Display the password reset link request view for authenticated users.
+     */
+    public function createAuthenticated(): View
+    {
+        return view('auth.forgot-password-authenticated');
+    }
+
+
+    /**
+     * Handle password reset link request from authenticated users (account page).
+     */
+    public function storeAuthenticated(Request $request): RedirectResponse
+    {
+        // Use the authenticated user's email
+        $email = $request->user()->email;
+
+        // Send the password reset link
+        $status = Password::sendResetLink(['email' => $email]);
+
+        return $status == Password::RESET_LINK_SENT
+            ? back()->with('password_reset_sent', true)
+            : back()->withErrors(['password_reset' => __($status)]);
+    }
+
 }

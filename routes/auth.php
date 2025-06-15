@@ -11,6 +11,12 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
+    ->name('password.reset');
+
+Route::post('reset-password', [NewPasswordController::class, 'store'])
+    ->name('password.store');
+
 Route::middleware('guest')->group(function () {
     Route::get('/register', function () {
         return redirect()->route('home')->with('show_auth_modal', 'register');
@@ -30,11 +36,7 @@ Route::middleware('guest')->group(function () {
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
         ->name('password.email');
 
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
-        ->name('password.reset');
 
-    Route::post('reset-password', [NewPasswordController::class, 'store'])
-        ->name('password.store');
 
     // Registration step 1 validation
     Route::post('/register/validate-step1', [App\Http\Controllers\Auth\RegisterController::class, 'validateStep1'])
@@ -101,4 +103,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
+
+    // Authenticated user password reset route (for account page)
+    Route::post('password-reset-authenticated', [PasswordResetLinkController::class, 'storeAuthenticated'])
+        ->name('password.email.authenticated');
 });
