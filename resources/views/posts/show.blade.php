@@ -99,12 +99,14 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             let viewTracked = false;
+            let startTime = Date.now();
             console.log('View tracking initialized for post {{ $post->id }}');
 
             // Track view after 45 seconds
             setTimeout(function() {
                 if (!viewTracked) {
-                    console.log('Attempting to track view after 45 seconds...');
+                    let timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                    console.log('Attempting to track view after', timeSpent, 'seconds...');
 
                     fetch('{{ route('posts.increment-view', $post->id) }}', {
                             method: 'POST',
@@ -113,6 +115,9 @@
                                     .getAttribute('content'),
                                 'Content-Type': 'application/json',
                             },
+                            body: JSON.stringify({
+                                time_spent: timeSpent
+                            })
                         })
                         .then(response => {
                             console.log('Response status:', response.status);
@@ -131,7 +136,7 @@
                                     console.log('View count updated to:', data.view_count);
                                 }
                             } else {
-                                console.log('View tracking failed:', data);
+                                console.log('View tracking failed:', data.message || 'Unknown reason');
                             }
                         })
                         .catch(error => {

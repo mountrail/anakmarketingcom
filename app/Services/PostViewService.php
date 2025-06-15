@@ -75,25 +75,15 @@ class PostViewService
      */
     public function recordInitialView(Post $post): void
     {
-        $userIp = Request::ip();
         $sessionId = session()->getId();
-        $userId = auth()->id();
+        $viewKey = "post_view_{$post->id}_{$sessionId}";
 
-        // Create unique identifier for this view
-        $viewKey = "post_view_{$post->id}_{$userIp}_{$sessionId}";
-
-        // Add user ID to key if authenticated
-        if ($userId) {
-            $viewKey = "post_view_{$post->id}_{$userId}_{$sessionId}";
-        }
-
-        // Store initial view timestamp (expires in 2 hours) - Use Carbon::now() for consistency
+        // Store initial view timestamp (expires in 2 hours)
         $timestamp = Carbon::now();
-        Cache::put($viewKey, $timestamp->timestamp, 7200); // Store as timestamp
+        Cache::put($viewKey, $timestamp->timestamp, 7200);
 
         Log::info("POST_VIEW: Initial view recorded", [
             'post_id' => $post->id,
-            'user_id' => $userId,
             'viewKey' => $viewKey,
             'timestamp' => $timestamp->toDateTimeString()
         ]);
@@ -102,49 +92,31 @@ class PostViewService
     /**
      * Increment post view count after specified seconds
      */
-    public function incrementViewCount(Post $post, int $minimumSeconds = 45): bool
+    public function incrementViewCount(Post $post, int $minimumSeconds = 45): array
     {
-        $userIp = Request::ip();
         $sessionId = session()->getId();
-        $userId = auth()->id();
-
-        // Create the same keys as in recordInitialView
-        $viewKey = "post_view_{$post->id}_{$userIp}_{$sessionId}";
-        $countedKey = "post_view_counted_{$post->id}_{$userIp}_{$sessionId}";
-
-        if ($userId) {
-            $viewKey = "post_view_{$post->id}_{$userId}_{$sessionId}";
-            $countedKey = "post_view_counted_{$post->id}_{$userId}_{$sessionId}";
-        }
+        $viewKey = "post_view_{$post->id}_{$sessionId}";
 
         // Check if initial view was recorded
         $initialViewTimestamp = Cache::get($viewKey);
         if (!$initialViewTimestamp) {
-            Log::info("POST_VIEW: No initial view found", [
+            Log::info("POST_VIEW: No initial view found, recording now", [
                 'post_id' => $post->id,
-                'user_id' => $userId,
                 'viewKey' => $viewKey
             ]);
-            return false;
+
+            // Record initial view now and require minimum time
+            $this->recordInitialView($post);
+            return [
+                'success' => false,
+                'message' => 'Initial view just recorded, not enough time elapsed',
+                'view_count' => $post->view_count
+            ];
         }
 
-        // Check if already counted
-        if (Cache::has($countedKey)) {
-            Log::info("POST_VIEW: Already counted", ['post_id' => $post->id]);
-            return false;
-        }
-
-        // Calculate seconds elapsed using timestamps
+        // Calculate seconds elapsed
         $currentTimestamp = Carbon::now()->timestamp;
         $secondsElapsed = $currentTimestamp - $initialViewTimestamp;
-
-        Log::info("POST_VIEW: Time calculation", [
-            'post_id' => $post->id,
-            'initial_timestamp' => $initialViewTimestamp,
-            'current_timestamp' => $currentTimestamp,
-            'seconds_elapsed' => $secondsElapsed,
-            'required' => $minimumSeconds
-        ]);
 
         if ($secondsElapsed >= $minimumSeconds) {
             try {
@@ -152,8 +124,8 @@ class PostViewService
                 $post->increment('view_count');
                 $newCount = $post->fresh()->view_count;
 
-                // Mark as counted (expires in 24 hours)
-                Cache::put($countedKey, true, 86400);
+                // Clear the initial view so they can get another count on next visit
+                Cache::forget($viewKey);
 
                 Log::info("POST_VIEW: Successfully incremented", [
                     'post_id' => $post->id,
@@ -161,13 +133,22 @@ class PostViewService
                     'seconds_elapsed' => $secondsElapsed
                 ]);
 
-                return true;
+                return [
+                    'success' => true,
+                    'message' => 'View count incremented',
+                    'view_count' => $newCount
+                ];
             } catch (\Exception $e) {
                 Log::error("POST_VIEW: Failed to increment", [
                     'post_id' => $post->id,
                     'error' => $e->getMessage()
                 ]);
-                return false;
+
+                return [
+                    'success' => false,
+                    'message' => 'Database error',
+                    'view_count' => $post->view_count
+                ];
             }
         }
 
@@ -177,7 +158,11 @@ class PostViewService
             'required' => $minimumSeconds
         ]);
 
-        return false;
+        return [
+            'success' => false,
+            'message' => "Only {$secondsElapsed} seconds elapsed, need {$minimumSeconds}",
+            'view_count' => $post->view_count
+        ];
     }
 
     /**

@@ -177,18 +177,14 @@ class PostController extends Controller
 
         return view('posts.show', compact('post'));
     }
-
     /**
      * Increment view count after user has viewed for 45 seconds (AJAX endpoint)
      */
     public function incrementView(Post $post)
     {
-        $incremented = $this->viewService->incrementViewCount($post);
+        $result = $this->viewService->incrementViewCount($post);
 
-        return response()->json([
-            'success' => $incremented,
-            'view_count' => $incremented ? $post->fresh()->view_count : $post->view_count
-        ]);
+        return response()->json($result);
     }
 
     /**
