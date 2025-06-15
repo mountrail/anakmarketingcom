@@ -34,7 +34,7 @@
 <div class="mt-4">
     <x-input-label for="register_password" :value="__('Password')" />
     <x-text-input id="register_password" class="block mt-1 w-full" type="password" name="password" required
-        autocomplete="new-password" />
+        autocomplete="new-password" showPasswordToggle="true"/>
     <div id="password-error" class="text-red-500 mt-1 text-sm hidden"></div>
     <x-input-error :messages="$errors->get('password')" class="mt-2" />
 </div>
@@ -43,7 +43,7 @@
 <div class="mt-4">
     <x-input-label for="register_password_confirmation" :value="__('Confirm Password')" />
     <x-text-input id="register_password_confirmation" class="block mt-1 w-full" type="password"
-        name="password_confirmation" required autocomplete="new-password" />
+        name="password_confirmation" required autocomplete="new-password" showPasswordToggle="true" />
     <div id="password_confirmation-error" class="text-red-500 mt-1 text-sm hidden"></div>
     <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
 </div>

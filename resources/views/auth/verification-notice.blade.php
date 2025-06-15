@@ -5,7 +5,7 @@
 <x-app-layout>
     <div class="mt-24 px-6">
         <div class="flex flex-col items-center justify-center h-full p-6">
-            <h1 class="text-5xl font-bold text-orange-500 mb-8">User Registered!</h1>
+            <h1 class="text-5xl font-bold text-branding-primary mb-8">User Registered!</h1>
 
             <div class="text-center mb-8">
                 <p class="text-2xl font-medium text-gray-700 dark:text-gray-300">
@@ -36,7 +36,7 @@
                 <form method="POST" action="{{ route('verification.send') }}">
                     @csrf
                     <button type="submit"
-                        class="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                        class="bg-branding-primary hover:bg-orange-600 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-branding-primary">
                         {{ __('Resend Verification Email') }}
                     </button>
                 </form>

@@ -1,7 +1,7 @@
 {{-- resources\views\auth\login-form.blade.php --}}
 <div>
     <!-- Login Header -->
-    <h2 class="text-4xl font-bold text-center text-orange-500 mb-6">
+    <h2 class="text-4xl font-bold text-center text-branding-primary mb-6">
         Login
     </h2>
 
@@ -62,7 +62,7 @@
                         <!-- Resend verification link using AJAX -->
                         <div class="mt-2">
                             <a href="#" id="resend-verification-link"
-                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-branding-primary hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-branding-primary">
                                 <span id="resend-button-text">Resend Verification Email</span>
                                 <span id="resend-spinner" class="hidden ml-2 animate-spin">
                                     <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -207,7 +207,7 @@
             <div class="mt-4">
                 <x-input-label for="login_password" :value="__('Password')" />
                 <x-text-input id="login_password" class="block mt-1 w-full" type="password" name="password" required
-                    autocomplete="current-password" />
+                    autocomplete="current-password" showPasswordToggle="true" />
                 <x-input-error :messages="$errors->get('password')" class="mt-2" />
             </div>
 
@@ -234,7 +234,7 @@
             <!-- Submit Button -->
             <div class="flex items-center justify-end mt-4">
                 <button type="submit"
-                    class="bg-branding-primary hover:bg-orange-600 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 inline-flex justify-center items-center">
+                    class="bg-branding-primary hover:bg-orange-600 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-branding-primary inline-flex justify-center items-center">
                     {{ __('Log in') }}
                 </button>
             </div>

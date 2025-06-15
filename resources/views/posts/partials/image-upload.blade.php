@@ -207,7 +207,7 @@
                 if (files.length > remainingSlots) {
                     uploadStatus.innerHTML =
                         `Hanya ${remainingSlots} gambar yang dapat diupload (maksimal 5 gambar)`;
-                    uploadStatus.className = 'upload-status mt-2 text-sm text-orange-500';
+                    uploadStatus.className = 'upload-status mt-2 text-sm text-branding-primary';
                 }
 
                 // Upload each file

@@ -40,7 +40,7 @@
         <div>
             <x-input-label for="current_password" :value="__('Password Saat Ini')" />
             <x-text-input id="current_password" name="current_password" type="password" class="mt-1 block w-full"
-                autocomplete="current-password" />
+                autocomplete="current-password" showPasswordToggle="true" />
             <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
         </div>
 

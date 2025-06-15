@@ -72,7 +72,7 @@
 
                     {{-- Unread indicator - show if was unread when page loaded --}}
                     @if ($wasUnread)
-                        <div class="w-3 h-3 bg-orange-500 rounded-full flex-shrink-0 ml-3"></div>
+                        <div class="w-3 h-3 bg-branding-primary rounded-full flex-shrink-0 ml-3"></div>
                     @endif
                 </div>
             </div>

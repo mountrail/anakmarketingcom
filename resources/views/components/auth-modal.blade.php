@@ -35,12 +35,12 @@
             <div class="flex text-center sticky top-0 z-10">
                 <div @click="activeTab = 'register'"
                     :class="{ 'bg-branding-light dark:bg-gray-900 ': activeTab === 'register', 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300': activeTab !== 'register' }"
-                    class="w-1/2 py-3 px-4 font-medium cursor-pointer transition-colors">
+                    class="w-1/2 py-3 px-4 font-bold cursor-pointer transition-colors">
                     Sign Up
                 </div>
                 <div @click="activeTab = 'login'"
                     :class="{ 'bg-branding-light dark:bg-gray-900 ': activeTab === 'login', 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300': activeTab !== 'login' }"
-                    class="w-1/2 py-3 px-4 font-medium cursor-pointer transition-colors">
+                    class="w-1/2 py-3 px-4 font-bold cursor-pointer transition-colors">
                     Login
                 </div>
             </div>

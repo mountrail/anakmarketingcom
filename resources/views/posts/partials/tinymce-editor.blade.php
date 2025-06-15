@@ -45,7 +45,7 @@
                 if (remaining < 0) {
                     charsRemaining.className = 'chars-remaining text-red-500 dark:text-red-400 font-medium';
                 } else if (remaining < maxChars * 0.1) { // Less than 10% remaining
-                    charsRemaining.className = 'chars-remaining text-orange-500 dark:text-orange-400';
+                    charsRemaining.className = 'chars-remaining text-branding-primary dark:text-orange-400';
                 } else {
                     charsRemaining.className = 'chars-remaining text-gray-600 dark:text-gray-400';
                 }

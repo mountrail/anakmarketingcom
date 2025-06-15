@@ -13,10 +13,10 @@
 }">
     <!-- Registration Success Message -->
     <div x-show="registrationSuccess" class="text-center">
-        <h2 class="text-4xl font-bold text-center text-orange-500 mb-6">User Registered!</h2>
+        <h2 class="text-4xl font-bold text-center text-branding-primary mb-6">User Registered!</h2>
         <p class="text-lg mb-8">Verify your email by clicking on the link sent to your email.</p>
         <button @click="showModal = false; registrationStep = 1; registrationSuccess = false;"
-            class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">
+            class="bg-branding-primary hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">
             Close
         </button>
     </div>
@@ -24,10 +24,10 @@
     <!-- Register Form Content (Hidden when success is shown) -->
     <div x-show="!registrationSuccess">
         <!-- Register Headers -->
-        <h2 class="text-4xl font-bold text-center text-orange-500 mb-6" x-show="registrationStep === 1">
+        <h2 class="text-4xl font-bold text-center text-branding-primary mb-6" x-show="registrationStep === 1">
             Sign Up
         </h2>
-        <h2 class="text-4xl font-bold text-center text-orange-500 mb-6" x-show="registrationStep === 2">
+        <h2 class="text-4xl font-bold text-center text-branding-primary mb-6" x-show="registrationStep === 2">
             One Last Step
         </h2>
 
