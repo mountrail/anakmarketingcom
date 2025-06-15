@@ -115,7 +115,6 @@
                             <x-primary-button type="button" variant="inactive" size="md"
                                 onclick="window.location.href='{{ route('posts.show', $post->slug) }}'">
                                 {{ __('Kembali') }}
-                                {{ __('Kembali') }}
                             </x-primary-button>
 
                             <x-primary-button type="submit" id="submit-btn" variant="primary" size="md">

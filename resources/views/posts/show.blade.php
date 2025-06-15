@@ -27,9 +27,9 @@
                     </div>
 
                     <!-- Post Content Section -->
-                    <div class="mt-6 border-t pt-6">
+                    <div class="mt-6 border-t py-8">
                         <!-- Full content for both authenticated and non-authenticated users -->
-                        <div class="prose dark:prose-invert max-w-none min-h-48">
+                        <div class="prose dark:prose-invert max-w-none">
                             {!! clean($post->content) !!}
 
                             <!-- Image Gallery Display using the PostImage relationship -->
