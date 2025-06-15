@@ -43,10 +43,19 @@ class RegisterController extends Controller
                 ],
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
             ], [
-                'phone_number.min' => 'Phone number must be at least 8 digits long.',
-                'phone_number.max' => 'Phone number cannot exceed 12 digits.',
-                'phone_number.regex' => 'Phone number must contain only digits.',
-                'phone_country_code.regex' => 'Country code must contain only digits.',
+                'name.required' => 'Nama wajib diisi.',
+                'name.max' => 'Nama tidak boleh lebih dari 255 karakter.',
+                'email.required' => 'Email wajib diisi.',
+                'email.email' => 'Format email tidak valid.',
+                'email.unique' => 'Email sudah terdaftar.',
+                'phone_country_code.required' => 'Kode negara wajib diisi.',
+                'phone_country_code.regex' => 'Kode negara hanya boleh berisi angka.',
+                'phone_number.required' => 'Nomor telepon wajib diisi.',
+                'phone_number.min' => 'Nomor telepon minimal 8 digit.',
+                'phone_number.max' => 'Nomor telepon maksimal 12 digit.',
+                'phone_number.regex' => 'Nomor telepon hanya boleh berisi angka.',
+                'password.required' => 'Kata sandi wajib diisi.',
+                'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
             ]);
 
             if ($validator->fails()) {

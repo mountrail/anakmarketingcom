@@ -17,9 +17,9 @@ class AuthenticatedSessionController extends Controller
      * This method is kept for backward compatibility and will be removed in future versions.
      * Instead, use the auth modal for login.
      */
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        return view('auth.login');
+        return redirect()->route('home')->with('show_auth_modal', 'login');
     }
 
     /**
@@ -33,16 +33,23 @@ class AuthenticatedSessionController extends Controller
             'password' => 'required',
         ]);
 
-        // Check if user has verified their email
+        // Check if user exists
         $user = \App\Models\User::where('email', $request->email)->first();
 
-        if ($user && !$user->hasVerifiedEmail()) {
-            // Add show_auth_modal=login to the redirect to trigger modal opening
+        if (!$user) {
+            return redirect()->back()
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors(['email' => 'Tidak ada akun yang terdaftar dengan email ini. Silakan periksa email Anda atau daftar akun baru.'])
+                ->with('show_auth_modal', 'login');
+        }
+
+        // Check if user has verified their email
+        if (!$user->hasVerifiedEmail()) {
             return redirect()->back()
                 ->with('verification_required', true)
                 ->with('email', $request->email)
-                ->with('error', 'You need to verify your email address before logging in.')
-                ->with('show_auth_modal', 'login'); // Add this line to trigger modal
+                ->with('error', 'Anda perlu memverifikasi alamat email Anda sebelum masuk.')
+                ->with('show_auth_modal', 'login');
         }
 
         try {
@@ -50,11 +57,18 @@ class AuthenticatedSessionController extends Controller
             $request->session()->regenerate();
 
             return redirect()->intended(RouteServiceProvider::HOME);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // This catches wrong password attempts
             return redirect()->back()
                 ->withInput($request->only('email', 'remember'))
-                ->withErrors(['email' => 'The provided credentials do not match our records.'])
-                ->with('show_auth_modal', 'login'); // Also add here for regular login failures
+                ->withErrors(['password' => 'Kata sandi yang Anda masukkan salah. Silakan coba lagi.'])
+                ->with('show_auth_modal', 'login');
+        } catch (\Exception $e) {
+            // General fallback
+            return redirect()->back()
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors(['email' => 'Tidak dapat masuk. Silakan coba lagi.'])
+                ->with('show_auth_modal', 'login');
         }
     }
 
