@@ -16,7 +16,11 @@
                             Maaf, halaman yang Anda cari tidak dapat ditemukan. Mungkin halaman tersebut telah dipindahkan
                             atau dihapus.
                         </p>
-
+                        <a href="{{ route('home') }}">
+                            <x-primary-button href="{{ url('/') }}">
+                                Kembali ke Halaman Utama
+                            </x-primary-button>
+                        </a>
 
                     </div>
                 </div>

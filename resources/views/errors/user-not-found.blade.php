@@ -16,7 +16,11 @@
                         <p class="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
                             Maaf, profil pengguna yang Anda cari tidak ditemukan atau mungkin telah dihapus.
                         </p>
-
+                        <a href="{{ route('home') }}">
+                            <x-primary-button href="{{ url('/') }}">
+                                Kembali ke Halaman Utama
+                            </x-primary-button>
+                        </a>
                     </div>
                 </div>
             </div>
