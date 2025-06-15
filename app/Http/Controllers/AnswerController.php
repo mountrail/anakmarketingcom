@@ -53,13 +53,7 @@ class AnswerController extends Controller
         }
 
         // **REDIRECT TO BADGE-EARNED PAGE IF BADGE WAS AWARDED**
-        if ($badgeAwarded) {
-            // Store the post slug in session so we can redirect back after badge page
-            session(['return_to_post' => $post->slug]);
-
-            return redirect()->route('badge.earned', ['badge' => 'Ikutan Nimbrung'])
-                ->with('success', 'Answer posted successfully.');
-        }
+        // Badge is awarded silently in background for first answer
 
         return redirect()->route('posts.show', $post->slug)
             ->with('success', 'Answer posted successfully.');

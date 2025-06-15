@@ -115,11 +115,7 @@ class PostController extends Controller
 
             $successMessage = $validated['type'] === 'question' ? 'Pertanyaan berhasil dibuat!' : 'Diskusi berhasil dibuat!';
 
-            if ($badgeAwarded) {
-                session(['return_to_post' => $post->slug]);
-                return redirect()->route('badge.earned', ['badge' => 'Break The Ice'])
-                    ->with('success', $successMessage);
-            }
+            // Badge is awarded silently in background for first post
 
             return redirect()->route('posts.show', $post->slug)
                 ->with('success', $successMessage);
