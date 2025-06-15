@@ -28,7 +28,7 @@
                         <div>
                             <x-input-label for="type" :value="__('Kategori')" class="font-bold text-lg" />
                             <x-select-input id="type" name="type" :selected="old('type', 'question')" :options="['question' => 'Pertanyaan', 'discussion' => 'Diskusi']"
-                                placeholder="Pilih kategori"
+                                :showPlaceholder="false"
                                 class="mt-1 w-48 border-essentials-inactive dark:bg-essentials-inactive/20 dark:border-essentials-inactive dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
                             @error('type')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
