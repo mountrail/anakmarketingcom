@@ -68,10 +68,10 @@
                 modal.innerHTML = `
                 <div class="text-center">
                     <div class="mb-4">
-                        <img src="/images/badges/${badge.icon}"
-                             alt="${badge.name}"
-                             class="w-32 h-32 object-contain mx-auto"
-                             onerror="this.onerror=null; this.src='/images/badges/default-badge.svg';">
+                        <img src="/images/badges/thumbs/96x96/${badge.icon}"
+                            alt="${badge.name}"
+                            class="w-32 h-32 object-contain mx-auto"
+                            onerror="this.onerror=null; this.src='/images/badges/${badge.icon}';">
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                         ${badge.name}

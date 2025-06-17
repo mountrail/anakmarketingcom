@@ -301,16 +301,44 @@ class BadgeService
     }
 
     /**
-     * Get user's displayed badges for profile
+     * Get user's displayed badges for profile with auto-fill for empty slots
      */
     public static function getDisplayedBadges(User $user)
     {
-        return UserProfileBadge::where('user_id', $user->id)
+        // Get explicitly selected badges
+        $selectedBadges = UserProfileBadge::where('user_id', $user->id)
             ->where('is_displayed', true)
             ->with('badge')
             ->orderBy('display_order')
-            ->take(3)
             ->get();
+
+        // If we have 3 selected badges, return them
+        if ($selectedBadges->count() >= 3) {
+            return $selectedBadges->take(3);
+        }
+
+        // Get all user badges ordered by newest earned first for auto-fill
+        $allUserBadges = self::getAllUserBadges($user);
+
+        // If user has no badges at all, return empty collection
+        if ($allUserBadges->isEmpty()) {
+            return collect();
+        }
+
+        // Fill remaining slots with earliest earned badges (reverse order of getAllUserBadges)
+        $selectedBadgeIds = $selectedBadges->pluck('badge_id')->toArray();
+        $remainingSlots = 3 - $selectedBadges->count();
+
+        // Get badges not already selected, ordered by earliest earned first
+        $unselectedBadges = $allUserBadges
+            ->whereNotIn('badge_id', $selectedBadgeIds)
+            ->reverse() // Reverse to get earliest first
+            ->take($remainingSlots);
+
+        // Combine selected and auto-filled badges
+        $result = $selectedBadges->concat($unselectedBadges);
+
+        return $result->take(3);
     }
 
     /**
