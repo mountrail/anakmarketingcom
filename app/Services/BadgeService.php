@@ -301,16 +301,55 @@ class BadgeService
     }
 
     /**
-     * Get user's displayed badges for profile
+     * Get user's displayed badges for profile with auto-fill for empty slots
      */
     public static function getDisplayedBadges(User $user)
     {
-        return UserProfileBadge::where('user_id', $user->id)
+        // Get explicitly selected badges
+        $selectedBadges = UserProfileBadge::where('user_id', $user->id)
             ->where('is_displayed', true)
             ->with('badge')
             ->orderBy('display_order')
-            ->take(3)
             ->get();
+
+        // If we have 3 selected badges, return them as-is
+        if ($selectedBadges->count() >= 3) {
+            return $selectedBadges->take(3);
+        }
+
+        // Get user's earned badges with earned_at timestamps for auto-fill
+        $earnedBadges = $user->badges()->withPivot('earned_at')->get();
+
+        // If user has no badges at all, return empty collection
+        if ($earnedBadges->isEmpty()) {
+            return collect();
+        }
+
+        // Fill remaining slots with newest earned badges (not already selected)
+        $selectedBadgeIds = $selectedBadges->pluck('badge_id')->toArray();
+        $remainingSlots = 3 - $selectedBadges->count();
+
+        // Get unselected badges ordered by newest earned first
+        $autoFillBadges = $earnedBadges
+            ->whereNotIn('id', $selectedBadgeIds)
+            ->sortByDesc('pivot.earned_at') // Sort by newest first
+            ->take($remainingSlots)
+            ->map(function ($badge) use ($user) {
+                // Create a temporary UserProfileBadge-like object for consistency
+                // but DON'T save to database
+                return (object) [
+                    'badge_id' => $badge->id,
+                    'badge' => $badge,
+                    'is_displayed' => false, // Mark as auto-fill, not actually selected
+                    'display_order' => null,
+                    'is_auto_fill' => true // Flag to identify auto-filled badges
+                ];
+            });
+
+        // Combine selected badges with auto-fill badges
+        $result = $selectedBadges->concat($autoFillBadges);
+
+        return $result->take(3);
     }
 
     /**

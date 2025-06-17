@@ -23,8 +23,9 @@
                 <div class="flex justify-center mb-4">
                     <div class="w-32 h-32 flex items-center justify-center badge-container">
                         @if ($badge->icon && file_exists(public_path('images/badges/' . $badge->icon)))
-                            <img src="{{ asset('images/badges/' . $badge->icon) }}" alt="{{ $badge->name }}"
-                                class="w-28 h-28 object-contain badge-icon" />
+                            <img src="{{ asset('images/badges/thumbs/96x96/' . $badge->icon) }}" alt="{{ $badge->name }}"
+                                class="w-28 h-28 object-contain badge-icon"
+                                onerror="this.onerror=null; this.src='{{ asset('images/badges/' . $badge->icon) }}';" />
                         @else
                             <x-icons.badge class="w-28 h-28 text-gray-800 badge-icon" />
                         @endif
