@@ -15,31 +15,31 @@ class BadgeSeeder extends Seeder
         $badges = [
             [
                 'name' => 'Perkenalkan Saya',
-                'description' => 'Lengkapi profil dasar Anda untuk memperkenalkan diri',
+                'description' => 'Melengkapi halaman profil',
                 'icon' => 'perkenalkan-saya.png',
                 'level' => 1,
             ],
             [
                 'name' => 'Break the Ice',
-                'description' => 'Posting pertanyaan atau diskusi pertama Anda',
+                'description' => 'Memposting pertanyaan atau diskusi pertama',
                 'icon' => 'break-the-ice.png',
                 'level' => 1,
             ],
             [
                 'name' => 'Ikutan Nimbrung',
-                'description' => 'Posting komentar/jawaban pertama Anda',
+                'description' => 'Menjawab atau menanggapi pertanyaan atau diskusi di komunitas',
                 'icon' => 'ikutan-nimbrung.png',
                 'level' => 1,
             ],
             [
                 'name' => 'Marketers Onboard!',
-                'description' => 'Selesaikan semua misi onboarding dan resmi bergabung dengan komunitas marketing',
+                'description' => 'Menyelesaikan semua misi onboarding dan resmi menjadi Anak Marketing',
                 'icon' => 'marketers-onboard.png',
                 'level' => 2,
             ],
             [
                 'name' => 'Founding Users',
-                'description' => 'Salah satu dari 50 anggota pertama yang menyelesaikan onboarding dan bergabung dengan komunitas',
+                'description' => 'Satu dari 50 anggota pertama yang menyelesaikan onboarding dan bergabung dengan komunitas',
                 'icon' => 'founding-users.png',
                 'level' => 3,
             ]
