@@ -62,7 +62,7 @@
             // Track uploaded images
             let uploadedImages = [];
             const MAX_IMAGES = 5;
-            const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB in bytes
+            const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
 
             // Function to check if dataTransfer contains image files
             function hasImageFile(dataTransfer) {

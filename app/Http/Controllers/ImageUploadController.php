@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Traits\Test;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +23,7 @@ class ImageUploadController extends Controller
 
             // Validate the request
             $validated = $request->validate([
-                'file' => 'required|file|image|mimes:jpeg,png,jpg,gif,webp|max:1024', // 1MB max
+                'file' => 'required|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // 2MB max
             ]);
 
             $file = $request->file('file');
