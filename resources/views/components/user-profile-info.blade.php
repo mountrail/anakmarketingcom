@@ -6,6 +6,7 @@
     'profileSize' => 'h-10 w-10', // Default profile image size
     'showJobInfo' => true,
     'additionalBadges' => null, // For any special badges like Editor's Pick
+    'mobileBadgeSize' => null, // Optional mobile badge size - if null, uses same as desktop
 ])
 
 @php
@@ -13,9 +14,9 @@
     $displayedBadges = BadgeService::getDisplayedBadges($user);
 @endphp
 
-<div class="flex justify-between items-start">
+<div class="flex justify-between items-start gap-3">
     <!-- Left side: Profile Picture and User Info -->
-    <div class="flex items-center space-x-3">
+    <div class="flex items-center space-x-3 min-w-0 flex-1">
         <!-- Profile Picture -->
         <a href="{{ route('profile.show', $user) }}" class="flex-shrink-0">
             <img src="{{ $user->getProfileImageUrl() }}" alt="{{ $user->name }}"
@@ -23,14 +24,14 @@
         </a>
 
         <!-- Name, Job Info, and Time -->
-        <div class="flex flex-col">
+        <div class="flex flex-col min-w-0 flex-1">
             <a href="{{ route('profile.show', $user) }}"
-                class="font-medium text-gray-900 dark:text-gray-100 hover:text-branding-primary dark:hover:text-branding-primary transition-colors">
+                class="font-medium text-gray-900 dark:text-gray-100 hover:text-branding-primary dark:hover:text-branding-primary transition-colors truncate">
                 {{ $user->name }}
             </a>
 
             @if ($showJobInfo)
-                <div class="text-xs text-gray-500 dark:text-gray-400">
+                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
                     @if ($user->job_title && $user->company)
                         {{ $user->job_title }} at {{ $user->company }}
                     @elseif($user->job_title)
@@ -44,7 +45,7 @@
             @endif
 
             @if ($timestamp)
-                <span class="text-xs text-gray-500 dark:text-gray-400">
+                <span class="text-xs text-gray-500 dark:text-gray-400 truncate">
                     {{ $timestamp->diffForHumans() }}
                 </span>
             @endif
@@ -52,7 +53,7 @@
     </div>
 
     <!-- Right side: Additional Badges and User Badges -->
-    <div class="flex items-center space-x-2">
+    <div class="flex items-center space-x-2 flex-shrink-0 self-center">
         <!-- Additional badges (like Editor's Pick) -->
         @if ($additionalBadges)
             {{ $additionalBadges }}
@@ -60,7 +61,7 @@
 
         <!-- User Achievement Badges -->
         @if ($displayedBadges->count() > 0)
-            <x-badge-preview :badges="$displayedBadges" :user="$user" :badgeSize="$badgeSize" />
+            <x-badge-preview :badges="$displayedBadges" :user="$user" :badgeSize="$badgeSize" :mobileBadgeSize="$mobileBadgeSize" />
         @endif
     </div>
 </div>

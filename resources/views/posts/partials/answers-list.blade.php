@@ -81,7 +81,7 @@
 
                 <!-- Header Jawaban - Profil, Info Pengguna, dan Lencana -->
                 <div class="mb-4">
-                    <x-user-profile-info :user="$answer->user" :timestamp="$answer->created_at" badgeSize="w-7 h-7" profileSize="h-10 w-10"
+                    <x-user-profile-info :user="$answer->user" :timestamp="$answer->created_at" badgeSize="w-10 h-10" mobileBadgeSize="w-7 h-7" profileSize="h-12 w-12"
                         :showJobInfo="true">
 
                         <x-slot name="additionalBadges">

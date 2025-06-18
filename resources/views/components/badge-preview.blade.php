@@ -1,15 +1,21 @@
 {{-- resources/views/components/badge-preview.blade.php --}}
-@props(['badges', 'user', 'maxVisible' => 3, 'badgeSize' => 'w-4 h-4'])
+@props(['badges', 'user', 'maxVisible' => 3, 'badgeSize' => 'w-4 h-4', 'mobileBadgeSize' => null])
 
 @php
     $visibleBadges = $badges->take($maxVisible);
     $remainingCount = $badges->count() - $maxVisible;
+
+    // Build responsive badge size classes
+    $badgeClasses = $mobileBadgeSize
+        ? $mobileBadgeSize . ' ' . preg_replace('/(\w+-\w+)/', 'md:$1', $badgeSize)
+        : $badgeSize;
 
     // Determine thumbnail size based on badge size class
     $thumbnailSize = match (true) {
         str_contains($badgeSize, 'w-4 h-4') => '32x32',
         str_contains($badgeSize, 'w-7 h-7') => '56x56',
         str_contains($badgeSize, 'w-8 h-8') => '64x64',
+        str_contains($badgeSize, 'w-10 h-10') => '80x80',
         str_contains($badgeSize, 'w-12 h-12') => '96x96',
         default => '32x32',
     };
@@ -22,7 +28,7 @@
                 onclick="showBadgeModal({{ json_encode($userProfileBadge->badge) }}, '{{ $user->name }}')"
                 class="relative hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-branding-primary focus:ring-opacity-50 rounded-full">
                 <img src="{{ asset('images/badges/thumbs/' . $thumbnailSize . '/' . $userProfileBadge->badge->icon) }}"
-                    alt="{{ $userProfileBadge->badge->name }}" class="{{ $badgeSize }} object-contain"
+                    alt="{{ $userProfileBadge->badge->name }}" class="{{ $badgeClasses }} object-contain"
                     onerror="this.onerror=null; this.src='{{ asset('images/badges/' . $userProfileBadge->badge->icon) }}'; this.classList.add('text-yellow-500');" />
             </button>
         @endforeach
