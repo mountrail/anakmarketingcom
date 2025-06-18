@@ -33,12 +33,12 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Create roles and assign permissions
-        // Regular user role
-        $userRole = Role::create(['name' => 'user']);
+// Regular user role
+        $userRole = Role::firstOrCreate(['name' => 'user']);
         $userRole->givePermissionTo([
             'create posts',
             'edit own posts',
@@ -49,7 +49,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Editor role
-        $editorRole = Role::create(['name' => 'editor']);
+        $editorRole = Role::firstOrCreate(['name' => 'editor']);
         $editorRole->givePermissionTo([
             'create posts',
             'edit own posts',
@@ -61,17 +61,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage editor picks',
         ]);
 
-        // Admin role
-        $adminRole = Role::create(['name' => 'admin']);
-        $adminRole->givePermissionTo(Permission::all());
-
-        // Assign admin role to a specific user (optional)
-        // Uncomment and modify if you want to set an admin during seeding
-        /*
-        $admin = User::where('email', 'admin@example.com')->first();
-        if ($admin) {
-            $admin->assignRole('admin');
+        // Assign user role to all existing users who don't have any role
+        $usersWithoutRoles = User::doesntHave('roles')->get();
+        foreach ($usersWithoutRoles as $user) {
+            $user->assignRole('user');
         }
-        */
+
+        $this->command->info('Assigned user role to ' . $usersWithoutRoles->count() . ' existing users.');
     }
 }

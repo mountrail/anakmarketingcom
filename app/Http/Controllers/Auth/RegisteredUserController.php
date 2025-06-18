@@ -124,6 +124,8 @@ class RegisteredUserController extends Controller
             // Try creating user with the data array
             $user = User::create($userData);
 
+            $user->assignRole('user');
+
             Log::info('User created successfully with ID: ' . $user->id);
 
             event(new Registered($user));

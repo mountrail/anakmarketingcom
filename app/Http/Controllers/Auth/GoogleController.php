@@ -63,6 +63,9 @@ class GoogleController extends Controller
 
                     $user = User::create($userData);
                     $isNewUser = true;
+
+                    $user->assignRole('user');
+
                     $needsOnboarding = true; // New users always need onboarding
                     $needsOnboarding = true; // New users always need onboarding
 
