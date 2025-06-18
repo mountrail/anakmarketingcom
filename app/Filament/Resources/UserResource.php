@@ -122,39 +122,19 @@ class UserResource extends Resource
                     ->copyable()
                     ->icon('heroicon-m-envelope'),
 
-                Tables\Columns\TextColumn::make('job_title')
-                    ->label('Job Title')
-                    ->searchable()
-                    ->limit(30)
-                    ->tooltip(function ($record) {
-                        return $record->job_title;
-                    }),
-
-                Tables\Columns\TextColumn::make('company')
-                    ->searchable()
-                    ->limit(20)
-                    ->tooltip(function ($record) {
-                        return $record->company;
-                    }),
-
-                Tables\Columns\TextColumn::make('industry')
-                    ->searchable()
+                Tables\Columns\TextColumn::make('roles.name')
                     ->badge()
-                    ->color('gray'),
+                    ->color('info')
+                    ->separator(',')
+                    ->limit(20),
 
-                Tables\Columns\TextColumn::make('seniority')
-                    ->badge()
-                    ->color(fn(string $state): string => match ($state) {
-                        'entry', 'junior' => 'success',
-                        'mid', 'senior' => 'warning',
-                        'lead', 'manager' => 'info',
-                        'director', 'executive' => 'danger',
-                        default => 'gray',
-                    }),
-
-                Tables\Columns\TextColumn::make('city')
-                    ->searchable()
-                    ->icon('heroicon-m-map-pin'),
+                Tables\Columns\IconColumn::make('onboarding_completed')
+                    ->label('Onboarding')
+                    ->boolean()
+                    ->getStateUsing(function ($record) {
+                        return !empty($record->name) && !empty($record->job_title);
+                    })
+                    ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('provider')
                     ->badge()
@@ -162,12 +142,6 @@ class UserResource extends Resource
                         'google' => 'success',
                         default => 'gray',
                     }),
-
-                Tables\Columns\TextColumn::make('roles.name')
-                    ->badge()
-                    ->color('info')
-                    ->separator(',')
-                    ->limit(20),
 
                 Tables\Columns\TextColumn::make('reputation')
                     ->numeric()
@@ -233,25 +207,7 @@ class UserResource extends Resource
                         null => 'Email',
                     ]),
 
-                Tables\Filters\SelectFilter::make('industry')
-                    ->options(function () {
-                        return User::whereNotNull('industry')
-                            ->distinct()
-                            ->pluck('industry', 'industry')
-                            ->toArray();
-                    }),
 
-                Tables\Filters\SelectFilter::make('seniority')
-                    ->options([
-                        'entry' => 'Entry Level',
-                        'junior' => 'Junior',
-                        'mid' => 'Mid Level',
-                        'senior' => 'Senior',
-                        'lead' => 'Lead',
-                        'manager' => 'Manager',
-                        'director' => 'Director',
-                        'executive' => 'Executive',
-                    ]),
 
                 Tables\Filters\Filter::make('verified')
                     ->query(fn(Builder $query): Builder => $query->whereNotNull('email_verified_at'))
@@ -268,6 +224,16 @@ class UserResource extends Resource
                 Tables\Filters\Filter::make('active_users')
                     ->query(fn(Builder $query): Builder => $query->where('created_at', '>=', now()->subDays(30)))
                     ->label('Active (30 days)'),
+
+                Tables\Filters\Filter::make('onboarding_completed')
+                    ->query(fn(Builder $query): Builder => $query->whereNotNull('name')->whereNotNull('job_title'))
+                    ->label('Onboarding Completed'),
+
+                Tables\Filters\Filter::make('onboarding_incomplete')
+                    ->query(fn(Builder $query): Builder => $query->where(function ($q) {
+                        $q->whereNull('name')->orWhereNull('job_title');
+                    }))
+                    ->label('Onboarding Incomplete'),
             ])
             ->headerActions([
                 ExportAction::make()
@@ -278,7 +244,7 @@ class UserResource extends Resource
                             ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
                             ->except([
                                 'profile_picture', // Remove image columns from export
-                                'roles.name', // Complex relationship columns
+                                'onboarding_completed', // Remove computed columns
                                 'posts_count',
                                 'answers_count',
                                 'followers_count'
@@ -305,8 +271,8 @@ class UserResource extends Resource
                                 ->withFilename(fn() => 'selected-users-' . date('Y-m-d'))
                                 ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
                                 ->except([
-                                    'profile_picture',
-                                    'roles.name',
+                                    'profile_picture', // Remove image columns from export
+                                    'onboarding_completed', // Remove computed columns
                                     'posts_count',
                                     'answers_count',
                                     'followers_count'
