@@ -181,45 +181,57 @@ class VotingSystem {
     }
 
     updateUIWithServerData(container, targetInfo, data) {
-        const scoreEl = container.querySelector(`.vote-score[${targetInfo.attr}="${targetInfo.id}"]`);
-        const upvoteCountEl = container.querySelector(`.upvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
-        const downvoteCountEl = container.querySelector(`.downvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
-        const upvoteBtn = container.querySelector('.upvote-btn');
-        const downvoteBtn = container.querySelector('.downvote-btn');
+        // Find ALL vote containers for this post/answer on the page
+        const allVoteContainers = document.querySelectorAll(`.vote-container[${targetInfo.attr}="${targetInfo.id}"]`);
 
-        if (!scoreEl || !upvoteBtn || !downvoteBtn) return;
+        allVoteContainers.forEach(voteContainer => {
+            const scoreEl = voteContainer.querySelector(`.vote-score[${targetInfo.attr}="${targetInfo.id}"]`);
+            const upvoteCountEl = voteContainer.querySelector(`.upvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+            const downvoteCountEl = voteContainer.querySelector(`.downvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+            const upvoteBtn = voteContainer.querySelector('.upvote-btn');
+            const downvoteBtn = voteContainer.querySelector('.downvote-btn');
 
-        // Update counts and score
-        scoreEl.textContent = data.score || '0';
-        if (upvoteCountEl) upvoteCountEl.textContent = data.upvoteCount || data.upvotes || '0';
-        if (downvoteCountEl) downvoteCountEl.textContent = data.downvoteCount || data.downvotes || '0';
+            if (!scoreEl || !upvoteBtn || !downvoteBtn) return;
 
-        // Reset and set correct button state
-        this.resetButtonStyles(upvoteBtn, downvoteBtn);
+            // Update counts and score
+            scoreEl.textContent = data.score || '0';
+            if (upvoteCountEl) upvoteCountEl.textContent = data.upvoteCount || data.upvotes || '0';
+            if (downvoteCountEl) downvoteCountEl.textContent = data.downvoteCount || data.downvotes || '0';
 
-        const userVote = Number(data.userVote);
-        if (userVote === 1) {
-            this.setActiveUpvote(upvoteBtn);
-        } else if (userVote === -1) {
-            this.setActiveDownvote(downvoteBtn);
-        }
+            // Reset and set correct button state
+            this.resetButtonStyles(upvoteBtn, downvoteBtn);
+
+            const userVote = Number(data.userVote);
+            if (userVote === 1) {
+                this.setActiveUpvote(upvoteBtn);
+            } else if (userVote === -1) {
+                this.setActiveDownvote(downvoteBtn);
+            }
+        });
     }
 
     restoreState(container, targetInfo, state) {
-        const scoreEl = container.querySelector(`.vote-score[${targetInfo.attr}="${targetInfo.id}"]`);
-        const upvoteCountEl = container.querySelector(`.upvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
-        const downvoteCountEl = container.querySelector(`.downvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
-        const upvoteBtn = container.querySelector('.upvote-btn');
-        const downvoteBtn = container.querySelector('.downvote-btn');
+        // Find ALL vote containers for this post/answer on the page
+        const allVoteContainers = document.querySelectorAll(`.vote-container[${targetInfo.attr}="${targetInfo.id}"]`);
 
-        if (scoreEl) scoreEl.textContent = state.score;
-        if (upvoteCountEl) upvoteCountEl.textContent = state.upvoteCount;
-        if (downvoteCountEl) downvoteCountEl.textContent = state.downvoteCount;
+        allVoteContainers.forEach(voteContainer => {
+            const scoreEl = voteContainer.querySelector(`.vote-score[${targetInfo.attr}="${targetInfo.id}"]`);
+            const upvoteCountEl = voteContainer.querySelector(`.upvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+            const downvoteCountEl = voteContainer.querySelector(`.downvote-count[${targetInfo.attr}="${targetInfo.id}"]`);
+            const upvoteBtn = voteContainer.querySelector('.upvote-btn');
+            const downvoteBtn = voteContainer.querySelector('.downvote-btn');
 
-        this.resetButtonStyles(upvoteBtn, downvoteBtn);
+            if (scoreEl) scoreEl.textContent = state.score;
+            if (upvoteCountEl) upvoteCountEl.textContent = state.upvoteCount;
+            if (downvoteCountEl) downvoteCountEl.textContent = state.downvoteCount;
 
-        if (state.upvoteActive) this.setActiveUpvote(upvoteBtn);
-        if (state.downvoteActive) this.setActiveDownvote(downvoteBtn);
+            if (upvoteBtn && downvoteBtn) {
+                this.resetButtonStyles(upvoteBtn, downvoteBtn);
+
+                if (state.upvoteActive) this.setActiveUpvote(upvoteBtn);
+                if (state.downvoteActive) this.setActiveDownvote(downvoteBtn);
+            }
+        });
     }
 
     toggleButtonsState(container, disabled) {
