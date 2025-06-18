@@ -2,7 +2,7 @@
 @if ($editorPicks->count() > 0)
     <div class="hidden lg:block w-1/3 mt-20">
         <div class="bg-white dark:bg-gray-800 p-4">
-            <h3 class="text-xl font-bold mb-4 text-branding-primary dark:text-gray-200">Pilihan Editor</h3>
+            <h3 class="text-xl font-bold mb-4 text-branding-primary dark:text-gray-200">Editor's Picks</h3>
 
             <div>
                 @foreach ($editorPicks as $pick)
