@@ -11,11 +11,6 @@
                 <div class="mb-4 text-sm text-branding-dark">
                     Silakan periksa kotak masuk email Anda dan klik tautan untuk mereset kata sandi.
                 </div>
-
-                <button onclick="window.location.reload()"
-                    class="inline-flex items-center px-4 py-2 bg-branding-dark border border-transparent rounded-md font-semibold text-xs text-branding-light uppercase tracking-widest hover:bg-branding-black focus:bg-branding-black active:bg-branding-black focus:outline-none focus:ring-2 focus:ring-branding-primary focus:ring-offset-2 transition ease-in-out duration-150">
-                    ← Kembali
-                </button>
             </div>
         @else
             {{-- Initial state - show form --}}
