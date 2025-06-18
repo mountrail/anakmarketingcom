@@ -225,31 +225,53 @@ class VotingSystem {
     toggleButtonsState(container, disabled) {
         container.querySelectorAll('.vote-btn').forEach(btn => {
             btn.disabled = disabled;
-            btn.classList.toggle('opacity-50', disabled);
-            btn.classList.toggle('cursor-not-allowed', disabled);
         });
     }
 
     resetButtonStyles(upvoteBtn, downvoteBtn) {
-        [upvoteBtn, downvoteBtn].forEach(btn => {
+        [upvoteBtn, downvoteBtn].forEach((btn, index) => {
             if (btn) {
-                btn.classList.remove('active-vote');
+                btn.classList.remove('active-vote', 'text-white', 'font-bold', 'bg-branding-primary', 'bg-branding-dark', 'hover:bg-opacity-90');
+                btn.classList.add('text-black', 'dark:text-white', 'hover:bg-opacity-10');
                 this.toggleIconVisibility(btn, false);
+                this.updateSeparatorColor(btn, false);
             }
         });
     }
 
     setActiveUpvote(btn) {
-        if (btn) {
-            btn.classList.add('active-vote');
-            this.toggleIconVisibility(btn, true);
-        }
+        this.applyActiveStyles(btn, true);
     }
 
     setActiveDownvote(btn) {
+        this.applyActiveStyles(btn, false);
+    }
+
+    applyActiveStyles(btn, isUpvote) {
         if (btn) {
             btn.classList.add('active-vote');
+            if (isUpvote) {
+                btn.classList.add('text-white', 'font-bold', 'bg-branding-primary', 'hover:bg-opacity-90');
+                btn.classList.remove('text-black', 'dark:text-white', 'hover:bg-opacity-10');
+            } else {
+                btn.classList.add('text-white', 'font-bold', 'bg-branding-dark', 'hover:bg-opacity-90');
+                btn.classList.remove('text-black', 'dark:text-white', 'hover:bg-opacity-10');
+            }
             this.toggleIconVisibility(btn, true);
+            this.updateSeparatorColor(btn, true);
+        }
+    }
+
+    updateSeparatorColor(btn, isActive) {
+        const separator = btn.querySelector('span.flex span:first-of-type');
+        if (separator && separator.textContent === '|') {
+            if (isActive) {
+                separator.classList.remove('text-gray-500', 'dark:text-gray-400');
+                separator.classList.add('text-white');
+            } else {
+                separator.classList.remove('text-white');
+                separator.classList.add('text-gray-500', 'dark:text-gray-400');
+            }
         }
     }
 

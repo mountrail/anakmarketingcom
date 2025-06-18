@@ -29,12 +29,12 @@
     // Define active states with border styling but no background, text black
     $upvoteActiveClass =
         $userVote === 1
-            ? 'active-vote text-black dark:text-white border-2 border-branding-primary'
+            ? 'active-vote text-white font-bold bg-branding-primary border-2 border-branding-primary hover:bg-branding-primary hover:bg-opacity-90'
             : 'text-black dark:text-white border-2 border-branding-primary hover:bg-branding-primary hover:bg-opacity-10';
 
     $downvoteActiveClass =
         $userVote === -1
-            ? 'active-vote text-black dark:text-white border-2 border-branding-dark'
+            ? 'active-vote text-white font-bold bg-branding-dark border-2 border-branding-dark hover:bg-branding-dark hover:bg-opacity-90'
             : 'text-black dark:text-white border-2 border-branding-dark hover:bg-branding-dark hover:bg-opacity-10';
 
     // Define guest button style with hover states
@@ -56,8 +56,10 @@
                 <span class="flex items-center">
                     Upvote
                     @if ($showUpvoteCount)
-                        <span class="ml-1 text-gray-500 dark:text-gray-400">|</span>
-                        <span class="ml-1 upvote-count" {{ $dataAttr }}="{{ $modelId }}">{{ $upvoteCount }}</span>
+                        <span
+                            class="ml-1 {{ $userVote === 1 ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}">|</span>
+                        <span class="ml-1 upvote-count"
+                            {{ $dataAttr }}="{{ $modelId }}">{{ $upvoteCount }}</span>
                     @endif
                 </span>
             </button>
@@ -85,7 +87,8 @@
                 <span class="flex items-center">
                     Downvote
                     @if ($showDownvoteCount)
-                        <span class="ml-1 text-gray-500 dark:text-gray-400">|</span>
+                        <span
+                            class="ml-1 {{ $userVote === -1 ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}">|</span>
                         <span class="ml-1 downvote-count"
                             {{ $dataAttr }}="{{ $modelId }}">{{ $downvoteCount }}</span>
                     @endif
