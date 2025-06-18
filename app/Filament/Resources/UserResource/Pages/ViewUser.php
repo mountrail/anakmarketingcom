@@ -42,21 +42,35 @@ class ViewUser extends ViewRecord
                         Infolists\Components\TextEntry::make('city'),
                     ])->columns(2),
 
-                Infolists\Components\Section::make('Badges')
-                    ->schema([
-                        Infolists\Components\RepeatableEntry::make('badges')
-                            ->schema([
-                                Infolists\Components\TextEntry::make('name')
-                                    ->badge()
-                                    ->color('success'),
-                                Infolists\Components\TextEntry::make('description'),
-                                Infolists\Components\TextEntry::make('pivot.earned_at')
-                                    ->label('Earned At')
-                                    ->dateTime(),
-                            ])
-                            ->columns(3)
-                            ->columnSpanFull(),
-                    ]),
+                Infolists\Components\TextEntry::make('badges_details')
+                    ->label('Badge Details')
+                    ->getStateUsing(function ($record) {
+                        // Ensure badges relationship is loaded with pivot data
+                        $badges = $record->badges()->withPivot('earned_at')->get();
+
+                        if ($badges->isEmpty()) {
+                            return 'No badges earned yet';
+                        }
+
+                        return $badges->map(function ($badge) {
+                            $earnedAt = 'Unknown date';
+                            if ($badge->pivot->earned_at) {
+                                try {
+                                    // Handle both string and Carbon date formats
+                                    if (is_string($badge->pivot->earned_at)) {
+                                        $earnedAt = \Carbon\Carbon::parse($badge->pivot->earned_at)->format('M d, Y');
+                                    } else {
+                                        $earnedAt = $badge->pivot->earned_at->format('M d, Y');
+                                    }
+                                } catch (\Exception $e) {
+                                    $earnedAt = 'Invalid date';
+                                }
+                            }
+                            return $badge->name . ' - ' . $badge->description . ' (Earned: ' . $earnedAt . ')';
+                        })->join("<br>");
+                    })
+                    ->html()
+                    ->columnSpanFull(),
 
                 Infolists\Components\Section::make('System Information')
                     ->schema([

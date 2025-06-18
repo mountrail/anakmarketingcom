@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use pxlrbt\FilamentExcel\Columns\Column;
 
 class UserResource extends Resource
 {
@@ -132,7 +133,7 @@ class UserResource extends Resource
                     ->label('Onboarding')
                     ->boolean()
                     ->getStateUsing(function ($record) {
-                        return !empty($record->name) && !empty($record->job_title);
+                        return $record->hasBadge('Marketers Onboard!');
                     })
                     ->alignCenter(),
 
@@ -195,6 +196,67 @@ class UserResource extends Resource
                     ->dateTime('M d, Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('badges_earned')
+                    ->label('Badges')
+                    ->getStateUsing(function ($record) {
+                        return $record->badges->pluck('name')->join(', ');
+                    })
+                    ->limit(50)
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('total_votes_given')
+                    ->label('Votes Given')
+                    ->getStateUsing(function ($record) {
+                        return $record->votes()->count();
+                    })
+                    ->alignCenter()
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('total_votes_received')
+                    ->label('Votes Received')
+                    ->getStateUsing(function ($record) {
+                        return $record->posts()->withCount('votes')->get()->sum('votes_count') +
+                            $record->answers()->withCount('votes')->get()->sum('votes_count');
+                    })
+                    ->alignCenter()
+                    ->badge()
+                    ->color('success')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('following_count')
+                    ->label('Following')
+                    ->getStateUsing(function ($record) {
+                        return $record->followings()->count();
+                    })
+                    ->alignCenter()
+                    ->badge()
+                    ->color('warning')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('last_activity')
+                    ->label('Last Activity')
+                    ->getStateUsing(function ($record) {
+                        $lastPost = $record->posts()->latest()->first()?->created_at;
+                        $lastAnswer = $record->answers()->latest()->first()?->created_at;
+                        $lastVote = $record->votes()->latest()->first()?->created_at;
+
+                        $activities = collect([$lastPost, $lastAnswer, $lastVote])->filter();
+
+                        return $activities->isEmpty() ? null : $activities->max();
+                    })
+                    ->dateTime('M d, Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('registration_source')
+                    ->label('Source')
+                    ->getStateUsing(function ($record) {
+                        return $record->provider ?? 'email';
+                    })
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('roles')
@@ -206,8 +268,6 @@ class UserResource extends Resource
                         'google' => 'Google',
                         null => 'Email',
                     ]),
-
-
 
                 Tables\Filters\Filter::make('verified')
                     ->query(fn(Builder $query): Builder => $query->whereNotNull('email_verified_at'))
@@ -226,12 +286,14 @@ class UserResource extends Resource
                     ->label('Active (30 days)'),
 
                 Tables\Filters\Filter::make('onboarding_completed')
-                    ->query(fn(Builder $query): Builder => $query->whereNotNull('name')->whereNotNull('job_title'))
+                    ->query(fn(Builder $query): Builder => $query->whereHas('badges', function ($q) {
+                        $q->where('name', 'Marketers Onboard!');
+                    }))
                     ->label('Onboarding Completed'),
 
                 Tables\Filters\Filter::make('onboarding_incomplete')
-                    ->query(fn(Builder $query): Builder => $query->where(function ($q) {
-                        $q->whereNull('name')->orWhereNull('job_title');
+                    ->query(fn(Builder $query): Builder => $query->whereDoesntHave('badges', function ($q) {
+                        $q->where('name', 'Marketers Onboard!');
                     }))
                     ->label('Onboarding Incomplete'),
             ])
@@ -242,12 +304,22 @@ class UserResource extends Resource
                             ->fromTable()
                             ->withFilename(fn() => 'users-' . date('Y-m-d'))
                             ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
-                            ->except([
-                                'profile_picture', // Remove image columns from export
-                                'onboarding_completed', // Remove computed columns
-                                'posts_count',
-                                'answers_count',
-                                'followers_count'
+                            ->withColumns([
+                                Column::make('name'),
+                                Column::make('email'),
+                                Column::make('phone'),
+                                Column::make('bio'),
+                                Column::make('job_title'),
+                                Column::make('company'),
+                                Column::make('industry'),
+                                Column::make('seniority'),
+                                Column::make('company_size'),
+                                Column::make('city'),
+                                Column::make('provider'),
+                                Column::make('reputation'),
+                                Column::make('email_verified_at'),
+                                Column::make('created_at'),
+                                Column::make('updated_at'),
                             ]),
                     ])
                     ->color('success')
@@ -270,12 +342,22 @@ class UserResource extends Resource
                                 ->fromTable()
                                 ->withFilename(fn() => 'selected-users-' . date('Y-m-d'))
                                 ->withWriterType(\Maatwebsite\Excel\Excel::XLSX)
-                                ->except([
-                                    'profile_picture', // Remove image columns from export
-                                    'onboarding_completed', // Remove computed columns
-                                    'posts_count',
-                                    'answers_count',
-                                    'followers_count'
+                                ->withColumns([
+                                    Column::make('name'),
+                                    Column::make('email'),
+                                    Column::make('phone'),
+                                    Column::make('bio'),
+                                    Column::make('job_title'),
+                                    Column::make('company'),
+                                    Column::make('industry'),
+                                    Column::make('seniority'),
+                                    Column::make('company_size'),
+                                    Column::make('city'),
+                                    Column::make('provider'),
+                                    Column::make('reputation'),
+                                    Column::make('email_verified_at'),
+                                    Column::make('created_at'),
+                                    Column::make('updated_at'),
                                 ]),
                         ]),
                     Tables\Actions\DeleteBulkAction::make()
@@ -300,7 +382,7 @@ class UserResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['roles', 'posts', 'answers']);
+            ->with(['roles', 'posts', 'answers', 'badges']);
     }
 
     public static function getNavigationBadge(): ?string
