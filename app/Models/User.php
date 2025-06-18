@@ -39,7 +39,8 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
         'job_title',
         'company',
         'reputation',
-        'onboarding_steps', // Add this line
+        'onboarding_steps',
+        'email_verified_at', // Add this line
     ];
 
     protected $hidden = [
@@ -59,7 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
 
     public function hasVerifiedEmail()
     {
-        return $this->provider === 'google' || $this->email_verified_at !== null;
+        return $this->provider === 'google' || !is_null($this->email_verified_at);
     }
 
     public function canAccessPanel(Panel $panel): bool
