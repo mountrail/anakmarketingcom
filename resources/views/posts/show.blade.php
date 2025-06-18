@@ -22,7 +22,7 @@
                         <h1 class="text-2xl font-bold mb-4">{{ $post->title }}</h1>
 
                         <!-- User Profile Section -->
-                        <x-user-profile-info :user="$post->user" :timestamp="null" badgeSize="w-10 h-10" mobileBadgeSize="w-7 h-7" profileSize="h-12 w-12"
+                        <x-user-profile-info :user="$post->user" :timestamp="null" :badgeSize="10" profileSize="h-12 w-12"
                             :showJobInfo="true" />
                     </div>
 

@@ -2,11 +2,12 @@
 @props([
     'user',
     'timestamp',
-    'badgeSize' => 'w-7 h-7', // Default badge size, can be overridden
+    'badgeSize' => 7, // Default badge size, can be overridden
     'profileSize' => 'h-10 w-10', // Default profile image size
     'showJobInfo' => true,
     'additionalBadges' => null, // For any special badges like Editor's Pick
     'mobileBadgeSize' => null, // Optional mobile badge size - if null, uses same as desktop
+    'showTimestampOnMobile' => true, // Default to true to maintain existing behavior
 ])
 
 @php
@@ -25,13 +26,21 @@
 
         <!-- Name, Job Info, and Time -->
         <div class="flex flex-col min-w-0 flex-1">
-            <a href="{{ route('profile.show', $user) }}"
-                class="font-medium text-gray-900 dark:text-gray-100 hover:text-branding-primary dark:hover:text-branding-primary transition-colors truncate">
-                {{ $user->name }}
-            </a>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('profile.show', $user) }}"
+                    class="font-medium text-gray-900 dark:text-gray-100 hover:text-branding-primary dark:hover:text-branding-primary transition-colors truncate">
+                    {{ $user->name }}
+                </a>
+                @if ($timestamp)
+                    <span
+                        class="text-xs text-gray-500 dark:text-gray-400 truncate {{ $showTimestampOnMobile ? '' : 'hidden sm:inline' }}">
+                        {{ $timestamp->diffForHumans() }}
+                    </span>
+                @endif
+            </div>
 
             @if ($showJobInfo)
-                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <div class="text-gray-500 dark:text-gray-400 truncate">
                     @if ($user->job_title && $user->company)
                         {{ $user->job_title }} at {{ $user->company }}
                     @elseif($user->job_title)
@@ -42,12 +51,6 @@
                         Member
                     @endif
                 </div>
-            @endif
-
-            @if ($timestamp)
-                <span class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {{ $timestamp->diffForHumans() }}
-                </span>
             @endif
         </div>
     </div>

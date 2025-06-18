@@ -1,22 +1,29 @@
 {{-- resources/views/components/badge-preview.blade.php --}}
-@props(['badges', 'user', 'maxVisible' => 3, 'badgeSize' => 'w-4 h-4', 'mobileBadgeSize' => null])
+@props(['badges', 'user', 'maxVisible' => 3, 'badgeSize' => 4, 'mobileBadgeSize' => null])
 
 @php
     $visibleBadges = $badges->take($maxVisible);
     $remainingCount = $badges->count() - $maxVisible;
 
-    // Build responsive badge size classes
-    $badgeClasses = $mobileBadgeSize
-        ? $mobileBadgeSize . ' ' . preg_replace('/(\w+-\w+)/', 'md:$1', $badgeSize)
-        : $badgeSize;
+    // Build responsive badge size classes (using aspect-square for equal width/height)
+    $sizeMap = [
+        4 => 'w-4',
+        7 => 'w-7',
+        8 => 'w-8',
+        10 => 'w-10',
+        12 => 'w-12',
+    ];
 
-    // Determine thumbnail size based on badge size class
-    $thumbnailSize = match (true) {
-        str_contains($badgeSize, 'w-4 h-4') => '32x32',
-        str_contains($badgeSize, 'w-7 h-7') => '56x56',
-        str_contains($badgeSize, 'w-8 h-8') => '64x64',
-        str_contains($badgeSize, 'w-10 h-10') => '80x80',
-        str_contains($badgeSize, 'w-12 h-12') => '96x96',
+    $badgeClasses = $mobileBadgeSize
+        ? ($sizeMap[$mobileBadgeSize] ?? 'w-4') . ' aspect-square md:' . ($sizeMap[$badgeSize] ?? 'w-4')
+        : ($sizeMap[$badgeSize] ?? 'w-4') . ' aspect-square';
+
+    // Determine thumbnail size based on badge width
+    $thumbnailSize = match ($badgeSize) {
+        4 => '32x32',
+        7 => '56x56',
+        8 => '64x64',
+        10, 12 => '96x96',
         default => '32x32',
     };
 @endphp
