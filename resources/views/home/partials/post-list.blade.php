@@ -52,15 +52,15 @@
 
         <!-- Latest Posts -->
         <div>
-            @if ($posts->isEmpty())
+            @if ($posts->isEmpty() && (!isset($typedEditorPicks) || $typedEditorPicks->count() == 0))
                 <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <p class="text-center">No
-                            {{ $selectedType == 'question' ? 'questions' : 'discussions' }}
-                            found.</p>
+                        <p class="text-center">Belum ada
+                            {{ $selectedType == 'question' ? 'pertanyaan' : 'diskusi' }}
+                            yang tersedia.</p>
                     </div>
                 </div>
-            @else
+            @elseif ($posts->count() > 0 || (isset($typedEditorPicks) && $typedEditorPicks->count() > 0))
                 <div>
                     @foreach ($posts as $post)
                         <x-post-item :post="$post" :showVoteScore="false" :showCommentCount="true" :showShare="true" />

@@ -14,7 +14,7 @@ class PostViewService
     /**
      * Get editor picks for sidebar
      */
-    public function getEditorPicks(int $limit = 5): Collection
+    public function getEditorPicks(int $limit = null): Collection
     {
         return Post::featured()
             ->where('featured_type', '!=', 'none')
@@ -27,7 +27,7 @@ class PostViewService
     /**
      * Share editor picks with all views
      */
-    public function shareEditorPicks(int $limit = 5): void
+    public function shareEditorPicks(int $limit = null): void
     {
         $editorPicks = $this->getEditorPicks($limit);
         view()->share('editorPicks', $editorPicks);

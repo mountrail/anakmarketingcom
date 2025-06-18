@@ -10,8 +10,7 @@
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;400;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;400;700&display=swap" rel="stylesheet">
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -43,7 +42,8 @@
             <div class="max-w-7xl mx-auto px-0">
                 <div class="flex flex-col lg:flex-row">
                     <!-- Main Content Area -->
-                    <div class="w-full {{ !isset($showSidebar) || $showSidebar ? 'lg:w-2/3' : '' }}">
+                    <div
+                        class="w-full {{ (!isset($showSidebar) || $showSidebar) && $editorPicks->count() > 0 ? 'lg:w-2/3' : '' }}">
                         @hasSection('content')
                             @yield('content')
                         @else
@@ -51,8 +51,8 @@
                         @endif
                     </div>
 
-                    <!-- Sidebar - Only visible on lg screens and up, and when showSidebar is true -->
-                    @if (!isset($showSidebar) || $showSidebar)
+                    <!-- Sidebar - Only visible on lg screens and up, when showSidebar is true, and when there are editor picks -->
+                    @if ((!isset($showSidebar) || $showSidebar) && $editorPicks->count() > 0)
                         @include('layouts.sidebar')
                     @endif
                 </div>
