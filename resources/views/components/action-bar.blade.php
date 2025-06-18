@@ -9,6 +9,7 @@
     'showShare' => true, // Whether to show share button
     'showThreeDots' => true, // Whether to show the three dots menu
     'customClasses' => '', // Additional custom classes for the container
+    'timestamp' => null, // Optional timestamp to show on mobile
 ])
 
 @once
@@ -73,6 +74,12 @@
         {{-- Include vote buttons component with corrected props --}}
         <x-vote-buttons :model="$model" :modelType="$modelType" :showScore="$showVoteScore" :showUpvoteCount="$showUpvoteCount" :showDownvoteCount="$showDownvoteCount" />
 
+        {{-- Timestamp - Mobile only, shown after vote buttons --}}
+        @if ($timestamp)
+            <span class="sm:hidden text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                {{ $timestamp->diffForHumans() }}
+            </span>
+        @endif
         {{-- Comment/Answer count - Now clickable and redirects to comment section --}}
         @if ($showCommentCount && $modelType === 'post')
             <a href="{{ $commentUrl }}"

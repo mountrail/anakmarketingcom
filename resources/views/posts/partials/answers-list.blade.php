@@ -81,8 +81,8 @@
 
                 <!-- Header Jawaban - Profil, Info Pengguna, dan Lencana -->
                 <div class="mb-4">
-                    <x-user-profile-info :user="$answer->user" :timestamp="$answer->created_at" badgeSize="w-10 h-10" mobileBadgeSize="w-7 h-7" profileSize="h-12 w-12"
-                        :showJobInfo="true">
+                    <x-user-profile-info :user="$answer->user" :timestamp="$answer->created_at" :badgeSize="10" profileSize="h-12 w-12"
+                        :showJobInfo="true" :showTimestampOnMobile="false">
 
                         <x-slot name="additionalBadges">
                             @if ($answer->is_editors_pick)
@@ -148,8 +148,9 @@
                 <!-- Bilah Aksi -->
                 <div class="mt-4" x-show="!editing">
                     <x-action-bar :model="$answer" modelType="answer" :showVoteScore="false" :showCommentCount="false"
-                        :showShare="false" customClasses="justify-start" />
+                        :showShare="false" customClasses="justify-start" :timestamp="$answer->created_at" />
                 </div>
+
             </div>
         @endforeach
     </div>
