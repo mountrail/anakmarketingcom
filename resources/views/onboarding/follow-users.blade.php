@@ -83,7 +83,7 @@
                                     <!-- User Badges -->
                                     <div class="flex items-center space-x-1 mt-1">
                                         @if ($displayedBadges && $displayedBadges->count() > 0)
-                                            <x-badge-preview :badges="$displayedBadges" :user="$user" badgeSize="w-7 h-7" />
+                                            <x-badge-preview :badges="$displayedBadges" :user="$user" badgeSize="7" />
                                         @endif
                                     </div>
                                 </div>
