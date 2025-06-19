@@ -21,9 +21,16 @@ class NotificationController extends Controller
         // Auto-mark all unread notifications as read when user visits notification page
         $user->unreadNotifications->markAsRead();
 
+        // Get custom notifications (these are like "posts" that everyone can see)
+        $customNotifications = \App\Models\CustomNotification::where('is_active', true)
+            ->with('creator')
+            ->orderByDesc('is_pinned')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         $baseQuery = $user->notifications();
 
-        // Get pinned notifications separately (not paginated)
+        // Get pinned user notifications separately (not paginated)
         $pinnedNotifications = (clone $baseQuery)
             ->where(function ($q) {
                 $q->whereJsonContains('data->is_pinned', true)
@@ -32,7 +39,7 @@ class NotificationController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get regular notifications (paginated)
+        // Get regular user notifications (paginated)
         $regularNotifications = (clone $baseQuery)
             ->where(function ($q) {
                 $q->whereJsonDoesntContain('data->is_pinned', true)
@@ -42,7 +49,12 @@ class NotificationController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return view('notifications.index', compact('pinnedNotifications', 'regularNotifications', 'unreadNotificationIds'));
+        return view('notifications.index', compact(
+            'customNotifications',
+            'pinnedNotifications',
+            'regularNotifications',
+            'unreadNotificationIds'
+        ));
     }
 
     /**
@@ -182,5 +194,20 @@ class NotificationController extends Controller
 
         return redirect()->route('notifications.index')
             ->with('success', 'Notifikasi telah dihapus.');
+    }
+
+    public function showCustomNotification(\App\Models\CustomNotification $customNotification)
+    {
+        if (!$customNotification->is_active) {
+            abort(404);
+        }
+
+        $actionUrl = $customNotification->getActionUrl();
+
+        if ($actionUrl) {
+            return redirect($actionUrl);
+        }
+
+        return redirect()->route('notifications.index');
     }
 }

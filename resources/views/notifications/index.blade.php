@@ -82,6 +82,56 @@
                             </div>
                         @endif
 
+                        {{-- Custom Notifications (System Posts) --}}
+                        @if ($customNotifications->count() > 0)
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">System Notifications</h3>
+
+                                @foreach ($customNotifications as $notification)
+                                    <div
+                                        class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-3 @if ($notification->is_pinned) border-l-4 border-l-blue-500 @endif">
+                                        <div class="flex items-start space-x-3">
+                                            <img src="{{ $notification->getAvatarUrl() }}" alt="Avatar"
+                                                class="w-10 h-10 rounded-full">
+
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center justify-between">
+                                                    <h4 class="text-sm font-semibold text-gray-900">
+                                                        {{ $notification->title }}
+                                                        @if ($notification->is_pinned)
+                                                            <span
+                                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                                                                Pinned
+                                                            </span>
+                                                        @endif
+                                                    </h4>
+                                                    <span class="text-xs text-gray-500">
+                                                        {{ $notification->created_at->diffForHumans() }}
+                                                    </span>
+                                                </div>
+
+                                                <p class="text-sm text-gray-600 mt-1">{{ $notification->message }}</p>
+
+                                                @if ($notification->getActionUrl())
+                                                    <a href="{{ $notification->getActionUrl() }}"
+                                                        class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mt-2">
+                                                        View Details
+                                                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                        </svg>
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Rest of your existing notification sections --}}
+
                         {{-- Regular Notifications List --}}
                         @if ($regularNotifications->count() > 0)
                             <div class="regular-notifications">

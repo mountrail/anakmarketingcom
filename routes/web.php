@@ -119,6 +119,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
     // AJAX endpoints for notifications
     Route::patch('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+    // Custom notification routes (if you want individual pages)
+    Route::get('/notifications/custom/{customNotification}', [NotificationController::class, 'showCustomNotification'])
+        ->name('custom-notifications.show');
 
     // NEW: Profile edit page route
     Route::get('/profile-edit', [ProfileController::class, 'editProfile'])->name('profile.edit-profile');
