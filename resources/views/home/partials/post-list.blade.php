@@ -51,7 +51,7 @@
         @endif
 
         <!-- Latest Posts -->
-        <div>
+        <div id="posts-container">
             @if ($posts->isEmpty() && (!isset($typedEditorPicks) || $typedEditorPicks->count() == 0))
                 <div class="bg-white dark:bg-gray-800 border-b border-essentials-inactive">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
@@ -61,15 +61,42 @@
                     </div>
                 </div>
             @elseif ($posts->count() > 0 || (isset($typedEditorPicks) && $typedEditorPicks->count() > 0))
-                <div>
+                <div id="posts-list">
                     @foreach ($posts as $post)
                         <x-post-item :post="$post" :showVoteScore="false" :showCommentCount="true" :showShare="true" />
                     @endforeach
                 </div>
 
-                <div class="mt-6">
-                    {{ $posts->links() }}
+                <!-- Skeleton Loading -->
+                <div id="skeleton-loading" class="hidden">
+                    @for ($i = 0; $i < 3; $i++)
+                        <div
+                            class="bg-white dark:bg-gray-800 p-4 px-6 border-b border-essentials-inactive animate-pulse">
+                            <div class="flex items-center py-2 space-x-4">
+                                <div class="h-3 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+                                <div class="h-3 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
+                                <div class="h-3 bg-gray-300 dark:bg-gray-600 rounded w-12"></div>
+                            </div>
+                            <div class="h-5 bg-gray-300 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+                            <div class="space-y-2 mt-2">
+                                <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded w-full"></div>
+                                <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6"></div>
+                                <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded w-4/5"></div>
+                            </div>
+                            <div class="flex items-center mt-3 space-x-4">
+                                <div class="h-8 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+                                <div class="h-8 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+                                <div class="h-8 bg-gray-300 dark:bg-gray-600 rounded w-12"></div>
+                                <div class="h-8 bg-gray-300 dark:bg-gray-600 rounded w-12"></div>
+                            </div>
+                        </div>
+                    @endfor
                 </div>
+
+                <!-- Load More Trigger -->
+                <div id="load-more-trigger" class="h-10"
+                    data-has-more="{{ $posts->hasMorePages() ? 'true' : 'false' }}" data-next-page="2"
+                    data-type="{{ $selectedType }}"></div>
             @endif
         </div>
     </div>
@@ -79,7 +106,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Only show flash messages as toasts on the home/index page
-            // This prevents toasts from showing during navigation/redirects
             if (window.location.pathname === '/' || window.location.pathname.includes('/posts') && !window.location
                 .pathname.includes('/posts/')) {
                 @if (session('success'))
@@ -93,6 +119,66 @@
                 @if (session('info'))
                     toast('{{ session('info') }}', 'info');
                 @endif
+            }
+
+            // Infinite Scroll Implementation
+            let isLoading = false;
+            const loadMoreTrigger = document.getElementById('load-more-trigger');
+            const skeletonLoading = document.getElementById('skeleton-loading');
+            const postsList = document.getElementById('posts-list');
+
+            if (loadMoreTrigger) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !isLoading && loadMoreTrigger.dataset
+                            .hasMore === 'true') {
+                            loadMorePosts();
+                        }
+                    });
+                }, {
+                    threshold: 0.1,
+                    rootMargin: '100px'
+                });
+
+                observer.observe(loadMoreTrigger);
+            }
+
+            function loadMorePosts() {
+                if (isLoading) return;
+
+                isLoading = true;
+                skeletonLoading.classList.remove('hidden');
+
+                const nextPage = parseInt(loadMoreTrigger.dataset.nextPage);
+                const postType = loadMoreTrigger.dataset.type;
+
+                fetch(`{{ route('posts.load-more') }}?page=${nextPage}&type=${postType}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.html) {
+                            postsList.insertAdjacentHTML('beforeend', data.html);
+                            loadMoreTrigger.dataset.nextPage = data.nextPage;
+                            loadMoreTrigger.dataset.hasMore = data.hasMore ? 'true' : 'false';
+
+                            if (!data.hasMore) {
+                                loadMoreTrigger.style.display = 'none';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading more posts:', error);
+                        toast('Error loading more posts', 'error');
+                    })
+                    .finally(() => {
+                        isLoading = false;
+                        skeletonLoading.classList.add('hidden');
+                    });
             }
 
             // Handle AJAX responses for editor's pick actions
@@ -123,7 +209,6 @@
 
                                 toast(message, 'success');
 
-                                // Update button text/icon if needed
                                 button.innerHTML = isFeatured ?
                                     '<i class="fas fa-star"></i> Remove from Editor\'s Pick' :
                                     '<i class="far fa-star"></i> Add to Editor\'s Pick';
@@ -159,7 +244,6 @@
                                 if (data.success) {
                                     toast(`"${postTitle}" has been deleted successfully`, 'success');
 
-                                    // Remove the post item from DOM
                                     const postItem = button.closest('[data-post-item]');
                                     if (postItem) {
                                         postItem.style.transition = 'opacity 0.3s ease';

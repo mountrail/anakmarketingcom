@@ -26,7 +26,7 @@
     $viewService = app('App\Services\PostViewService');
 @endphp
 
-<div class="{{ $containerClass }}">
+<div class="{{ $containerClass }}" data-post-item>
     <div>
         <a href="{{ route('posts.show', $post->slug) }}">
             <div class="flex justify-between items-start">

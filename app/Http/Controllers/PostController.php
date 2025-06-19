@@ -298,7 +298,55 @@ class PostController extends Controller
         return redirect()->back()
             ->with('success', 'Editor\'s pick status updated successfully.');
     }
+    public function loadMore(Request $request)
+    {
+        $selectedType = $request->get('type', 'question');
+        $page = $request->get('page', 2);
 
+        // Get featured posts for first page only
+        if ($page == 1) {
+            $typedEditorPicks = Post::featured()
+                ->where('featured_type', '!=', 'none')
+                ->where('type', $selectedType)
+                ->with(['user', 'answers', 'images'])
+                ->latest()
+                ->get();
+            $featuredPostIds = $typedEditorPicks->pluck('id')->toArray();
+        } else {
+            $typedEditorPicks = collect();
+            $featuredPostIds = Post::featured()
+                ->where('featured_type', '!=', 'none')
+                ->where('type', $selectedType)
+                ->pluck('id')
+                ->toArray();
+        }
+
+        $posts = Post::where('type', $selectedType)
+            ->whereNotIn('id', $featuredPostIds)
+            ->with(['user', 'answers', 'images'])
+            ->latest()
+            ->paginate(10, ['*'], 'page', $page);
+
+        if ($request->ajax()) {
+            $html = '';
+            foreach ($posts as $post) {
+                $html .= view('components.post-item', [
+                    'post' => $post,
+                    'showVoteScore' => false,
+                    'showCommentCount' => true,
+                    'showShare' => true
+                ])->render();
+            }
+
+            return response()->json([
+                'html' => $html,
+                'hasMore' => $posts->hasMorePages(),
+                'nextPage' => $posts->currentPage() + 1
+            ]);
+        }
+
+        return response()->json(['error' => 'Invalid request'], 400);
+    }
     /**
      * Load more posts for a specific user (AJAX)
      */

@@ -18,6 +18,7 @@ Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/home', function () {
     return redirect()->route('home');
 });
+Route::get('/posts/load-more', [PostController::class, 'loadMore'])->name('posts.load-more');
 // Specific type routes
 Route::get('/pertanyaan', [PostController::class, 'index'])->defaults('type', 'question')->name('posts.questions');
 Route::get('/diskusi', [PostController::class, 'index'])->defaults('type', 'discussion')->name('posts.discussions');
