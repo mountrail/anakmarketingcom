@@ -61,7 +61,6 @@ class CustomNotification extends Model
         }
     }
 
-    // Get the avatar URL to use
     public function getAvatarUrl()
     {
         if ($this->use_creator_avatar && $this->creator) {
@@ -69,6 +68,11 @@ class CustomNotification extends Model
         }
 
         // Return system/default avatar
+        return $this->getSystemAvatarUrl();
+    }
+
+    public function getSystemAvatarUrl()
+    {
         return 'https://ui-avatars.com/api/?name=System&color=6366F1&background=EEF2FF';
     }
 }

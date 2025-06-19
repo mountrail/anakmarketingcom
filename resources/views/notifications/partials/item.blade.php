@@ -12,7 +12,9 @@
 
     // Get avatar URL based on notification type
     $avatarUrl = null;
-    if (isset($notification->data['follower_avatar'])) {
+    if (isset($notification->data['creator_avatar'])) {
+        $avatarUrl = $notification->data['creator_avatar'];
+    } elseif (isset($notification->data['follower_avatar'])) {
         $avatarUrl = $notification->data['follower_avatar'];
     } elseif (isset($notification->data['answerer_avatar'])) {
         $avatarUrl = $notification->data['answerer_avatar'];
@@ -25,12 +27,20 @@
     if (isset($notification->data['action_url'])) {
         $storedUrl = $notification->data['action_url'];
 
-        // Convert relative URL to absolute URL for the redirect parameter
-        $absoluteUrl = filter_var($storedUrl, FILTER_VALIDATE_URL) ? $storedUrl : url($storedUrl);
-
-        $actionUrl = route('notifications.read', ['id' => $notification->id, 'redirect' => $absoluteUrl]);
+        // For custom notifications, redirect directly to the URL
+        if (strpos($notification->id, 'custom_') === 0) {
+            $actionUrl = filter_var($storedUrl, FILTER_VALIDATE_URL) ? $storedUrl : url($storedUrl);
+        } else {
+            // Convert relative URL to absolute URL for the redirect parameter
+            $absoluteUrl = filter_var($storedUrl, FILTER_VALIDATE_URL) ? $storedUrl : url($storedUrl);
+            $actionUrl = route('notifications.read', ['id' => $notification->id, 'redirect' => $absoluteUrl]);
+        }
     } else {
-        $actionUrl = route('notifications.read', ['id' => $notification->id]);
+        if (strpos($notification->id, 'custom_') === 0) {
+            $actionUrl = '#'; // No action for custom notifications without URL
+        } else {
+            $actionUrl = route('notifications.read', ['id' => $notification->id]);
+        }
     }
 @endphp
 

@@ -21,36 +21,62 @@ class NotificationController extends Controller
         // Auto-mark all unread notifications as read when user visits notification page
         $user->unreadNotifications->markAsRead();
 
-        // Get custom notifications (these are like "posts" that everyone can see)
+        // Get custom notifications and convert them to notification-like objects
         $customNotifications = \App\Models\CustomNotification::where('is_active', true)
             ->with('creator')
-            ->orderByDesc('is_pinned')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($custom) {
+                return (object) [
+                    'id' => 'custom_' . $custom->id,
+                    'type' => 'App\\Notifications\\CustomNotification',
+                    'notifiable_type' => 'App\\Models\\User',
+                    'notifiable_id' => auth()->id(),
+                    'data' => [
+                        'type' => 'custom_notification',
+                        'category' => 'system',
+                        'title' => $custom->title,
+                        'message' => $custom->message,
+                        'action_url' => $custom->getActionUrl(),
+                        'is_pinned' => $custom->is_pinned,
+                        'use_creator_avatar' => $custom->use_creator_avatar,
+                        'creator_avatar' => $custom->use_creator_avatar && $custom->creator ? $custom->creator->getProfileImageUrl() : null,
+                    ],
+                    'read_at' => now(), // Custom notifications are always considered "read"
+                    'created_at' => $custom->created_at,
+                    'updated_at' => $custom->updated_at,
+                ];
+            });
 
         $baseQuery = $user->notifications();
 
-        // Get pinned user notifications separately (not paginated)
-        $pinnedNotifications = (clone $baseQuery)
-            ->where(function ($q) {
-                $q->whereJsonContains('data->is_pinned', true)
-                    ->orWhereJsonContains('data->is_pinned', 1);
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Get all user notifications
+        $userNotifications = $baseQuery->orderBy('created_at', 'desc')->get();
 
-        // Get regular user notifications (paginated)
-        $regularNotifications = (clone $baseQuery)
-            ->where(function ($q) {
-                $q->whereJsonDoesntContain('data->is_pinned', true)
-                    ->whereJsonDoesntContain('data->is_pinned', 1)
-                    ->orWhereNull('data->is_pinned');
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        // Merge custom notifications with user notifications
+        $allNotifications = $customNotifications->merge($userNotifications);
+
+        // Sort by pinned status first, then by creation date
+        $allNotifications = $allNotifications->sortByDesc(function ($notification) {
+            $isPinned = isset($notification->data['is_pinned']) &&
+                ($notification->data['is_pinned'] === true || $notification->data['is_pinned'] === 1);
+            return $isPinned ? 1 : 0;
+        })->sortByDesc('created_at');
+
+        // Separate pinned and regular notifications
+        $pinnedNotifications = $allNotifications->filter(function ($notification) {
+            return isset($notification->data['is_pinned']) &&
+                ($notification->data['is_pinned'] === true || $notification->data['is_pinned'] === 1);
+        });
+
+        $regularNotifications = $allNotifications->filter(function ($notification) {
+            return !isset($notification->data['is_pinned']) ||
+                ($notification->data['is_pinned'] !== true && $notification->data['is_pinned'] !== 1);
+        });
+
+        // Paginate regular notifications properly
+        $regularNotifications = $regularNotifications->forPage(1, 20);
 
         return view('notifications.index', compact(
-            'customNotifications',
             'pinnedNotifications',
             'regularNotifications',
             'unreadNotificationIds'
