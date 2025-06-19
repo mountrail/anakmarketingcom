@@ -6,6 +6,7 @@
         isset($notification->data['is_pinned']) &&
         ($notification->data['is_pinned'] === true || $notification->data['is_pinned'] === 1);
     $isAnnouncement = isset($notification->data['type']) && $notification->data['type'] === 'announcement';
+    $isCustomNotification = isset($notification->data['type']) && $notification->data['type'] === 'custom_notification';
     $isSystemNotification =
         $isAnnouncement ||
         (isset($notification->data['type']) && in_array($notification->data['type'], ['system', 'badge_earned']));
@@ -61,6 +62,10 @@
                         class="w-12 h-12 bg-white dark:bg-gray-600 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ring-2 ring-branding-primary ring-opacity-50">
                         <x-icons.anakmarketing class="w-8 h-8" />
                     </div>
+                @elseif ($isCustomNotification)
+                    {{-- Custom notification avatar with ring border --}}
+                    <img src="{{ $avatarUrl }}" alt="User Avatar"
+                        class="w-12 h-12 rounded-full object-cover ring-2 ring-branding-primary ring-opacity-50">
                 @else
                     <img src="{{ $avatarUrl }}" alt="User Avatar"
                         class="w-12 h-12 rounded-full object-cover {{ $isPinned ? 'ring-2 ring-branding-primary ring-opacity-50' : '' }}">
