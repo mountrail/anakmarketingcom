@@ -54,7 +54,7 @@
                     <x-icons.upvote-clicked class="h-3 w-3 sm:h-4 sm:w-4 mr-1 {{ $userVote === 1 ? '' : 'hidden' }}" />
                 </span>
                 <span class="flex items-center">
-                    Upvote
+                    <span class="vote-text">{{ $userVote === 1 ? 'Upvoted' : 'Upvote' }}</span>
                     @if ($showUpvoteCount)
                         <span
                             class="ml-1 {{ $userVote === 1 ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}">|</span>
@@ -85,7 +85,7 @@
                     <x-icons.downvote-clicked class="h-3 w-3 sm:h-4 sm:w-4 mr-1 {{ $userVote === -1 ? '' : 'hidden' }}" />
                 </span>
                 <span class="flex items-center">
-                    Downvote
+                    <span class="vote-text">{{ $userVote === -1 ? 'Downvoted' : 'Downvote' }}</span>
                     @if ($showDownvoteCount)
                         <span
                             class="ml-1 {{ $userVote === -1 ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}">|</span>

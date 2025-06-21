@@ -247,16 +247,19 @@ class VotingSystem {
                 btn.classList.add('text-black', 'dark:text-white', 'hover:bg-opacity-10');
                 this.toggleIconVisibility(btn, false);
                 this.updateSeparatorColor(btn, false);
+                this.updateButtonText(btn, false, index === 0);
             }
         });
     }
 
     setActiveUpvote(btn) {
         this.applyActiveStyles(btn, true);
+        this.updateButtonText(btn, true, true);
     }
 
     setActiveDownvote(btn) {
         this.applyActiveStyles(btn, false);
+        this.updateButtonText(btn, true, false)
     }
 
     applyActiveStyles(btn, isUpvote) {
@@ -274,9 +277,29 @@ class VotingSystem {
         }
     }
 
+    updateButtonText(btn, isActive, isUpvote) {
+        const textSpan = btn?.querySelector('.vote-text');
+        if (textSpan) {
+            if (isActive) {
+                textSpan.textContent = isUpvote ? 'Upvoted' : 'Downvoted';
+            } else {
+                textSpan.textContent = isUpvote ? 'Upvote' : 'Downvote';
+            }
+        }
+    }
+
     updateSeparatorColor(btn, isActive) {
-        const separator = btn.querySelector('span.flex span:first-of-type');
-        if (separator && separator.textContent === '|') {
+        // Find all spans and look for the one containing "|"
+        const spans = btn.querySelectorAll('span');
+        let separator = null;
+
+        spans.forEach(span => {
+            if (span.textContent.trim() === '|') {
+                separator = span;
+            }
+        });
+
+        if (separator) {
             if (isActive) {
                 separator.classList.remove('text-gray-500', 'dark:text-gray-400');
                 separator.classList.add('text-white');
