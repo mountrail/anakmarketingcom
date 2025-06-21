@@ -9,7 +9,8 @@
 
     @if ($user->bio)
         <div class="mb-6">
-            <p class="text-branding-black dark:text-gray-300 leading-relaxed">
+            <p class="text-branding-black dark:text-gray-300 leading-relaxed"
+                style="word-wrap: break-word; overflow-wrap: anywhere; word-break: break-word;">
                 {{ $user->bio }}
             </p>
         </div>
