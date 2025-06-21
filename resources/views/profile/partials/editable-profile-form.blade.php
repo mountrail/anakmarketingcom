@@ -58,6 +58,9 @@
         <x-textarea id="bio" name="bio" class="mt-1 block w-full bg-essentials-inactive bg-opacity-20"
             rows="4"
             placeholder="Ceritakan lebih detail profil atau keahlian Anda!">{{ old('bio', $user->bio) }}</x-textarea>
+        <div class="mt-1 text-sm text-gray-500">
+            <span id="word-count">0</span>/250 kata
+        </div>
         <x-input-error class="mt-2" :messages="$errors->get('bio')" />
     </div>
 
@@ -121,6 +124,39 @@
             }
         }
 
+        const bioField = document.getElementById('bio');
+        const wordCountDisplay = document.getElementById('word-count');
+
+        function updateWordCount() {
+            const text = bioField.value.trim();
+            const wordCount = text === '' ? 0 : text.split(/\s+/).length;
+
+            if (wordCountDisplay) {
+                wordCountDisplay.textContent = wordCount;
+
+                // Change color if approaching limit
+                if (wordCount > 250) {
+                    wordCountDisplay.classList.add('text-red-500');
+                    wordCountDisplay.classList.remove('text-gray-500');
+                } else if (wordCount > 230) {
+                    wordCountDisplay.classList.add('text-yellow-500');
+                    wordCountDisplay.classList.remove('text-gray-500', 'text-red-500');
+                } else {
+                    wordCountDisplay.classList.add('text-gray-500');
+                    wordCountDisplay.classList.remove('text-yellow-500', 'text-red-500');
+                }
+            }
+        }
+
+        if (bioField) {
+            bioField.addEventListener('input', function() {
+                checkBioChanges();
+                updateWordCount();
+            });
+            bioField.addEventListener('change', checkBioChanges);
+            // Initial word count
+            updateWordCount();
+        }
         // Check for changes in basic info form
         function checkBasicInfoChanges() {
             const currentValues = {
@@ -147,12 +183,6 @@
                 field.addEventListener('change', checkBasicInfoChanges);
             }
         });
-
-        const bioField = document.getElementById('bio');
-        if (bioField) {
-            bioField.addEventListener('input', checkBioChanges);
-            bioField.addEventListener('change', checkBioChanges);
-        }
 
         // Show loading state on form submission
         function showLoadingState(button) {
