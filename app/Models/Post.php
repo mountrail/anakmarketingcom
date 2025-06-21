@@ -108,10 +108,10 @@ class Post extends Model
             $baseSlug = 'post';
         }
 
-        // New format: user_id/title-id
-        $slug = $this->user_id . '/' . $baseSlug . '-' . $id;
+        // New format: title-id (no user_id prefix)
+        $slug = $baseSlug . '-' . $id;
 
-        // Ensure uniqueness
+        // Ensure uniqueness (though should be unique with ID)
         $counter = 1;
         $originalSlug = $slug;
 
@@ -120,7 +120,7 @@ class Post extends Model
                 ->where('id', '!=', $id)
                 ->exists()
         ) {
-            $slug = $this->user_id . '/' . $baseSlug . '-' . $id . '-' . $counter;
+            $slug = $baseSlug . '-' . $id . '-' . $counter;
             $counter++;
         }
 
@@ -150,7 +150,7 @@ class Post extends Model
      */
     protected function updateRelatedDataAfterSlugChange()
     {
-        $newUrl = '/posts/' . $this->slug;
+        $newUrl = '/' . $this->slug; // Remove /posts/ prefix
 
         // Update notification URLs
         $this->updateNotificationUrls($newUrl);
