@@ -37,7 +37,6 @@ class PostLoadingService
             ->where('featured_type', '!=', 'none')
             ->with(['user', 'answers', 'images'])
             ->latest()
-            ->take(5)
             ->get();
 
         return [

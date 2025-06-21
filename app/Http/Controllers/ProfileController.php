@@ -152,17 +152,6 @@ class ProfileController extends Controller
 
         // If user not found, show custom 404 page
         if (!$user) {
-            // Get editor's picks for the sidebar even on 404 page
-            $editorPicks = Post::featured()
-                ->where('featured_type', '!=', 'none')
-                ->with(['user', 'answers'])
-                ->latest()
-                ->take(5)
-                ->get();
-
-            // Share editorPicks for the sidebar
-            view()->share('editorPicks', $editorPicks);
-
             // Return custom 404 view for user profiles
             return response()->view('errors.user-not-found', [], 404);
         }
@@ -174,14 +163,6 @@ class ProfileController extends Controller
             ->withCount('answers')
             ->latest()
             ->paginate(10);
-
-        // Get editor's picks for sidebar
-        $editorPicks = Post::featured()
-            ->where('featured_type', '!=', 'none')
-            ->with(['user', 'answers'])
-            ->latest()
-            ->take(5)
-            ->get();
 
         // Get followers - get the user IDs first, then get the User models
         $followerIds = $user->followers()->pluck('user_id');
@@ -202,9 +183,6 @@ class ProfileController extends Controller
         // Get counts for display
         $followersCount = $user->followers()->count();
         $followingCount = $user->followings()->count();
-
-        // Share editorPicks for the sidebar
-        view()->share('editorPicks', $editorPicks);
 
         return view('profile.show', compact(
             'user',

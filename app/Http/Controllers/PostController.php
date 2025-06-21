@@ -76,8 +76,6 @@ class PostController extends Controller
 
         $data = $this->loadingService->getPostsForIndex($selectedType, 10);
 
-        $this->viewService->shareEditorPicks();
-
         return view('home.index', [
             'selectedType' => $selectedType,
             'posts' => $data['posts'],
@@ -89,7 +87,6 @@ class PostController extends Controller
      */
     public function create()
     {
-        $this->viewService->shareEditorPicks();
         return view('posts.create');
     }
 
@@ -158,8 +155,6 @@ class PostController extends Controller
         // Get the post
         $post = $this->redirectService->getPostBySlug($slug);
         if (!$post) {
-            // Share editor picks for the 404 page
-            $this->viewService->shareEditorPicks();
 
             // Return custom 404 view for posts
             return response()->view('errors.post-not-found', [], 404);
@@ -169,7 +164,6 @@ class PostController extends Controller
         $this->viewService->recordInitialView($post);
 
         $post = $this->viewService->loadPostForDisplay($post);
-        $this->viewService->shareEditorPicks();
 
         return view('posts.show', compact('post'));
     }
@@ -193,7 +187,6 @@ class PostController extends Controller
         );
 
         $post->load('images');
-        $this->viewService->shareEditorPicks();
 
         return view('posts.edit', compact('post'));
     }

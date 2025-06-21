@@ -45,7 +45,6 @@ class AppServiceProvider extends ServiceProvider
                 ->where('featured_type', '!=', 'none')
                 ->with(['user', 'answers'])
                 ->latest()
-                ->take(5)
                 ->get();
 
             $view->with('editorPicks', $editorPicks);

@@ -16,21 +16,16 @@ class PostViewService
      */
     public function getEditorPicks(int $limit = null): Collection
     {
-        return Post::featured()
+        $query = Post::featured()
             ->where('featured_type', '!=', 'none')
             ->with(['user', 'answers', 'images'])
-            ->latest()
-            ->take($limit)
-            ->get();
-    }
+            ->latest();
 
-    /**
-     * Share editor picks with all views
-     */
-    public function shareEditorPicks(int $limit = null): void
-    {
-        $editorPicks = $this->getEditorPicks($limit);
-        view()->share('editorPicks', $editorPicks);
+        if ($limit !== null) {
+            $query->take($limit);
+        }
+
+        return $query->get();
     }
 
     /**
