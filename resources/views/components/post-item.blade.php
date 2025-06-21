@@ -47,9 +47,9 @@
                     </h3>
 
                     @if ($showExcerpt)
-                        <div class="text-gray-900 dark:text-gray-400 mt-2 prose prose-sm max-w-none dark:prose-invert break-all"
-                            style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; overflow-wrap: anywhere;">
-                            {!! $post->content !!}
+                        <div class="text-gray-900 dark:text-gray-400 mt-2 prose prose-sm max-w-none dark:prose-invert line-clamp-3"
+                            style="word-wrap: break-word; overflow-wrap: anywhere; word-break: break-word;">
+                            {!! clean($post->content) !!}
                         </div>
                     @endif
                 </div>
