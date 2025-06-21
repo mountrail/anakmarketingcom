@@ -62,7 +62,7 @@
             // Track uploaded images
             let uploadedImages = [];
             const MAX_IMAGES = 5;
-            const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+            const MAX_FILE_SIZE = 2.1 * 1024 * 1024; // 2.1MB in bytes (extra buffer for 2MB files)
 
             // Function to check if dataTransfer contains image files
             function hasImageFile(dataTransfer) {
@@ -243,7 +243,7 @@
             function uploadImage(file, onSuccess = null) {
                 // Check file size
                 if (file.size > MAX_FILE_SIZE) {
-                    uploadStatus.innerHTML = `Error: File "${file.name}" melebihi 1MB`;
+                    uploadStatus.innerHTML = `Error: File "${file.name}" melebihi 2MB`;
                     uploadStatus.className = 'upload-status mt-2 text-sm text-red-500';
                     return;
                 }
