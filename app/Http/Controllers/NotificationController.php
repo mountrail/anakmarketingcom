@@ -51,6 +51,20 @@ class NotificationController extends Controller
 
         // Get all user notifications
         $userNotifications = $baseQuery->orderBy('created_at', 'desc')->get();
+        // Preload users for avatar URLs to prevent N+1 queries
+        $userIds = collect();
+        foreach ($userNotifications as $notification) {
+            if (isset($notification->data['follower_id'])) {
+                $userIds->push($notification->data['follower_id']);
+            } elseif (isset($notification->data['answerer_id'])) {
+                $userIds->push($notification->data['answerer_id']);
+            } elseif (isset($notification->data['poster_id'])) {
+                $userIds->push($notification->data['poster_id']);
+            }
+        }
+
+        // Cache users for the view
+        $notificationUsers = \App\Models\User::whereIn('id', $userIds->unique())->get()->keyBy('id');
 
         // Merge custom notifications with user notifications
         $allNotifications = $customNotifications->merge($userNotifications);
@@ -79,7 +93,8 @@ class NotificationController extends Controller
         return view('notifications.index', compact(
             'pinnedNotifications',
             'regularNotifications',
-            'unreadNotificationIds'
+            'unreadNotificationIds',
+            'notificationUsers' // Add this
         ));
     }
 

@@ -11,18 +11,25 @@
         $isAnnouncement ||
         (isset($notification->data['type']) && in_array($notification->data['type'], ['system', 'badge_earned']));
 
-    // Get avatar URL based on notification type
+    // Get avatar URL based on notification type - fetch dynamically from user
     $avatarUrl = null;
+    $userId = null;
+
     if (isset($notification->data['creator_avatar'])) {
-        $avatarUrl = $notification->data['creator_avatar'];
-    } elseif (isset($notification->data['follower_avatar'])) {
-        $avatarUrl = $notification->data['follower_avatar'];
-    } elseif (isset($notification->data['answerer_avatar'])) {
-        $avatarUrl = $notification->data['answerer_avatar'];
-    } elseif (isset($notification->data['poster_avatar'])) {
-        $avatarUrl = $notification->data['poster_avatar'];
+        $avatarUrl = $notification->data['creator_avatar']; // Keep custom notification avatars as they are
+    } elseif (isset($notification->data['follower_id'])) {
+        $userId = $notification->data['follower_id'];
+    } elseif (isset($notification->data['answerer_id'])) {
+        $userId = $notification->data['answerer_id'];
+    } elseif (isset($notification->data['poster_id'])) {
+        $userId = $notification->data['poster_id'];
     }
 
+    // Fetch current avatar URL if we have a user ID
+    if ($userId && !$avatarUrl) {
+        $user = $notificationUsers[$userId] ?? \App\Models\User::find($userId);
+        $avatarUrl = $user ? $user->getProfileImageUrl() : null;
+    }
     // Get action URL - this will mark as read and redirect
     $actionUrl = null;
     if (isset($notification->data['action_url'])) {

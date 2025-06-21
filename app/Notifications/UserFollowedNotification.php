@@ -40,7 +40,6 @@ class UserFollowedNotification extends Notification
             'category' => 'social', // Regular category for social interactions
             'follower_id' => $this->follower->id,
             'follower_name' => $this->follower->name,
-            'follower_avatar' => $this->follower->getProfileImageUrl(),
             'message' => $this->follower->name . ' mulai mengikuti Anda. Klik untuk melihat profilnya!',
             'action_url' => '/profile/' . $this->follower->id, // Store relative URL
             'created_at' => now(),

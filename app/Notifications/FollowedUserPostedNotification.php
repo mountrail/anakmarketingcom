@@ -48,7 +48,6 @@ class FollowedUserPostedNotification extends Notification
             'post_type' => $this->post->type,
             'poster_id' => $this->poster->id,
             'poster_name' => $this->poster->name,
-            'poster_avatar' => $this->poster->getProfileImageUrl(),
             'message' => $this->poster->name . ' yang Anda ikuti, memposting ' . $postType . ' baru. Klik untuk melihat!',
             'action_url' => '/posts/' . $this->post->slug, // Use slug
             'created_at' => now(),

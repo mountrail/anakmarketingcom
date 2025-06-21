@@ -52,7 +52,6 @@ class PostAnsweredNotification extends Notification
             'answer_id' => $this->answer->id,
             'answerer_id' => $this->answerer->id,
             'answerer_name' => $this->answerer->name,
-            'answerer_avatar' => $this->answerer->getProfileImageUrl(),
             'message' => $this->answerer->name . ' menjawab ' . $postType . ' Anda. Klik untuk melihat!',
             'action_url' => '/posts/' . $this->post->slug, // Use slug
             'created_at' => now(),
