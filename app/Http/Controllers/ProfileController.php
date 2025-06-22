@@ -234,16 +234,26 @@ class ProfileController extends Controller
     public function updateBio(Request $request)
     {
         $request->validate([
-            'bio' => ['nullable', 'string', 'max:1500'],
+            'bio' => ['nullable', 'string', 'max:1625'],
+        ], [
+            'bio.max' => 'Deskripsi tidak boleh lebih dari 1625 karakter.',
         ]);
 
-        // Add word count validation
+        // Add word count and character count validation
         if ($request->bio) {
             $wordCount = str_word_count(strip_tags($request->bio));
+            $charCount = strlen($request->bio);
+
             if ($wordCount > 250) {
                 return redirect()->back()
                     ->withInput()
                     ->withErrors(['bio' => 'Deskripsi tidak boleh lebih dari 250 kata.']);
+            }
+
+            if ($charCount > 1625) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['bio' => 'Deskripsi tidak boleh lebih dari 1625 karakter.']);
             }
         }
 

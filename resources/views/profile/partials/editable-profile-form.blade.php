@@ -58,8 +58,9 @@
         <x-textarea id="bio" name="bio" class="mt-1 block w-full bg-essentials-inactive bg-opacity-20"
             rows="4"
             placeholder="Ceritakan lebih detail profil atau keahlian Anda!">{{ old('bio', $user->bio) }}</x-textarea>
-        <div class="mt-1 text-sm text-gray-500">
-            <span id="word-count">0</span>/250 kata
+        <div class="mt-1 text-sm text-gray-500 flex justify-between">
+            <span><span id="word-count">0</span>/250 kata</span>
+            <span><span id="char-count">0</span>/1625 karakter</span>
         </div>
         <x-input-error class="mt-2" :messages="$errors->get('bio')" />
     </div>
@@ -126,24 +127,38 @@
 
         const bioField = document.getElementById('bio');
         const wordCountDisplay = document.getElementById('word-count');
+        const charCountDisplay = document.getElementById('char-count');
 
-        function updateWordCount() {
-            const text = bioField.value.trim();
-            const wordCount = text === '' ? 0 : text.split(/\s+/).length;
+        function updateCounts() {
+            const text = bioField.value;
+            const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            const charCount = text.length;
 
+            // Update word count
             if (wordCountDisplay) {
                 wordCountDisplay.textContent = wordCount;
 
-                // Change color if approaching limit
+                // Change color if over word limit
                 if (wordCount > 250) {
                     wordCountDisplay.classList.add('text-red-500');
                     wordCountDisplay.classList.remove('text-gray-500');
-                } else if (wordCount > 230) {
-                    wordCountDisplay.classList.add('text-yellow-500');
-                    wordCountDisplay.classList.remove('text-gray-500', 'text-red-500');
                 } else {
                     wordCountDisplay.classList.add('text-gray-500');
-                    wordCountDisplay.classList.remove('text-yellow-500', 'text-red-500');
+                    wordCountDisplay.classList.remove('text-red-500');
+                }
+            }
+
+            // Update character count
+            if (charCountDisplay) {
+                charCountDisplay.textContent = charCount;
+
+                // Change color if approaching character limit
+                if (charCount > 1625) {
+                    charCountDisplay.classList.add('text-red-500');
+                    charCountDisplay.classList.remove('text-gray-500');
+                } else {
+                    charCountDisplay.classList.add('text-gray-500');
+                    charCountDisplay.classList.remove('text-red-500');
                 }
             }
         }
@@ -151,11 +166,11 @@
         if (bioField) {
             bioField.addEventListener('input', function() {
                 checkBioChanges();
-                updateWordCount();
+                updateCounts();
             });
             bioField.addEventListener('change', checkBioChanges);
             // Initial word count
-            updateWordCount();
+            updateCounts();
         }
         // Check for changes in basic info form
         function checkBasicInfoChanges() {
