@@ -19,7 +19,7 @@
                         </div>
 
                         <!-- Post Title -->
-                        <h1 class="text-2xl font-bold mb-4">{{ $post->title }}</h1>
+                        <h1 class="text-2xl font-bold mb-4 prose dark:prose-invert max-w-none break-words overflow-wrap-anywhere">{{ $post->title }}</h1>
 
                         <!-- User Profile Section -->
                         <x-user-profile-info :user="$post->user" :timestamp="null" :badgeSize="10" profileSize="h-12 w-12"
