@@ -201,15 +201,17 @@ class ProfileController extends Controller
     public function updateBasicInfo(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'job_title' => ['required', 'string', 'max:255'], // Changed from nullable to required
-            'company' => ['nullable', 'string', 'max:255'],
+            'profile_picture' => [
+                'required',
+                'image',
+                'mimes:jpeg,jpg,png',
+                'max:5120', // 5MB in kilobytes
+            ],
         ], [
-            'name.required' => 'Nama harus diisi.',
-            'job_title.required' => 'Pekerjaan harus diisi.',
-            'name.max' => 'Nama tidak boleh lebih dari 255 karakter.',
-            'job_title.max' => 'Pekerjaan tidak boleh lebih dari 255 karakter.',
-            'company.max' => 'Perusahaan tidak boleh lebih dari 255 karakter.',
+            'profile_picture.required' => 'Foto profil harus dipilih',
+            'profile_picture.image' => 'File harus berupa gambar',
+            'profile_picture.mimes' => 'Format file harus JPG atau PNG',
+            'profile_picture.max' => 'File gambar terlalu besar (maksimal 5MB)',
         ]);
 
         try {

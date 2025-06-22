@@ -297,7 +297,7 @@
                     document.body.insertAdjacentHTML('beforeend', toastHTML);
 
                     // Show toast
-                    this.show(toastId);
+                    ToastManager.show(toastId);
 
                     // Clean up after hiding
                     setTimeout(() => {

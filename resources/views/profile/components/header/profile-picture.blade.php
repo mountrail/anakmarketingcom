@@ -30,6 +30,7 @@
             <input type="file" id="profile_picture_input" name="profile_picture"
                 accept="image/jpeg,image/jpg,image/png" class="hidden">
             <div class="text-xs text-gray-500 text-center">JPG / PNG max. 5 MB</div>
+            <div id="profile-picture-error" class="text-xs text-red-500 text-center mt-1 hidden"></div>
         </form>
     @endif
 </div>
@@ -59,10 +60,10 @@
             }
 
             function validateFile(file) {
-                // Check file size (5MB = 5 * 1024 * 1024 bytes)
-                const maxSize = 5 * 1024 * 1024;
+                // Check file size (5.1MB buffer for 5MB limit to avoid nginx errors)
+                const maxSize = 5.1 * 1024 * 1024;
                 if (file.size > maxSize) {
-                    return 'Foto lebih dari 5 MB';
+                    return 'File gambar terlalu besar (maksimal 5MB)';
                 }
 
                 // Check file type
@@ -77,14 +78,15 @@
             profilePictureInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (!file) return;
+                // Clear any previous errors
+                document.getElementById('profile-picture-error').classList.add('hidden');
 
                 // Validate file
                 const validationError = validateFile(file);
                 if (validationError) {
-                    toast(validationError, 'error', {
-                        duration: 6000,
-                        position: 'top-right'
-                    });
+                    const errorDiv = document.getElementById('profile-picture-error');
+                    errorDiv.textContent = validationError;
+                    errorDiv.classList.remove('hidden');
                     profilePictureInput.value = ''; // Clear the input
                     return false;
                 }
