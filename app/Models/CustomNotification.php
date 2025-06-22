@@ -37,7 +37,7 @@ class CustomNotification extends Model
         switch ($this->link_type) {
             case 'post':
                 $post = Post::find($this->link_value);
-                return $post ? '/posts/' . $post->slug : '/';
+                return $post ? '/' . $post->slug : '/';
             case 'profile':
                 return '/profile/' . $this->link_value;
             case 'custom':
@@ -51,7 +51,7 @@ class CustomNotification extends Model
         switch ($this->link_type) {
             case 'post':
                 $post = \App\Models\Post::find($this->link_value);
-                return $post ? '/posts/' . $post->slug : null;
+                return $post ? '/' . $post->slug : null;
             case 'profile':
                 return '/profile/' . $this->link_value;
             case 'custom':
