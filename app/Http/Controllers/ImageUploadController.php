@@ -22,10 +22,14 @@ class ImageUploadController extends Controller
             ]);
 
             // Validate the request
-            $validated = $request->validate([
+            $request->validate([
                 'file' => 'required|file|image|mimes:jpeg,png,jpg,gif,webp|max:2150', // 2.1MB max (extra buffer)
+            ], [
+                'file.max' => 'File gambar terlalu besar (maksimal 2MB)',
+                'file.image' => 'File harus berupa gambar',
+                'file.mimes' => 'Format file harus JPG, PNG, GIF, atau WebP',
+                'file.required' => 'File gambar harus dipilih',
             ]);
-
             $file = $request->file('file');
 
             // Additional file checks

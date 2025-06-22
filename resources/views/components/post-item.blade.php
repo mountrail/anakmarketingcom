@@ -33,10 +33,10 @@
                 <div class="flex-col">
                     @if ($showMeta)
                         <div class="flex items-center py-2 space-x-4 text-xs text-gray-900 dark:text-gray-400">
-                            <span>By: {{ $post->user->name ?? 'Unknown' }}</span>
-                            <span>{{ $post->created_at->diffForHumans() }}</span>
+                            <span class="truncate max-w-32">By: {{ $post->user->name ?? 'Unknown' }}</span>
+                            <span class="truncate max-w-24">{{ $post->created_at->diffForHumans() }}</span>
                             @if ($viewService->canSeeViewCount($post, auth()->user()))
-                                <span>{{ $post->view_count }} views</span>
+                                <span class="truncate max-w-20">{{ $post->view_count }} views</span>
                             @endif
                         </div>
                     @endif

@@ -243,7 +243,7 @@
             function uploadImage(file, onSuccess = null) {
                 // Check file size
                 if (file.size > MAX_FILE_SIZE) {
-                    uploadStatus.innerHTML = `Error: File "${file.name}" melebihi 2MB`;
+                    uploadStatus.innerHTML = `File gambar terlalu besar (maksimal 2MB)`;
                     uploadStatus.className = 'upload-status mt-2 text-sm text-red-500';
                     return;
                 }
@@ -296,7 +296,7 @@
                     })
                     .catch(error => {
                         console.error('Upload error:', error);
-                        uploadStatus.innerHTML = `Error upload "${file.name}": ${error.message}`;
+                        uploadStatus.innerHTML = `File gambar terlalu besar (maksimal 2MB)`;
                         uploadStatus.className = 'upload-status mt-2 text-sm text-red-500';
                     });
             }
