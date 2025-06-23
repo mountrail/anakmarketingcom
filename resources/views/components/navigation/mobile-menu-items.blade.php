@@ -5,7 +5,7 @@
         {{ __('Home') }}
     </x-dropdown-link>
 
-    <x-dropdown-link href="https://anakmarketing.com">
+    <x-dropdown-link href="https://insight.anakmarketing.com">
         {{ __('Insights') }}
     </x-dropdown-link>
 
