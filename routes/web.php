@@ -139,7 +139,11 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
 // DYNAMIC SLUG ROUTE MUST COME LAST
 // This catches any remaining /posts/{anything} patterns including new format: user_id/title-id
 // DYNAMIC SLUG ROUTE MUST COME LAST - Direct slug without /posts/ prefix
-Route::get('/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '[a-zA-Z0-9\-]+\-\d+');
 
+// Prevent Laravel from handling /insight/*
+// Let Nginx serve WordPress directly
+Route::prefix('insights')->group(function () {
+    Route::get('/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '[a-zA-Z0-9\-]+\-\d+');
+});
 // Include authentication routes
 require __DIR__ . '/auth.php';
