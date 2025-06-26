@@ -336,4 +336,9 @@ class Post extends Model
         // Fallback to application logo
         return asset('images/logo.png'); // Adjust path as needed
     }
+
+    public function scopePublished($query)
+    {
+        return $query; // All posts are considered published/active
+    }
 }

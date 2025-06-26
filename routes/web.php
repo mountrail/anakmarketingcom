@@ -12,6 +12,8 @@ use App\Http\Controllers\FollowController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\BadgeController;
+use Spatie\Sitemap\Sitemap;
+use Spatie\Sitemap\Tags\Url;
 
 // Home route - defaults to questions
 Route::get('/', [PostController::class, 'index'])->name('home');
@@ -134,6 +136,15 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
     Route::patch('/profile/update-basic-info', [ProfileController::class, 'updateBasicInfo'])->name('profile.update-basic-info');
     Route::patch('/profile/update-bio', [ProfileController::class, 'updateBio'])->name('profile.update-bio');
     Route::patch('/profile/badges', [ProfileController::class, 'updateBadges'])->name('profile.update-badges');
+});
+
+// Sitemap routes
+Route::get('/sitemap_index.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap.index');
+Route::get('/sitemaps/{filename}', [App\Http\Controllers\SitemapController::class, 'show'])->name('sitemap.show');
+
+// Backward compatibility
+Route::get('/sitemap.xml', function () {
+    return redirect('/sitemap_index.xml', 301);
 });
 
 // DYNAMIC SLUG ROUTE MUST COME LAST
