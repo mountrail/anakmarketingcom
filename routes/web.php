@@ -3,7 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\VoteController;
-use App\Http\Controllers\WordPressFallbackController;
+use App\Http\Controllers\WordPressRedirectController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\GoogleController;
@@ -151,8 +151,8 @@ Route::get('/{slug}', function (string $slug) {
         return app(PostController::class)->show($slug);
     }
 
-    // If it doesn't match Laravel format, try WordPress fallback
-    return app(WordPressFallbackController::class)->handleWordPressFallback(request(), $slug);
+    // If it doesn't match Laravel format, try WordPress redirect
+    return app(WordPressRedirectController::class)->handleSlug($slug);
 })->where('slug', '.*')->name('posts.show');
 
 // Include authentication routes
