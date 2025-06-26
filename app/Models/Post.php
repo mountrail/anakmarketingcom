@@ -21,6 +21,10 @@ class Post extends Model
         'is_featured',
         'featured_type',
         'view_count',
+        'meta_title',        // Add this
+        'meta_description',  // Add this
+        'meta_keywords',     // Add this
+        'og_image',          // Add this
     ];
 
     protected $casts = [

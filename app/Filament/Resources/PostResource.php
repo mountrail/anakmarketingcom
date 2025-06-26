@@ -42,11 +42,10 @@ class PostResource extends Resource
 
                         Forms\Components\TextInput::make('title')
                             ->maxLength(255)
-                            ->disabled(),
+                            ->required(),
 
                         Forms\Components\TextInput::make('slug')
                             ->maxLength(255)
-                            ->disabled()
                             ->helperText('Slug is automatically generated'),
 
                         Forms\Components\Select::make('type')
@@ -54,21 +53,60 @@ class PostResource extends Resource
                                 'question' => 'Question',
                                 'discussion' => 'Discussion',
                             ])
+                            ->required(),
+                        Forms\Components\TextInput::make('meta_title')
+                            ->label('Meta Title')
+                            ->maxLength(60)
                             ->disabled(),
+
+                        Forms\Components\Textarea::make('meta_description')
+                            ->label('Meta Description')
+                            ->maxLength(160)
+                            ->disabled()
+                            ->rows(2),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Content')
+                Forms\Components\RichEditor::make('content')
+                    ->required()
+                    ->columnSpanFull(),
+
+                Forms\Components\Section::make('SEO Settings')
                     ->schema([
-                        Forms\Components\RichEditor::make('content')
-                            ->disabled()
-                            ->columnSpanFull(),
-                    ]),
+                        Forms\Components\TextInput::make('meta_title')
+                            ->label('Meta Title')
+                            ->maxLength(60)
+                            ->helperText('Recommended: 50-60 characters')
+                            ->suffixAction(
+                                Forms\Components\Actions\Action::make('fillFromTitle')
+                                    ->icon('heroicon-m-arrow-path')
+                                    ->action(function (Forms\Set $set, Forms\Get $get) {
+                                        $set('meta_title', $get('title'));
+                                    })
+                            ),
+
+                        Forms\Components\Textarea::make('meta_description')
+                            ->label('Meta Description')
+                            ->maxLength(160)
+                            ->rows(3)
+                            ->helperText('Recommended: 150-160 characters'),
+
+                        Forms\Components\TextInput::make('meta_keywords')
+                            ->label('Meta Keywords')
+                            ->helperText('Separate keywords with commas'),
+
+                        Forms\Components\FileUpload::make('og_image')
+                            ->label('Open Graph Image')
+                            ->image()
+                            ->disk('public')
+                            ->directory('og-images')
+                            ->helperText('Recommended: 1200x630 pixels for social media sharing'),
+                    ])->columns(2)
+                    ->collapsible(),
 
                 Forms\Components\Section::make('Settings')
                     ->schema([
                         Forms\Components\Toggle::make('is_featured')
-                            ->label('Featured Post')
-                            ->disabled(),
+                            ->label('Featured Post'),
 
                         Forms\Components\Select::make('featured_type')
                             ->options([
@@ -76,12 +114,10 @@ class PostResource extends Resource
                                 'trending' => 'Trending',
                                 'editor_choice' => 'Editor\'s Choice',
                             ])
-                            ->disabled()
                             ->visible(fn(Forms\Get $get) => $get('is_featured')),
 
                         Forms\Components\TextInput::make('view_count')
-                            ->numeric()
-                            ->disabled(),
+                            ->numeric(),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Statistics')
@@ -270,7 +306,8 @@ class PostResource extends Resource
 
                 Tables\Actions\ViewAction::make()
                     ->label('View Details'),
-
+                Tables\Actions\EditAction::make()
+                    ->label('Edit Post'),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
                     ->modalHeading('Delete Post')
@@ -339,6 +376,7 @@ class PostResource extends Resource
         return [
             'index' => Pages\ListPosts::route('/'),
             'view' => Pages\ViewPost::route('/{record}'),
+            'edit' => Pages\EditPost::route('/{record}/edit'),
         ];
     }
 

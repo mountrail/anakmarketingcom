@@ -25,7 +25,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    @php
+        function setting($key, $default = null)
+        {
+            return \App\Models\WebsiteSetting::get($key, $default);
+        }
+    @endphp
+    <title>{{ setting('site_name') }} - {{ setting('site_tagline') }}</title>
+    <meta name="description" content="{{ setting('default_meta_description') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
