@@ -23,30 +23,70 @@ class WordPressFallbackController extends Controller
                 $wordpressUrl .= '?' . $request->getQueryString();
             }
 
-            // Check if WordPress content exists (quick HEAD request)
+            // Check if WordPress content exists with a GET request to validate content
             $response = Http::timeout(5)
                 ->withHeaders([
                     'User-Agent' => $request->header('User-Agent', 'Laravel-WordPress-Checker'),
                 ])
-                ->head($wordpressUrl);
+                ->get($wordpressUrl);
 
-            // Only redirect if WordPress content actually exists (200 status)
-            if ($response->status() === 200) {
-                Log::info('WordPress content found, redirecting', [
-                    'original_slug' => $slug,
-                    'redirect_url' => $wordpressUrl
+            // Check if it's a proper 200 response
+            if ($response->status() !== 200) {
+                Log::info('WordPress returned non-200 status', [
+                    'slug' => $slug,
+                    'status' => $response->status()
                 ]);
-
-                return redirect($wordpressUrl, 301);
+                abort(404);
             }
 
-            // If WordPress returns 404 or any other error, show Laravel 404
-            Log::info('WordPress content not found, showing Laravel 404', [
-                'slug' => $slug,
-                'wordpress_status' => $response->status()
+            $content = $response->body();
+
+            // Check for WordPress 404 indicators in the content
+            $wp404Indicators = [
+                'Page not found',
+                'Nothing here',
+                'Sorry, but nothing matched',
+                'It looks like nothing was found',
+                'The page you requested could not be found',
+                'Error 404',
+                'not found',
+                'wp-die-message', // WordPress error message class
+                'page-not-found',
+                '<title>Page not found'
+            ];
+
+            foreach ($wp404Indicators as $indicator) {
+                if (stripos($content, $indicator) !== false) {
+                    Log::info('WordPress content contains 404 indicator', [
+                        'slug' => $slug,
+                        'indicator' => $indicator
+                    ]);
+                    abort(404);
+                }
+            }
+
+            // Check if WordPress redirected to a different slug (partial matching)
+            $finalUrl = $response->effectiveUri();
+            $expectedPath = '/insights/' . $slug;
+            $actualPath = parse_url($finalUrl, PHP_URL_PATH);
+
+            // If WordPress redirected to a different slug, it's doing partial matching
+            if ($actualPath && $actualPath !== $expectedPath && $actualPath !== $expectedPath . '/') {
+                Log::info('WordPress redirected to different slug (partial match)', [
+                    'original_slug' => $slug,
+                    'expected_path' => $expectedPath,
+                    'actual_path' => $actualPath
+                ]);
+                abort(404);
+            }
+
+            // If we get here, it's likely legitimate WordPress content
+            Log::info('WordPress content validated, redirecting', [
+                'original_slug' => $slug,
+                'redirect_url' => $wordpressUrl
             ]);
 
-            abort(404);
+            return redirect($wordpressUrl, 301);
 
         } catch (\Exception $e) {
             Log::warning('WordPress fallback check failed for slug: ' . $slug, [
@@ -54,8 +94,7 @@ class WordPressFallbackController extends Controller
                 'url' => $wordpressUrl ?? null
             ]);
 
-            // If we can't check WordPress (network error, etc.), show Laravel 404
-            // This is safer than redirecting to potentially non-existent content
+            // If we can't check WordPress, show Laravel 404
             abort(404);
         }
     }
