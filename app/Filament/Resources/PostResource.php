@@ -54,16 +54,6 @@ class PostResource extends Resource
                                 'discussion' => 'Discussion',
                             ])
                             ->required(),
-                        Forms\Components\TextInput::make('meta_title')
-                            ->label('Meta Title')
-                            ->maxLength(60)
-                            ->disabled(),
-
-                        Forms\Components\Textarea::make('meta_description')
-                            ->label('Meta Description')
-                            ->maxLength(160)
-                            ->disabled()
-                            ->rows(2),
                     ])->columns(2),
 
                 Forms\Components\RichEditor::make('content')

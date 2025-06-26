@@ -31,8 +31,13 @@
             return \App\Models\WebsiteSetting::get($key, $default);
         }
     @endphp
-    <title>{{ setting('site_name') }} - {{ setting('site_tagline') }}</title>
-    <meta name="description" content="{{ setting('default_meta_description') }}">
+    <title>@yield('title', setting('site_name') . ' - ' . setting('site_tagline'))</title>
+    <meta name="description" content="@yield('meta_description', setting('default_meta_description'))">
+    <meta name="keywords" content="@yield('meta_keywords', '')">
+
+    @hasSection('og_tags')
+        @yield('og_tags')
+    @endif
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

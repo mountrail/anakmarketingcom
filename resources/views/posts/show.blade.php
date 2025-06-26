@@ -1,6 +1,16 @@
 {{-- resources/views/posts/show.blade.php --}}
 @extends('layouts.app')
+@section('title', $post->meta_title ?: $post->title . ' - ' . setting('site_name'))
+@section('meta_description', $post->meta_description ?: Str::limit(strip_tags($post->content), 160))
+@section('meta_keywords', $post->meta_keywords ?: '')
 
+@section('og_tags')
+    <meta property="og:title" content="{{ $post->meta_title ?: $post->title }}">
+    <meta property="og:description" content="{{ $post->meta_description ?: Str::limit(strip_tags($post->content), 160) }}">
+    <meta property="og:image" content="{{ $post->og_image ? Storage::url($post->og_image) : asset('images/logo.png') }}">
+    <meta property="og:url" content="{{ request()->url() }}">
+    <meta property="og:type" content="article">
+@endsection
 @section('content')
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6">
@@ -19,7 +29,9 @@
                         </div>
 
                         <!-- Post Title -->
-                        <h1 class="text-2xl font-bold mb-4 prose dark:prose-invert max-w-none break-words overflow-wrap-anywhere">{{ $post->title }}</h1>
+                        <h1
+                            class="text-2xl font-bold mb-4 prose dark:prose-invert max-w-none break-words overflow-wrap-anywhere">
+                            {{ $post->title }}</h1>
 
                         <!-- User Profile Section -->
                         <x-user-profile-info :user="$post->user" :timestamp="null" :badgeSize="10" profileSize="h-12 w-12"
