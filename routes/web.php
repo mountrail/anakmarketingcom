@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\VoteController;
+use App\Http\Controllers\WordPressFallbackController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\GoogleController;
@@ -21,6 +22,7 @@ Route::get('/home', function () {
     return redirect()->route('home');
 });
 Route::get('/posts/load-more', [PostController::class, 'loadMore'])->name('posts.load-more');
+
 // Specific type routes
 Route::get('/pertanyaan', [PostController::class, 'index'])->defaults('type', 'question')->name('posts.questions');
 Route::get('/diskusi', [PostController::class, 'index'])->defaults('type', 'discussion')->name('posts.discussions');
@@ -62,11 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding/discussion-list', [OnboardingController::class, 'discussionList'])->name('onboarding.discussion-list');
     Route::get('/onboarding/first-post', [OnboardingController::class, 'firstPost'])->name('onboarding.first-post');
     Route::get('/onboarding/follow-users', [OnboardingController::class, 'followUsers'])->name('onboarding.follow-users');
-
-    // Add this new route for claiming the final badge
     Route::post('/onboarding/claim-badge', [OnboardingController::class, 'claimBadge'])->name('onboarding.claim-badge');
-
-    // Add this route with your other onboarding routes
     Route::get('/onboarding/founding-users-badge', [OnboardingController::class, 'showFoundingUsersBadge'])->name('onboarding.founding-users-badge');
 });
 
@@ -122,7 +120,6 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComp
     // AJAX endpoints for notifications
     Route::patch('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
-    // Custom notification routes (if you want individual pages)
     Route::get('/notifications/custom/{customNotification}', [NotificationController::class, 'showCustomNotification'])
         ->name('custom-notifications.show');
 
@@ -147,10 +144,16 @@ Route::get('/sitemap.xml', function () {
     return redirect('/sitemap_index.xml', 301);
 });
 
-// DYNAMIC SLUG ROUTE MUST COME LAST
-// This catches any remaining /posts/{anything} patterns including new format: user_id/title-id
-// DYNAMIC SLUG ROUTE MUST COME LAST - Direct slug without /posts/ prefix
-Route::get('/{slug}', [PostController::class, 'show'])->name('posts.show')->where('slug', '[a-zA-Z0-9\-]+\-\d+');
+// UPDATED: Enhanced dynamic slug route with WordPress fallback
+Route::get('/{slug}', function (string $slug) {
+    // First, try Laravel Q&A post format (slug-id pattern)
+    if (preg_match('/^[a-zA-Z0-9\-]+\-\d+$/', $slug)) {
+        return app(PostController::class)->show($slug);
+    }
+
+    // If it doesn't match Laravel format, try WordPress fallback
+    return app(WordPressFallbackController::class)->handleWordPressFallback(request(), $slug);
+})->where('slug', '.*')->name('posts.show');
 
 // Include authentication routes
 require __DIR__ . '/auth.php';
