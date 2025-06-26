@@ -105,21 +105,6 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Only show flash messages as toasts on the home/index page
-            if (window.location.pathname === '/' || window.location.pathname.includes('/posts') && !window.location
-                .pathname.includes('/posts/')) {
-                @if (session('success'))
-                    toast('{{ session('success') }}', 'success');
-                @endif
-
-                @if (session('error'))
-                    toast('{{ session('error') }}', 'error');
-                @endif
-
-                @if (session('info'))
-                    toast('{{ session('info') }}', 'info');
-                @endif
-            }
 
             // Infinite Scroll Implementation
             let isLoading = false;
