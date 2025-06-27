@@ -144,6 +144,9 @@ Route::get('/sitemap.xml', function () {
     return redirect('/sitemap_index.xml', 301);
 });
 
+// Include authentication routes
+require __DIR__ . '/auth.php';
+
 // UPDATED: Enhanced dynamic slug route with WordPress fallback
 Route::get('/{slug}', function (string $slug) {
     // First, try Laravel Q&A post format (slug-id pattern)
@@ -155,5 +158,3 @@ Route::get('/{slug}', function (string $slug) {
     return app(WordPressRedirectController::class)->handleSlug($slug);
 })->where('slug', '.*')->name('posts.show');
 
-// Include authentication routes
-require __DIR__ . '/auth.php';
