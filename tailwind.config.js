@@ -31,7 +31,7 @@ export default {
             },
             colors: {
                 branding: {
-                    primary: '#FA9332',
+                    primary: '#F5881F', // F5881F or FA9332
                     dark: '#4D4D4D',
                     light: '#FFFFFF',
                     black: '#150D05',
