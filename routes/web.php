@@ -156,12 +156,16 @@ require __DIR__ . '/auth.php';
 
 // UPDATED: Enhanced dynamic slug route with WordPress fallback
 Route::get('/{slug}', function (string $slug) {
-    // First, try Laravel Q&A post format (slug-id pattern)
-    if (preg_match('/^[a-zA-Z0-9\-]+\-\d+$/', $slug)) {
-        return app(PostController::class)->show($slug);
+    // First, check if this is a WordPress slug
+    if (in_array($slug, App\Http\Controllers\WordPressRedirectController::getWordPressSlugs())) {
+        return app(App\Http\Controllers\WordPressRedirectController::class)->handleSlug($slug);
     }
 
-    // If it doesn't match Laravel format, try WordPress redirect
-    return app(WordPressRedirectController::class)->handleSlug($slug);
-})->where('slug', '.*')->name('posts.show');
+    // Then try Laravel Q&A post format (slug-id pattern)
+    if (preg_match('/^[a-zA-Z0-9\-]+\-\d+$/', $slug)) {
+        return app(App\Http\Controllers\PostController::class)->show($slug);
+    }
 
+    // If neither, return 404
+    abort(404);
+})->where('slug', '.*')->name('posts.show');
