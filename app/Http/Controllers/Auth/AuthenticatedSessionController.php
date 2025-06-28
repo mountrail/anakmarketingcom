@@ -56,7 +56,8 @@ class AuthenticatedSessionController extends Controller
             $request->authenticate();
             $request->session()->regenerate();
 
-            return redirect()->intended(RouteServiceProvider::HOME);
+            // Check for intended URL from session storage (will be handled by frontend)
+            return redirect()->intended(RouteServiceProvider::HOME)->with('login_success', true);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // This catches wrong password attempts
             return redirect()->back()

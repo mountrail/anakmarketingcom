@@ -35,6 +35,15 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-auth-action="login"]').forEach(button => {
         button.addEventListener('click', function (e) {
             e.preventDefault();
+            // Store intended URL in Laravel session
+            fetch('/store-intended-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ intended_url: window.location.href })
+            });
             window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: 'login' }));
         });
     });
@@ -45,6 +54,21 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: 'register' }));
         });
+    });
+
+    // Handle Google login links
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('a[href*="auth/google"]')) {
+            // Store intended URL before Google redirect
+            fetch('/store-intended-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ intended_url: window.location.href })
+            });
+        }
     });
 
     // Initialize Alpine.js reactivity for registration steps if it's not already available

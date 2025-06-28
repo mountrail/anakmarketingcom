@@ -144,6 +144,13 @@ Route::get('/sitemap.xml', function () {
     return redirect('/sitemap_index.xml', 301);
 });
 
+// Add this route to store intended URL
+Route::post('/store-intended-url', function (Request $request) {
+    $request->validate(['intended_url' => 'required|url']);
+    session(['url.intended' => $request->intended_url]);
+    return response()->json(['success' => true]);
+})->name('store.intended.url');
+
 // Include authentication routes
 require __DIR__ . '/auth.php';
 

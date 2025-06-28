@@ -184,7 +184,6 @@
             @endif
         });
     </script>
-
     <!-- Google Analytics (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-3QTMXJZJ2S"></script>
     <script>

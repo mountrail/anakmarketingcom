@@ -133,7 +133,7 @@ class GoogleController extends Controller
                     ->with('info', 'Silakan lengkapi profil dasar Anda terlebih dahulu.');
             }
 
-            return redirect()->intended(route('home'));
+            return redirect()->intended(route('home'))->with('login_success', true);
 
         } catch (\Exception $e) {
             \Log::error('Google sign in exception: ' . $e->getMessage());
