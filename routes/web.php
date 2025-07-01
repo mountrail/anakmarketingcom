@@ -54,8 +54,14 @@ Route::controller(GoogleController::class)->group(function () {
     Route::get('auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
 
-// Onboarding routes - Only require auth and verified, NOT onboarding.complete
+// Professional info routes - HIGHEST PRIORITY, only require auth and verified
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/professional-info', [App\Http\Controllers\ProfessionalInfoController::class, 'form'])->name('professional-info.form');
+    Route::post('/professional-info', [App\Http\Controllers\ProfessionalInfoController::class, 'store'])->name('professional-info.store');
+});
+
+// Onboarding routes - require professional info complete
+Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureProfessionalInfoComplete::class])->group(function () {
     Route::get('/onboarding/welcome', [OnboardingController::class, 'welcome'])->name('onboarding.welcome');
     Route::get('/onboarding/checklist', [OnboardingController::class, 'checklist'])->name('onboarding.checklist');
     Route::get('/onboarding/basic-profile', [OnboardingController::class, 'basicProfile'])->name('onboarding.basic-profile');
@@ -69,7 +75,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Protected routes that require completed onboarding
-Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureOnboardingComplete::class])->group(function () {
+Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureProfessionalInfoComplete::class, \App\Http\Middleware\EnsureOnboardingComplete::class])->group(function () {
     // SPECIFIC POST ROUTES FIRST - These must come before the dynamic slug route
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');

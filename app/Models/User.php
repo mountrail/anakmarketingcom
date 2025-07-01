@@ -58,6 +58,15 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser, Has
         ];
     }
 
+    // Add this method to your User model
+    public function hasProfessionalInfo(): bool
+    {
+        return !empty($this->industry) &&
+            !empty($this->seniority) &&
+            !empty($this->company_size) &&
+            !empty($this->city);
+    }
+
     public function hasVerifiedEmail()
     {
         return $this->provider === 'google' || !is_null($this->email_verified_at);

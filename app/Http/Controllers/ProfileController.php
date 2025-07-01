@@ -22,16 +22,32 @@ class ProfileController extends Controller
      */
     private function checkOnboardingRequired()
     {
-        if (auth()->check() && OnboardingController::shouldShowOnboarding(auth()->user())) {
-            if (request()->ajax() || request()->wantsJson()) {
-                return response()->json([
-                    'redirect' => route('onboarding.basic-profile'),
-                    'message' => 'Silakan lengkapi profil dasar Anda terlebih dahulu.'
-                ], 302);
+        if (auth()->check()) {
+            // First check professional info
+            if (!auth()->user()->hasProfessionalInfo()) {
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json([
+                        'redirect' => route('professional-info.form'),
+                        'message' => 'Silakan lengkapi informasi profesional Anda terlebih dahulu.'
+                    ], 302);
+                }
+
+                return redirect()->route('professional-info.form')
+                    ->with('info', 'Silakan lengkapi informasi profesional Anda terlebih dahulu.');
             }
 
-            return redirect()->route('onboarding.basic-profile')
-                ->with('info', 'Silakan lengkapi profil dasar Anda terlebih dahulu.');
+            // Then check onboarding
+            if (OnboardingController::shouldShowOnboarding(auth()->user())) {
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json([
+                        'redirect' => route('onboarding.basic-profile'),
+                        'message' => 'Silakan lengkapi profil dasar Anda terlebih dahulu.'
+                    ], 302);
+                }
+
+                return redirect()->route('onboarding.basic-profile')
+                    ->with('info', 'Silakan lengkapi profil dasar Anda terlebih dahulu.');
+            }
         }
         return null;
     }

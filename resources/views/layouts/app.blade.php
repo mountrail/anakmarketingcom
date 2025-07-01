@@ -92,6 +92,11 @@
         </main>
     </div>
 
+    {{-- Auth Modal --}}
+    @guest
+        <x-auth-modal />
+    @endguest
+
     {{-- Enhanced Toast Component - Single source of truth --}}
     <x-toast id="app-toast" />
 

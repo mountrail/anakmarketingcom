@@ -30,8 +30,7 @@
     <!-- Your page content goes here -->
 </div>
 
-{{-- Auth Modal --}}
-<x-auth-modal />
+
 
 {{-- Navigation Scripts --}}
 <x-navigation.scripts />

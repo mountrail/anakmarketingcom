@@ -25,6 +25,25 @@ class EnsureOnboardingComplete
         $user = auth()->user();
         $currentRoute = $request->route()->getName();
 
+        // ADD THIS: Check professional info first
+        if (!$user->hasProfessionalInfo()) {
+            // Skip for professional info routes
+            if (str_starts_with($currentRoute, 'professional-info.')) {
+                return $next($request);
+            }
+
+            // Redirect to professional info form
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'redirect' => route('professional-info.form'),
+                    'message' => 'Silakan lengkapi informasi profesional Anda terlebih dahulu.'
+                ], 302);
+            }
+
+            return redirect()->route('professional-info.form')
+                ->with('info', 'Silakan lengkapi informasi profesional Anda terlebih dahulu.');
+        }
+
         // Routes that are always allowed regardless of onboarding status
         $exemptRoutes = [
             'logout',
