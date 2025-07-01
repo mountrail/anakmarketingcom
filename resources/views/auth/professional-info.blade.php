@@ -4,11 +4,8 @@
     <div class="mt-24 px-6 max-w-md mx-auto">
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-branding-primary dark:text-white mb-2">
-                Lengkapi Informasi Profesional
+                One Last Step
             </h1>
-            <p class="text-gray-600 dark:text-gray-400">
-                Bantu kami mengenal Anda lebih baik dengan melengkapi informasi berikut
-            </p>
         </div>
 
         <form method="POST" action="{{ route('professional-info.store') }}">
