@@ -40,8 +40,7 @@ class GoogleController extends Controller
             $user = User::where('email', $googleUser->email)->first();
 
             $isNewUser = false;
-            $needsOnboarding = false;
-            $needsOnboarding = false;
+            $needsOnboarding = OnboardingController::shouldShowOnboarding($user);
 
             // If user doesn't exist, create a new one
             if (!$user) {
@@ -117,10 +116,17 @@ class GoogleController extends Controller
             }
 
             // Log the user in
+            // Log the user in
             Auth::login($user);
             \Log::info('User logged in successfully: ' . $user->id);
 
-            // Redirect based on onboarding status
+            // Check professional info first - HIGHEST PRIORITY
+            if (!$user->hasProfessionalInfo()) {
+                return redirect()->route('professional-info.form')
+                    ->with('info', 'Silakan lengkapi informasi profesional Anda terlebih dahulu.');
+            }
+
+            // Then check onboarding status
             if ($needsOnboarding) {
                 // For new users, redirect to welcome page (consistent with email verification flow)
                 if ($isNewUser) {
